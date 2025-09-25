@@ -1,0 +1,692 @@
+[
+  {
+    "id": "1",
+    "prix": 1150,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 75m²",
+    "surface_m2": 75,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3061606971",
+    "furnished": true
+  },
+  {
+    "id": "2",
+    "prix": 830,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 3 pièces · 65m²",
+    "surface_m2": 65,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3063907784",
+    "furnished": true
+  },
+  {
+    "id": "3",
+    "prix": 630,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 56m²",
+    "surface_m2": 56,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3064020880",
+    "furnished": true
+  },
+  {
+    "id": "4",
+    "prix": 790,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 2 pièces · 55m²",
+    "surface_m2": 55,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3051205853",
+    "furnished": true
+  },
+  {
+    "id": "5",
+    "prix": 770,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 3 pièces · 38m²",
+    "surface_m2": 38,
+    "prix_m2": 20,
+    "url": "https://www.leboncoin.fr/ad/locations/3063968831",
+    "furnished": true
+  },
+  {
+    "id": "6",
+    "prix": 595,
+    "localisation": "Brest 29200 Saint-Marc - Le Guelmeur",
+    "description": "Appartement · 2 pièces · 40m²",
+    "surface_m2": 40,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3063939699",
+    "furnished": true
+  },
+  {
+    "id": "7",
+    "prix": 565,
+    "localisation": "Brest 29200 Kérinou - Saint-Luc",
+    "description": "Appartement · 2 pièces · 31m²",
+    "surface_m2": 31,
+    "prix_m2": 18,
+    "url": "https://www.leboncoin.fr/ad/locations/3063921758",
+    "furnished": true
+  },
+  {
+    "id": "8",
+    "prix": 720,
+    "localisation": "Brest 29200 Kérinou - Saint-Luc",
+    "description": "Appartement · 3 pièces · 52m²",
+    "surface_m2": 52,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3032976863",
+    "furnished": true
+  },
+  {
+    "id": "9",
+    "prix": 720,
+    "localisation": "Brest 29200 Kérinou - Saint-Luc",
+    "description": "Appartement · 2 pièces · 48m²",
+    "surface_m2": 48,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3044416100",
+    "furnished": true
+  },
+  {
+    "id": "10",
+    "prix": 650,
+    "localisation": "Brest 29200 Landais",
+    "description": "Appartement · 3 pièces · 35m²",
+    "surface_m2": 35,
+    "prix_m2": 19,
+    "url": "https://www.leboncoin.fr/ad/locations/3041873262",
+    "furnished": true
+  },
+  {
+    "id": "11",
+    "prix": 480,
+    "localisation": "Brest 29200 Croix Rouge - Europe",
+    "description": "Appartement · 5 pièces · 96m²",
+    "surface_m2": 96,
+    "prix_m2": 5,
+    "url": "https://www.leboncoin.fr/ad/locations/3047573638",
+    "furnished": true
+  },
+  {
+    "id": "12",
+    "prix": 835,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 75m²",
+    "surface_m2": 75,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3052050867",
+    "furnished": true
+  },
+  {
+    "id": "13",
+    "prix": 1095,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 4 pièces · 88m²",
+    "surface_m2": 88,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3063812902",
+    "furnished": true
+  },
+  {
+    "id": "14",
+    "prix": 810,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 3 pièces · 64m²",
+    "surface_m2": 64,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3063806913",
+    "furnished": true
+  },
+  {
+    "id": "15",
+    "prix": 740,
+    "localisation": "Brest 29200 Dourjacq - Place de Strasbourg",
+    "description": "Appartement · 3 pièces · 49m²",
+    "surface_m2": 49,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3027174785",
+    "furnished": true
+  },
+  {
+    "id": "16",
+    "prix": 850,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 56m²",
+    "surface_m2": 56,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/2982710070",
+    "furnished": true
+  },
+  {
+    "id": "17",
+    "prix": 550,
+    "localisation": "Brest 29200 CHU - Fort du Questel",
+    "description": "Appartement · 2 pièces · 47m²",
+    "surface_m2": 47,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3023674927",
+    "furnished": true
+  },
+  {
+    "id": "18",
+    "prix": 765,
+    "localisation": "Brest 29200 Petit-Paris",
+    "description": "Appartement · 4 pièces · 61m²",
+    "surface_m2": 61,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3059327397",
+    "furnished": true
+  },
+  {
+    "id": "19",
+    "prix": 780,
+    "localisation": "Brest 29200 Saint-Pierre - Hildy",
+    "description": "Appartement · 4 pièces · 76m²",
+    "surface_m2": 76,
+    "prix_m2": 10,
+    "url": "https://www.leboncoin.fr/ad/locations/3009295181",
+    "furnished": true
+  },
+  {
+    "id": "20",
+    "prix": 630,
+    "localisation": "Brest 29200 Landais",
+    "description": "Appartement · 2 pièces · 49m²",
+    "surface_m2": 49,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3063761941",
+    "furnished": true
+  },
+  {
+    "id": "21",
+    "prix": 950,
+    "localisation": "Brest 29200 Bellevue",
+    "description": "Appartement · 3 pièces · 90m²",
+    "surface_m2": 90,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3012456824",
+    "furnished": true
+  },
+  {
+    "id": "22",
+    "prix": 890,
+    "localisation": "Brest 29200 Bellevue",
+    "description": "Appartement · 5 pièces · 77m²",
+    "surface_m2": 77,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3021326995",
+    "furnished": true
+  },
+  {
+    "id": "23",
+    "prix": 660,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 2 pièces · 52m²",
+    "surface_m2": 52,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3051020525",
+    "furnished": true
+  },
+  {
+    "id": "24",
+    "prix": 695,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 3 pièces · 69m²",
+    "surface_m2": 69,
+    "prix_m2": 10,
+    "url": "https://www.leboncoin.fr/ad/locations/3050163851",
+    "furnished": true
+  },
+  {
+    "id": "25",
+    "prix": 650,
+    "localisation": "Brest 29200 Kérinou - Saint-Luc",
+    "description": "Appartement · 2 pièces · 47m²",
+    "surface_m2": 47,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3063457576",
+    "furnished": true
+  },
+  {
+    "id": "26",
+    "prix": 780,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 51m²",
+    "surface_m2": 51,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3049305637",
+    "furnished": true
+  },
+  {
+    "id": "27",
+    "prix": 770,
+    "localisation": "Brest 29200 Facultés - Kergoat",
+    "description": "Appartement · 3 pièces · 72m²",
+    "surface_m2": 72,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3038073121",
+    "furnished": true
+  },
+  {
+    "id": "28",
+    "prix": 550,
+    "localisation": "Brest 29200 Moulin Blanc - Port",
+    "description": "Appartement · 2 pièces · 36m²",
+    "surface_m2": 36,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3063371574",
+    "furnished": true
+  },
+  {
+    "id": "29",
+    "prix": 420,
+    "localisation": "Brest 29200 Bellevue",
+    "description": "Appartement · 5 pièces · 98m²",
+    "surface_m2": 98,
+    "prix_m2": 4,
+    "url": "https://www.leboncoin.fr/ad/locations/3049654766",
+    "furnished": true
+  },
+  {
+    "id": "30",
+    "prix": 631,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 46m²",
+    "surface_m2": 46,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3059739387",
+    "furnished": true
+  },
+  {
+    "id": "31",
+    "prix": 1280,
+    "localisation": "Brest 29200 Croix Rouge - Europe",
+    "description": "Appartement · 5 pièces · 96m²",
+    "surface_m2": 96,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/2988460708",
+    "furnished": true
+  },
+  {
+    "id": "32",
+    "prix": 481,
+    "localisation": "Brest 29200 Kerichen - Petit Kerzu",
+    "description": "Appartement · 3 pièces · 35m²",
+    "surface_m2": 35,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3052801166",
+    "furnished": true
+  },
+  {
+    "id": "33",
+    "prix": 735,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 50m²",
+    "surface_m2": 50,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3047204847",
+    "furnished": true
+  },
+  {
+    "id": "34",
+    "prix": 800,
+    "localisation": "Brest 29200 Croix Rouge - Europe",
+    "description": "Appartement · 3 pièces · 78m²",
+    "surface_m2": 78,
+    "prix_m2": 10,
+    "url": "https://www.leboncoin.fr/ad/locations/3025374736",
+    "furnished": true
+  },
+  {
+    "id": "35",
+    "prix": 750,
+    "localisation": "Brest 29200 Kérinou - Saint-Luc",
+    "description": "Appartement · 3 pièces · 50m²",
+    "surface_m2": 50,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3063179582",
+    "furnished": true
+  },
+  {
+    "id": "1",
+    "prix": 790,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Maison · 4 pièces · 82m²",
+    "surface_m2": 82,
+    "prix_m2": 10,
+    "url": "https://www.leboncoin.fr/ad/locations/3016957047",
+    "furnished": false
+  },
+  {
+    "id": "2",
+    "prix": 790,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 74m²",
+    "surface_m2": 74,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3064014302",
+    "furnished": false
+  },
+  {
+    "id": "3",
+    "prix": 780,
+    "localisation": "Brest 29200 Saint-Marc - Le Guelmeur",
+    "description": "Appartement · 3 pièces · 66m²",
+    "surface_m2": 66,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3058668236",
+    "furnished": false
+  },
+  {
+    "id": "4",
+    "prix": 700,
+    "localisation": "Brest 29200 Saint-Martin",
+    "description": "Appartement · 3 pièces · 53m²",
+    "surface_m2": 53,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3007004474",
+    "furnished": false
+  },
+  {
+    "id": "5",
+    "prix": 567,
+    "localisation": "Brest 29200 Facultés - Kergoat",
+    "description": "Appartement · 4 pièces · 74m²",
+    "surface_m2": 74,
+    "prix_m2": 8,
+    "url": "https://www.leboncoin.fr/ad/locations/3064002302",
+    "furnished": false
+  },
+  {
+    "id": "6",
+    "prix": 750,
+    "localisation": "Brest 29200",
+    "description": "Appartement · 3 pièces · 79m²",
+    "surface_m2": 79,
+    "prix_m2": 9,
+    "url": "https://www.leboncoin.fr/ad/locations/3064001173",
+    "furnished": false
+  },
+  {
+    "id": "7",
+    "prix": 750,
+    "localisation": "Brest 29200",
+    "description": "Appartement · 3 pièces · 79m²",
+    "surface_m2": 79,
+    "prix_m2": 9,
+    "url": "https://www.leboncoin.fr/ad/locations/3064001172",
+    "furnished": false
+  },
+  {
+    "id": "8",
+    "prix": 795,
+    "localisation": "Brest 29200 Landais",
+    "description": "Appartement · 4 pièces · 72m²",
+    "surface_m2": 72,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3005894953",
+    "furnished": false
+  },
+  {
+    "id": "9",
+    "prix": 1500,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 4 pièces · 130m²",
+    "surface_m2": 130,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3028300521",
+    "furnished": false
+  },
+  {
+    "id": "10",
+    "prix": 530,
+    "localisation": "Brest 29200 Les Quatre Moulins",
+    "description": "Appartement · 2 pièces · 29m²",
+    "surface_m2": 29,
+    "prix_m2": 18,
+    "url": "https://www.leboncoin.fr/ad/locations/3058934740",
+    "furnished": false
+  },
+  {
+    "id": "11",
+    "prix": 550,
+    "localisation": "Brest 29200 Petit-Paris",
+    "description": "Appartement · 2 pièces · 25m²",
+    "surface_m2": 25,
+    "prix_m2": 22,
+    "url": "https://www.leboncoin.fr/ad/locations/3058915237",
+    "furnished": false
+  },
+  {
+    "id": "12",
+    "prix": 685,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 47m²",
+    "surface_m2": 47,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3059818929",
+    "furnished": false
+  },
+  {
+    "id": "13",
+    "prix": 795,
+    "localisation": "Brest 29200 Saint-Marc - Le Guelmeur",
+    "description": "Appartement · 3 pièces · 66m²",
+    "surface_m2": 66,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3039766860",
+    "furnished": false
+  },
+  {
+    "id": "14",
+    "prix": 550,
+    "localisation": "Brest 29200 Petit-Paris",
+    "description": "Appartement · 2 pièces · 25m²",
+    "surface_m2": 25,
+    "prix_m2": 22,
+    "url": "https://www.leboncoin.fr/ad/locations/3058915236",
+    "furnished": false
+  },
+  {
+    "id": "15",
+    "prix": 930,
+    "localisation": "Brest 29200 Les Quatre Moulins",
+    "description": "Appartement · 4 pièces · 94m²",
+    "surface_m2": 94,
+    "prix_m2": 10,
+    "url": "https://www.leboncoin.fr/ad/locations/3054514512",
+    "furnished": false
+  },
+  {
+    "id": "16",
+    "prix": 1000,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 5 pièces · 117m²",
+    "surface_m2": 117,
+    "prix_m2": 9,
+    "url": "https://www.leboncoin.fr/ad/locations/3054291012",
+    "furnished": false
+  },
+  {
+    "id": "17",
+    "prix": 1300,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Maison · 4 pièces · 108m²",
+    "surface_m2": 108,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3060137602",
+    "furnished": false
+  },
+  {
+    "id": "18",
+    "prix": 690,
+    "localisation": "Brest 29200 Les Quatre Moulins",
+    "description": "Appartement · 2 pièces · 49m²",
+    "surface_m2": 49,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3045568445",
+    "furnished": false
+  },
+  {
+    "id": "19",
+    "prix": 808,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 70m²",
+    "surface_m2": 70,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3055640755",
+    "furnished": false
+  },
+  {
+    "id": "20",
+    "prix": 660,
+    "localisation": "Brest 29200 Lambézellec",
+    "description": "Appartement · 3 pièces · 47m²",
+    "surface_m2": 47,
+    "prix_m2": 14,
+    "url": "https://www.leboncoin.fr/ad/locations/3063839044",
+    "furnished": false
+  },
+  {
+    "id": "21",
+    "prix": 740,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 55m²",
+    "surface_m2": 55,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3036429557",
+    "furnished": false
+  },
+  {
+    "id": "22",
+    "prix": 940,
+    "localisation": "Brest 29200 Kerichen - Petit Kerzu",
+    "description": "Appartement · 4 pièces · 82m²",
+    "surface_m2": 82,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3012978773",
+    "furnished": false
+  },
+  {
+    "id": "23",
+    "prix": 810,
+    "localisation": "Brest 29200 Kérinou - Saint-Luc",
+    "description": "Appartement · 3 pièces · 68m²",
+    "surface_m2": 68,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3041750612",
+    "furnished": false
+  },
+  {
+    "id": "24",
+    "prix": 915,
+    "localisation": "Brest 29200 Kerbonne - La Corniche",
+    "description": "Appartement · 4 pièces · 86m²",
+    "surface_m2": 86,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3063793567",
+    "furnished": false
+  },
+  {
+    "id": "25",
+    "prix": 690,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 2 pièces · 47m²",
+    "surface_m2": 47,
+    "prix_m2": 15,
+    "url": "https://www.leboncoin.fr/ad/locations/3063944131",
+    "furnished": false
+  },
+  {
+    "id": "26",
+    "prix": 565,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 2 pièces · 43m²",
+    "surface_m2": 43,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3051522356",
+    "furnished": false
+  },
+  {
+    "id": "27",
+    "prix": 730,
+    "localisation": "Brest 29200 Bellevue",
+    "description": "Appartement · 3 pièces · 76m²",
+    "surface_m2": 76,
+    "prix_m2": 10,
+    "url": "https://www.leboncoin.fr/ad/locations/2992703981",
+    "furnished": false
+  },
+  {
+    "id": "28",
+    "prix": 790,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 60m²",
+    "surface_m2": 60,
+    "prix_m2": 13,
+    "url": "https://www.leboncoin.fr/ad/locations/3063717860",
+    "furnished": false
+  },
+  {
+    "id": "29",
+    "prix": 900,
+    "localisation": "Brest 29200 Centre-ville - Triangle d'Or",
+    "description": "Appartement · 3 pièces · 82m²",
+    "surface_m2": 82,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3032531234",
+    "furnished": false
+  },
+  {
+    "id": "30",
+    "prix": 825,
+    "localisation": "Brest 29200 Facultés - Kergoat",
+    "description": "Appartement · 3 pièces · 72m²",
+    "surface_m2": 72,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3032580852",
+    "furnished": false
+  },
+  {
+    "id": "31",
+    "prix": 795,
+    "localisation": "Brest 29200 Recouvrance - Capucins",
+    "description": "Appartement · 3 pièces · 67m²",
+    "surface_m2": 67,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3063687164",
+    "furnished": false
+  },
+  {
+    "id": "32",
+    "prix": 690,
+    "localisation": "Brest 29200 Kerichen - Petit Kerzu",
+    "description": "Appartement · 3 pièces · 62m²",
+    "surface_m2": 62,
+    "prix_m2": 11,
+    "url": "https://www.leboncoin.fr/ad/locations/3032450698",
+    "furnished": false
+  },
+  {
+    "id": "33",
+    "prix": 750,
+    "localisation": "Brest 29200 Saint-Michel",
+    "description": "Appartement · 3 pièces · 64m²",
+    "surface_m2": 64,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3050189562",
+    "furnished": false
+  },
+  {
+    "id": "34",
+    "prix": 528,
+    "localisation": "Brest 29200 Kérourien",
+    "description": "Appartement · 2 pièces · 43m²",
+    "surface_m2": 43,
+    "prix_m2": 12,
+    "url": "https://www.leboncoin.fr/ad/locations/3055974157",
+    "furnished": false
+  }
+]

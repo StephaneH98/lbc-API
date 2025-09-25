@@ -34,6 +34,14 @@ def extract_price(price_text):
         print(f"Erreur de conversion du prix '{price_text}': {e}")
         return None
 
+def extract_pieces(description):
+    """Extrait le nombre de pièces de la description"""
+    if not description:
+        return None
+    import re
+    match = re.search(r'(\d+)\s*pi[èe]ce', description, re.IGNORECASE)
+    return int(match.group(1)) if match else None
+
 def extract_announcement_data(ad, annonce_id):
     """Extrait les données d'une annonce"""
     data = {
@@ -43,6 +51,7 @@ def extract_announcement_data(ad, annonce_id):
         'description': None,
         'surface_m2': None,
         'prix_m2': None,
+        'pieces': None,  # Nombre de pièces
         'url': None
     }
     
@@ -73,6 +82,7 @@ def extract_announcement_data(ad, annonce_id):
             if 'm²' in text:
                 data['description'] = text.strip()
                 data['surface_m2'] = extract_surface_m2(text)
+                data['pieces'] = extract_pieces(text)
                 break
         
         # Extraire l'URL de l'annonce

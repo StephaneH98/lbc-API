@@ -154,11 +154,15 @@ def display_announcements_table(announcements):
         difference = (loyer_mensuel - mensualite) if loyer_mensuel > 0 and mensualite > 0 else None
         difference_str = format_price(int(difference)) if difference is not None else 'N/A'
         
+        # Récupérer le nombre de pièces depuis les données de l'annonce
+        pieces = annonce.get('pieces', 'N/A')
+        
         table_data.append([
             annonce.get('id', 'N/A'),
             annonce.get('localisation', 'N/A'),
             format_price(prix_annonce),
             format_surface(annonce.get('surface_m2', 0)),
+            pieces,
             format_price(annonce.get('prix_m2', 0)) + '/m²',
             format_price(int(mensualite)) if mensualite > 0 else 'N/A',
             difference_str,
@@ -166,7 +170,7 @@ def display_announcements_table(announcements):
         ])
     
     # En-têtes du tableau
-    headers = ["ID", "Localisation", "Prix", "Surface", "Prix/m²", "Mensualité (3.5% - 25 ans)", "Différence (loyer - mensualité)", "Description"]
+    headers = ["ID", "Localisation", "Prix", "Surface", "Pièces", "Prix/m²", "Mensualité (3.5% - 25 ans)", "Différence (loyer - mensualité)", "Description"]
     
     # Afficher le tableau
     separator = '=' * DISPLAY_CONFIG['page_width']

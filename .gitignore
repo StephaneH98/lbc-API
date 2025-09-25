@@ -1,0 +1,29 @@
+# Fichiers de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Fichiers de données JSON
+*.json
+!requirements.txt
+
+# Fichiers HTML de sauvegarde
+*.html
+
+# Environnements virtuels
+venv/
+env/
+ENV/
+
+# Fichiers de configuration locaux
+.env
+
+# Fichiers de l'IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers système
+.DS_Store
+Thumbs.db

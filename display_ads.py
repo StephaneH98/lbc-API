@@ -253,15 +253,37 @@ def display_announcements_table(announcements, rental_stats=None):
         # Récupérer le nombre de pièces depuis les données de l'annonce
         pieces = annonce.get('pieces', 'N/A')
         
-        # Formater la date de parution
-        date_publication = annonce.get('date_publication', 'N/A')
+        # Calculer le temps écoulé depuis la publication
+        temps_ecoule = 'N/A'
+        date_publication = annonce.get('date_publication')
         if date_publication and date_publication != 'N/A':
             try:
-                # Convertir la date ISO en format plus lisible (JJ/MM/AAAA)
-                date_obj = datetime.strptime(date_publication, "%Y-%m-%d")
-                date_publication = date_obj.strftime("%d/%m/%Y")
-            except (ValueError, TypeError):
-                pass
+                date_pub = datetime.strptime(date_publication, "%Y-%m-%d").date()
+                aujourdhui = datetime.now().date()
+                delta = aujourdhui - date_pub
+                
+                ans = delta.days // 365
+                mois = (delta.days % 365) // 30
+                jours = delta.days % 30
+                
+                if ans > 0:
+                    temps_ecoule = f"il y a {ans} an{'s' if ans > 1 else ''}"
+                    if mois > 0:
+                        temps_ecoule += f" et {mois} mois"
+                elif mois > 0:
+                    temps_ecoule = f"il y a {mois} mois"
+                    if jours > 0:
+                        temps_ecoule += f" et {jours} jour{'s' if jours > 1 else ''}"
+                else:
+                    if delta.days == 0:
+                        temps_ecoule = "aujourd'hui"
+                    elif delta.days == 1:
+                        temps_ecoule = "hier"
+                    else:
+                        temps_ecoule = f"il y a {delta.days} jour{'s' if delta.days > 1 else ''}"
+                        
+            except (ValueError, TypeError) as e:
+                temps_ecoule = 'N/A'
         
         table_data.append([
             annonce.get('id', 'N/A'),
@@ -272,14 +294,14 @@ def display_announcements_table(announcements, rental_stats=None):
             format_price(annonce.get('prix_m2', 0)) + '/m²',
             format_price(int(mensualite)) if mensualite > 0 else 'N/A',
             difference_str,
-            date_publication,
+            temps_ecoule,
             annonce.get('description', 'N/A')
         ])
     
     # En-têtes du tableau
     headers = ["ID", "Localisation", "Prix", "Surface", "Pièces", "Prix/m²", 
                "Mensualité (3.5% - 25 ans)", "Différence (loyer - mensualité)", 
-               "Date de parution", "Description"]
+               "Publié il y a", "Description"]
     
     # Afficher le tableau
     separator = '=' * DISPLAY_CONFIG['page_width']

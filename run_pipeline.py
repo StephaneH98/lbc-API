@@ -139,10 +139,27 @@ def get_location_from_user():
             
         print("Veuillez réessayer avec un autre nom de ville ou code postal.")
 
+def parse_arguments():
+    """Parse les arguments en ligne de commande"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Pipeline de récupération et d\'analyse des annonces immobilières')
+    parser.add_argument('--vente', type=str, help='Chemin vers le fichier JSON des annonces de vente')
+    parser.add_argument('--location', type=str, help='Chemin vers le fichier JSON des annonces de location')
+    parser.add_argument('--max-price', type=int, help='Prix maximum pour le filtrage')
+    parser.add_argument('--min-surface', type=int, help='Surface minimale pour le filtrage')
+    parser.add_argument('--location-ville', type=str, help='Localisation pour le filtrage')
+    
+    return parser.parse_args()
+
 def main():
+    # Parser les arguments en ligne de commande
+    args = parse_arguments()
+    
     # Fichiers temporaires
     html_file = "page_telechargee.html"
-    json_file = "annonces_data.json"
+    json_file = args.vente if args.vente else "annonces_data.json"
+    rental_json_file = args.location if args.location else "locations_data.json"
     
     try:
         # 1. Construction de l'URL
@@ -158,28 +175,39 @@ def main():
         # Liste pour stocker les localisations ajoutées
         locations = []
         
-        # Demander les localisations à l'utilisateur
-        print("\nAjoutez une ou plusieurs villes pour votre recherche :")
-        
-        while True:
-            city_info = get_location_from_user()
-            if not city_info:
-                if not locations:
-                    print("Veuvez ajouter au moins une localisation.")
-                    continue
-                break
+        # Utiliser la localisation fournie en argument ou demander à l'utilisateur
+        if args.location_ville:
+            print(f"\nUtilisation de la localisation fournie : {args.location_ville}")
+            city_info = get_city_coordinates(args.location_ville)
+            if city_info:
+                locations.append(city_info)
+                print(f"Localisation ajoutée : {city_info['name']} ({city_info['postcode']}) - {city_info['latitude']}, {city_info['longitude']}")
+            else:
+                print(f"Impossible de trouver les coordonnées pour : {args.location_ville}")
+                sys.exit(1)
+        else:
+            # Demander les localisations à l'utilisateur
+            print("\nAjoutez une ou plusieurs villes pour votre recherche :")
+            
+            while True:
+                city_info = get_location_from_user()
+                if not city_info:
+                    if not locations:
+                        print("Veuvez ajouter au moins une localisation.")
+                        continue
+                    break
+                    
+                # Ajouter la localisation à la liste
+                locations.append(city_info)
                 
-            # Ajouter la localisation à la liste
-            locations.append(city_info)
-            
-            # Afficher un résumé des localisations ajoutées
-            print("\nLocalisations actuelles :")
-            for i, loc in enumerate(locations, 1):
-                print(f"{i}. {loc['name']} ({loc['postcode']}) - {loc['latitude']}, {loc['longitude']}")
-            
-            # Demander si l'utilisateur veut ajouter une autre localisation
-            if input("\nVoulez-vous ajouter une autre localisation ? (o/n) ").lower() != 'o':
-                break
+                # Afficher un résumé des localisations ajoutées
+                print("\nLocalisations actuelles :")
+                for i, loc in enumerate(locations, 1):
+                    print(f"{i}. {loc['name']} ({loc['postcode']}) - {loc['latitude']}, {loc['longitude']}")
+                
+                # Demander si l'utilisateur veut ajouter une autre localisation
+                if input("\nVoulez-vous ajouter une autre localisation ? (o/n) ").lower() != 'o':
+                    break
         
         # Afficher un résumé des localisations sélectionnées
         print("\n" + "=" * 80)
@@ -363,14 +391,55 @@ def main():
         print("\n" + "=" * 80)
         print("ÉTAPE 6/6 : Affichage des annonces")
         print("=" * 80)
-        from display_ads import display_announcements_table, load_announcements
         
-        print(f"Chargement des annonces depuis : {json_file}")
-        announcements = load_announcements(json_file)
-        if announcements:
-            display_announcements_table(announcements)
-        else:
-            print("Aucune annonce à afficher")
+        # Préparer les arguments pour display_ads.py
+        # Utiliser le chemin complet vers Python et le script
+        import sys
+        python_exec = sys.executable
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "display_ads.py")
+        
+        cmd = [python_exec, script_path]
+        
+        # Ajouter les arguments si spécifiés
+        if args.vente:
+            cmd.append(f"--vente={args.vente}")
+        if args.location:
+            cmd.append(f"--location={args.location}")
+        if args.max_price:
+            cmd.append("--max-price")
+            cmd.append(str(args.max_price))
+        if args.min_surface:
+            cmd.append("--min-surface")
+            cmd.append(str(args.min_surface))
+        if args.location_ville:
+            cmd.append("--location-ville")
+            cmd.append(args.location_ville)
+        
+        # Afficher la commande pour le débogage
+        print("\nExécution de la commande :", " ".join(f'"{arg}"' if ' ' in arg else arg for arg in cmd))
+        
+        # Configurer le répertoire de travail pour éviter les problèmes avec les chemins UNC
+        cwd = os.path.dirname(os.path.abspath(__file__))
+        
+        try:
+            # Utiliser shell=True avec un chemin complet pour éviter les problèmes de chemins UNC
+            if os.name == 'nt':  # Windows
+                cmd_str = ' '.join(f'"{arg}"' if ' ' in arg else arg for arg in cmd)
+                subprocess.run(cmd_str, check=True, shell=True, cwd=cwd)
+            else:
+                subprocess.run(cmd, check=True, cwd=cwd)
+                
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'affichage des annonces : {e}")
+            print(f"Code de sortie : {e.returncode}")
+            if e.stdout:
+                print("Sortie standard :", e.stdout)
+            if e.stderr:
+                print("Erreur standard :", e.stderr)
+        except FileNotFoundError:
+            print(f"Erreur : Le fichier {script_path} est introuvable")
+        except Exception as e:
+            print(f"Erreur inattendue : {e}")
         
         print("\n" + "=" * 80)
         print("PIPELINE TERMINÉ AVEC SUCCÈS")

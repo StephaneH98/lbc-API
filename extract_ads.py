@@ -1,8 +1,62 @@
 import json
 import re
 import sys
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import uuid  # Pour générer des IDs uniques
+
+def parse_date(date_text):
+    """
+    Convertit une date textuelle de Le Bon Coin en date au format ISO (sans heure).
+    
+    Args:
+        date_text (str): Date au format texte (ex: "Aujourd'hui, 15:30", "Hier, 09:15", "Il y a 3 jours")
+        
+    Returns:
+        str: Date au format ISO (ex: "2023-09-26") ou None en cas d'erreur
+    """
+    if not date_text:
+        return None
+    
+    date_text = date_text.strip()
+    today = datetime.now().date()
+    
+    try:
+        # Cas 1: "Aujourd'hui" ou "Aujourd'hui, HH:MM"
+        if 'aujourd' in date_text.lower():
+            return today.isoformat()
+        
+        # Cas 2: "Hier" ou "Hier, HH:MM"
+        elif 'hier' in date_text.lower():
+            return (today - timedelta(days=1)).isoformat()
+        
+        # Cas 3: "Il y a X jours"
+        elif 'jour' in date_text.lower():
+            days_ago = int(re.search(r'\d+', date_text).group())
+            return (today - timedelta(days=days_ago)).isoformat()
+        
+        # Cas 4: Date complète (ex: "25 sept. 2023 à 14:30")
+        elif 'à' in date_text:
+            # Essayer de parser avec le format complet mais ne garder que la date
+            try:
+                date_obj = datetime.strptime(date_text.split('à')[0].strip(), "%d %b %Y")
+                return date_obj.date().isoformat()
+            except ValueError:
+                pass
+        
+        # Cas 5: Date seule (ex: "25 sept. 2023")
+        try:
+            date_obj = datetime.strptime(date_text, "%d %b %Y")
+            return date_obj.date().isoformat()
+        except ValueError:
+            pass
+        
+        # Si aucun format ne correspond, retourner la date d'aujourd'hui
+        return today.isoformat()
+    
+    except Exception as e:
+        print(f"Erreur lors du parsing de la date '{date_text}': {e}")
+        return None
 
 def extract_surface_m2(surface_text):
     """Extrait la surface en m² à partir du texte de surface"""
@@ -52,7 +106,8 @@ def extract_announcement_data(ad, annonce_id):
         'surface_m2': None,
         'prix_m2': None,
         'pieces': None,  # Nombre de pièces
-        'url': None
+        'url': None,
+        'date_publication': None  # Date de publication de l'annonce
     }
     
     try:
@@ -95,6 +150,15 @@ def extract_announcement_data(ad, annonce_id):
         # Calculer le prix au m² si on a le prix et la surface
         if data['prix'] and data['surface_m2'] and data['surface_m2'] > 0:
             data['prix_m2'] = round(data['prix'] / data['surface_m2'])
+        
+        # Extraire et formater la date de publication
+        date_elem = ad.find('p', class_=lambda x: x and 'text-caption' in x and ('text-neutral' in x or 'text-grey' in x))
+        if date_elem:
+            date_text = date_elem.get_text(strip=True)
+            # Nettoyer le texte de la date
+            date_text = ' '.join(word for word in date_text.split() if word != '·')
+            # Convertir la date en format ISO
+            data['date_publication'] = parse_date(date_text)
         
         # Vérifier si les champs requis sont présents
         required_fields = ['prix', 'localisation', 'description', 'url']

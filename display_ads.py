@@ -1,8 +1,9 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import json
 import sys
 import math
 import io
+from datetime import datetime, timedelta
 from tabulate import tabulate
 
 # Configuration de l'encodage pour la console
@@ -252,6 +253,16 @@ def display_announcements_table(announcements, rental_stats=None):
         # Récupérer le nombre de pièces depuis les données de l'annonce
         pieces = annonce.get('pieces', 'N/A')
         
+        # Formater la date de parution
+        date_publication = annonce.get('date_publication', 'N/A')
+        if date_publication and date_publication != 'N/A':
+            try:
+                # Convertir la date ISO en format plus lisible (JJ/MM/AAAA)
+                date_obj = datetime.strptime(date_publication, "%Y-%m-%d")
+                date_publication = date_obj.strftime("%d/%m/%Y")
+            except (ValueError, TypeError):
+                pass
+        
         table_data.append([
             annonce.get('id', 'N/A'),
             annonce.get('localisation', 'N/A'),
@@ -261,12 +272,14 @@ def display_announcements_table(announcements, rental_stats=None):
             format_price(annonce.get('prix_m2', 0)) + '/m²',
             format_price(int(mensualite)) if mensualite > 0 else 'N/A',
             difference_str,
+            date_publication,
             annonce.get('description', 'N/A')
         ])
     
     # En-têtes du tableau
     headers = ["ID", "Localisation", "Prix", "Surface", "Pièces", "Prix/m²", 
-               "Mensualité (3.5% - 25 ans)", "Différence (loyer - mensualité)", "Description"]
+               "Mensualité (3.5% - 25 ans)", "Différence (loyer - mensualité)", 
+               "Date de parution", "Description"]
     
     # Afficher le tableau
     separator = '=' * DISPLAY_CONFIG['page_width']

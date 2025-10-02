@@ -5,6 +5,14 @@ frontend:
     build:
       commands:
         - echo "Déploiement du frontend statique"
+        - |
+          cat > env.js << EOF
+          window.ENV = {
+            API_URL: '${API_URL}',
+            BUCKET_NAME: '${BUCKET_NAME}',
+            REGION: '${REGION}'
+          };
+          EOF
   artifacts:
     baseDirectory: public
     files:

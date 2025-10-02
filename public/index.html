@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📂 Visualiseur de fichiers S3</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📂 Visualiseur de fichiers S3</h1>
+            <p class="subtitle">Sélectionnez et visualisez vos fichiers JSON</p>
+        </header>
+
+        <!-- Section de configuration -->
+        <div class="config-section">
+            <label for="api-url">🔗 URL de l'API Backend:</label>
+            <input 
+                type="text" 
+                id="api-url" 
+                value="http://localhost:5000"
+                placeholder="http://localhost:5000"
+            >
+            <button id="test-connection" class="btn btn-secondary">
+                🔍 Tester la connexion
+            </button>
+        </div>
+
+        <!-- Status de connexion -->
+        <div id="connection-status" class="status hidden"></div>
+
+        <!-- Section de sélection des fichiers -->
+        <div class="file-selection-section">
+            <div class="section-header">
+                <h2>📁 Fichiers disponibles</h2>
+                <button id="refresh-files" class="btn btn-secondary">
+                    🔄 Rafraîchir
+                </button>
+            </div>
+
+            <!-- Liste des fichiers (menu déroulant) -->
+            <div class="dropdown-container">
+                <label for="file-select">Sélectionnez un ou plusieurs fichiers:</label>
+                <select id="file-select" multiple size="8">
+                    <option value="" disabled>Chargement des fichiers...</option>
+                </select>
+                <p class="helper-text">💡 Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs fichiers</p>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="action-buttons">
+                <button id="view-files" class="btn btn-primary" disabled>
+                    👁️ Afficher les fichiers sélectionnés
+                </button>
+                <button id="clear-selection" class="btn btn-secondary" disabled>
+                    🗑️ Effacer la sélection
+                </button>
+            </div>
+
+            <!-- Info sur la sélection -->
+            <div id="selection-info" class="info-box hidden"></div>
+        </div>
+
+        <!-- Section d'affichage du contenu -->
+        <div id="content-section" class="content-section hidden">
+            <div class="section-header">
+                <h2>📄 Contenu des fichiers</h2>
+                <button id="close-content" class="btn btn-secondary">
+                    ✖️ Fermer
+                </button>
+            </div>
+
+            <!-- Zone d'affichage -->
+            <div id="content-display"></div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="loader hidden">
+            <div class="spinner"></div>
+            <p>Chargement en cours...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

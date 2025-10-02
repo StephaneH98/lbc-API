@@ -9,7 +9,7 @@ __pycache__/
 data/
 
 # Fichiers HTML de sauvegarde
-*.html
+data/*.html
 
 # Environnements virtuels
 venv/

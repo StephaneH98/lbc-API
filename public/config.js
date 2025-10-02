@@ -2,17 +2,10 @@
 // Ce fichier sera modifié après le déploiement de l'API
 
 const CONFIG = {
-    // URL de l'API Gateway (à modifier après déploiement Lambda)
-    API_URL: 'https://rqqxec0dsc.execute-api.eu-west-3.amazonaws.com/dev',
-    
-    // Nom du bucket S3
-    BUCKET_NAME: 'bucket-test-new-app',
-    
-    // Région AWS
-    AWS_REGION: 'eu-west-3',
-    
-    // Environnement
-    ENVIRONMENT: 'production'
+    API_URL: window.ENV?.API_URL || 'http://localhost:5000',
+    BUCKET_NAME: window.ENV?.BUCKET_NAME || 'bucket-test-new-app',
+    AWS_REGION: window.ENV?.AWS_REGION || 'eu-west-3',
+    ENVIRONMENT: 'dev'
 };
 
 // Export pour utilisation dans script.js

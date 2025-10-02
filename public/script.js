@@ -62,7 +62,7 @@ async function testConnection() {
     try {
         console.log('🔍 Test de connexion à:', API_URL);
         
-        const response = await fetch(`${API_URL}/api/health`);
+        const response = await fetch(`${API_URL}/health`);
         const data = await response.json();
         
         if (response.ok) {
@@ -88,7 +88,7 @@ async function loadFiles() {
     try {
         console.log('📂 Chargement des fichiers...');
         
-        const response = await fetch(`${API_URL}/api/files`);
+        const response = await fetch(`${API_URL}/files`);
         const data = await response.json();
         
         if (!response.ok) {
@@ -187,7 +187,7 @@ async function viewSelectedFiles() {
 async function loadSingleFile(filename) {
     console.log('📥 Chargement de:', filename);
     
-    const response = await fetch(`${API_URL}/api/file/${encodeURIComponent(filename)}`);
+    const response = await fetch(`${API_URL}/file/${encodeURIComponent(filename)}`);
     const data = await response.json();
     
     if (!response.ok) {

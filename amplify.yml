@@ -1,0 +1,13 @@
+version: 1
+frontend:
+  phases:
+    # Pas besoin de build pour du HTML/CSS/JS statique
+    build:
+      commands:
+        - echo "Déploiement du frontend statique"
+  artifacts:
+    baseDirectory: public
+    files:
+      - '**/*'
+  cache:
+    paths: []

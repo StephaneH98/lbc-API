@@ -4,7 +4,7 @@
 const CONFIG = {
     API_URL: window.ENV?.API_URL || 'http://localhost:5000',
     BUCKET_NAME: window.ENV?.BUCKET_NAME || 'bucket-test-new-app',
-    AWS_REGION: window.ENV?.AWS_REGION || 'eu-west-3',
+    AWS_REGION: window.ENV?.REGION || 'eu-west-3',
     ENVIRONMENT: 'dev'
 };
 

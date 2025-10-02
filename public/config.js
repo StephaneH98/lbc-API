@@ -3,7 +3,7 @@
 
 const CONFIG = {
     // URL de l'API Gateway (à modifier après déploiement Lambda)
-    API_URL: 'https://VOTRE_API_ID.execute-api.eu-west-3.amazonaws.com/prod',
+    API_URL: 'https://rqqxec0dsc.execute-api.eu-west-3.amazonaws.com/dev',
     
     // Nom du bucket S3
     BUCKET_NAME: 'bucket-test-new-app',

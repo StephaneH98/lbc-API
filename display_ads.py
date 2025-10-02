@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import json
 import sys
 import math
@@ -20,15 +20,15 @@ prix_moyen_par_pieces = {}
 
 def calculer_mensualite(montant, taux_annuel, duree_annees):
     """
-    Calcule la mensualitÃ© d'un prÃªt immobilier
+    Calcule la mensualit© d'un prªt immobilier
     
     Args:
-        montant (float): Montant du prÃªt en euros
-        taux_annuel (float): Taux d'intÃ©rÃªt annuel (en pourcentage, ex: 3.5 pour 3.5%)
-        duree_annees (int): DurÃ©e du prÃªt en annÃ©es
+        montant (float): Montant du prªt en euros
+        taux_annuel (float): Taux d'int©rªt annuel (en pourcentage, ex: 3.5 pour 3.5%)
+        duree_annees (int): Dur©e du prªt en ann©es
         
     Returns:
-        float: Montant de la mensualitÃ©
+        float: Montant de la mensualit©
     """
     if montant <= 0 or taux_annuel <= 0 or duree_annees <= 0:
         return 0.0
@@ -36,11 +36,11 @@ def calculer_mensualite(montant, taux_annuel, duree_annees):
     taux_mensuel = (taux_annuel / 100) / 12
     nb_mensualites = duree_annees * 12
     
-    # ÃEviter la division par zÃ©ro
+    # Eviter la division par z©ro
     if taux_mensuel == 0:
         return montant / nb_mensualites
         
-    # Formule de calcul de la mensualitÃ©
+    # Formule de calcul de la mensualit©
     mensualite = (montant * taux_mensuel) / (1 - (1 + taux_mensuel) ** -nb_mensualites)
     
     return round(mensualite, 2)
@@ -51,7 +51,7 @@ def load_announcements(json_file):
         with open(json_file, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"Erreur: Le fichier {json_file} n'a pas Ã©tÃ© trouvÃ©.")
+        print(f"Erreur: Le fichier {json_file} n'a pas ©t© trouv©.")
         return None
     except json.JSONDecodeError:
         print("Erreur: Le fichier n'est pas un JSON valide.")
@@ -82,7 +82,7 @@ def calculate_statistics(announcements):
         if prix:  # S'assurer que la liste n'est pas vide
             moyennes_par_ville[ville] = round(sum(prix) / len(prix), 2)
     
-    # Trier les villes par prix moyen dÃ©croissant
+    # Trier les villes par prix moyen d©croissant
     villes_triees = sorted(moyennes_par_ville.items(), key=lambda x: x[1], reverse=True)
     
     return {
@@ -138,7 +138,7 @@ def display_statistics(stats, announcements=None):
         return
     
     print("\n" + "="*50)
-    print("STATISTIQUES DES PRIX AU MÃˆTRE CARRÃE")
+    print("STATISTIQUES DES PRIX AU METRE CARRE")
     print("="*50)
     print(f"Nombre total d'annonces : {stats['nombre_annonces']}")
     print(f"Prix moyen au m² : {stats['prix_m2_moyen']:,.2f} €/m²".replace(',', ' '))
@@ -150,7 +150,7 @@ def display_statistics(stats, announcements=None):
         stats_pieces = calculate_stats_par_pieces(announcements)
         if stats_pieces:
             print("\n" + "="*50)
-            print("STATISTIQUES PAR NOMBRE DE PIÃˆCES")
+            print("STATISTIQUES PAR NOMBRE DE PIECES")
             print("="*50)
             print(f"{'Pièces':<8} | {'Annonces':<8} | {'Prix moyen':<15} | {'Surface moy.':<12} | {'Prix/m² moy.':<12} | {'Prix min':<10} | {'Prix max'}")
             print("-"*100)
@@ -167,25 +167,25 @@ def display_statistics(stats, announcements=None):
     print("="*50 + "\n")
 
 def format_price(price):
-    """Formate un prix avec un sÃ©parateur de milliers"""
+    """Formate un prix avec un s©parateur de milliers"""
     return f"{price:,} €".replace(',', ' ')
 
 def format_surface(surface):
-    """Formate une surface avec l'unitÃ©"""
+    """Formate une surface avec l'unit©"""
     return f"{surface} m²"
 
 def calculate_average_rent(announcements):
-    """Calcule le loyer moyen au m² Ã  partir des annonces de location"""
+    """Calcule le loyer moyen au m²   partir des annonces de location"""
     rents = []
     for annonce in announcements:
-        # VÃ©rifier si c'est une annonce de location et qu'elle a un prix et une surface
+        # V©rifier si c'est une annonce de location et qu'elle a un prix et une surface
         if (annonce.get('category') == 'location' and 
             annonce.get('prix') and 
             annonce.get('surface_m2')):
             loyer_m2 = annonce['prix'] / annonce['surface_m2']
             rents.append(loyer_m2)
     
-    # Retourner la moyenne des loyers au m², ou une valeur par dÃ©faut si pas assez de donnÃ©es
+    # Retourner la moyenne des loyers au m², ou une valeur par d©faut si pas assez de donn©es
     return round(sum(rents) / len(rents), 2) if rents else 15
 
 def display_announcements_table(announcements, rental_stats=None):
@@ -342,7 +342,7 @@ def process_file(file_path, max_price=None, min_surface=None, location=None, is_
         max_price (int, optional): Prix maximum pour le filtrage
         min_surface (int, optional): Surface minimale pour le filtrage
         location (str, optional): Localisation pour le filtrage
-        is_rental (bool): Si True, traite le fichier comme des locations (affichage diffÃ©rent)
+        is_rental (bool): Si True, traite le fichier comme des locations (affichage diff©rent)
     """
     print(f"\n{'='*80}")
     print(f"TRAITEMENT DU FICHIER: {file_path}".center(80))
@@ -370,7 +370,7 @@ def process_file(file_path, max_price=None, min_surface=None, location=None, is_
     stats = calculate_statistics(filtered_announcements)
     stats_pieces = calculate_stats_par_pieces(filtered_announcements)
     
-    # Afficher les statistiques par nombre de pièces (toujours affichÃ©)
+    # Afficher les statistiques par nombre de pièces (toujours affich©)
     if stats_pieces:
         if is_rental:
             for pieces, data in sorted(stats_pieces.items()):
@@ -383,7 +383,7 @@ def process_file(file_path, max_price=None, min_surface=None, location=None, is_
                 prix_moyen_par_pieces[pieces] = round(data['prix_moyen'], 2)
                 print(prix_moyen_par_pieces), print(loyers_par_pieces)
 
-        print("\nPRIX MOYEN PAR NOMBRE DE PIÃˆCES:")
+        print("\nPRIX MOYEN PAR NOMBRE DE PIECES:")
         print(f"{'Pièces':<8} | {'Annonces':<8} | {'Prix moyen':<15} | {'Surface moy.':<12} | {'Prix/m² moy.'}")
         print("-"*80)
         
@@ -395,7 +395,7 @@ def process_file(file_path, max_price=None, min_surface=None, location=None, is_
                   f"{data['surface_moyenne']:.1f} m²{'':<5} | "
                   f"{data['prix_m2_moyen']:.2f} €/m²")
     
-    # Afficher les statistiques gÃ©nÃ©rales
+    # Afficher les statistiques g©n©rales
     print("\nSTATISTIQUES GENERALES:")
     print(f"Nombre total d'annonces : {stats['nombre_annonces']}")
     print(f"Prix moyen au m² : {stats['prix_m2_moyen']:,.2f} €/m²".replace(',', ' '))
@@ -476,7 +476,7 @@ def main():
     if location_file:
         process_file(location_file, max_price, min_surface, location_ville, is_rental=True)
     
-    # Traiter le fichier de vente s'il est spÃ©cifiÃ© (ensuite)
+    # Traiter le fichier de vente s'il est sp©cifi© (ensuite)
     if vente_file:
         process_file(vente_file, max_price, min_surface, location_ville, is_rental=False)
 

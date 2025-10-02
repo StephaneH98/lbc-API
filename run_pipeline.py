@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import json
+import glob
 from urllib.parse import urlparse
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
@@ -253,14 +254,92 @@ def main():
         
         # 2. Téléchargement de la page avec Selenium
         print("\n" + "=" * 80)
-        print("ÉTAPE 2/5 : Téléchargement de la page avec Selenium")
+        print("ÉTAPE 2/5 : Téléchargement des pages avec Selenium")
         print("=" * 80)
         from scraper import download_page
         
-        print(f"Téléchargement de la page : {search_url}")
-        if not download_page(search_url, html_file):
-            print("Erreur lors du téléchargement de la page")
+        print(f"Téléchargement des annonces depuis : {search_url}")
+        
+        # Créer un dossier pour stocker les pages téléchargées
+        import os
+        base_dir = os.path.dirname(html_file) or '.'
+        base_name = os.path.splitext(os.path.basename(html_file))[0]
+        output_pattern = os.path.join(base_dir, f"{base_name}_page{{page}}.html")
+        
+        # Télécharger toutes les pages disponibles
+        driver = None
+        page_number = 1
+        has_next_page = True
+        
+        try:
+            while has_next_page and page_number <= 20:  # Limite de 20 pages pour éviter les boucles infinies
+                current_output = output_pattern.format(page=page_number)
+                print(f"\nTéléchargement de la page {page_number}...")
+                
+                # Passer le driver existant à la fonction download_page
+                content, driver, has_next = download_page(
+                    search_url,
+                    output_path=current_output,
+                    driver=driver,
+                    page_number=page_number,
+                    max_pages=20
+                )
+                
+                if not content:
+                    print(f"Aucun contenu récupéré pour la page {page_number}")
+                    break
+                    
+                # Si c'est la première page, on garde une copie avec le nom original
+                if page_number == 1:
+                    with open(html_file, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    print(f"Page 1 sauvegardée dans : {html_file}")
+                
+                if not has_next:
+                    print("Dernière page atteinte.")
+                    break
+                    
+                page_number += 1
+                
+                # Ajouter un délai aléatoire entre les requêtes pour éviter d'être bloqué
+                import random, time
+                delay = random.uniform(3, 8)  # Délai entre 3 et 8 secondes
+                print(f"Attente de {delay:.1f} secondes avant la page suivante...")
+                time.sleep(delay)
+                
+        except Exception as e:
+            print(f"Erreur lors du téléchargement des pages : {str(e)}")
+            
+        finally:
+            # S'assurer que le navigateur est fermé à la fin
+            if driver:
+                print("Nettoyage et fermeture du navigateur...")
+                driver.quit()
+            
+            # Ajouter un délai aléatoire entre les requêtes pour paraître plus humain
+            import random, time
+            time.sleep(random.uniform(2, 5))
+        
+        # Fermer le navigateur si nécessaire
+        if driver:
+            driver.quit()
+        
+        if page_number == 1:
+            print("Aucune annonce trouvée.")
             return
+            
+        # Nettoyer les fichiers HTML temporaires après extraction
+        def clean_html_files(pattern):
+            """Supprime les fichiers HTML correspondant au motif donné"""
+            try:
+                for file in glob.glob(pattern):
+                    try:
+                        os.remove(file)
+                        print(f"Fichier supprimé : {file}")
+                    except Exception as e:
+                        print(f"Erreur lors de la suppression de {file}: {e}")
+            except Exception as e:
+                print(f"Erreur lors du nettoyage des fichiers HTML: {e}")
         
         # 3. Extraction des annonces de vente
         print("\n" + "=" * 80)
@@ -277,6 +356,9 @@ def main():
         rental_html_file_meuble = "page_location_meuble_telechargee.html"
         rental_html_file_non_meuble = "page_location_non_meuble_telechargee.html"
         rental_json_file = "locations_data.json"
+        
+        # Liste pour stocker les fichiers HTML temporaires à supprimer
+        temp_html_files = []
         
         print("\n" + "=" * 80)
         print("ÉTAPE 3.1/5 : Extraction des annonces de location")
@@ -299,30 +381,99 @@ def main():
         )
         rental_url_meuble = rental_url_builder_meuble.get_rental_url() + "&furnished=1"
         
-        print(f"Téléchargement de la page des locations meublées : {rental_url_meuble}")
-        if download_page(rental_url_meuble, rental_html_file_meuble):
-            print(f"Extraction des annonces de location meublée depuis : {rental_html_file_meuble}")
-            temp_json = "temp_meuble.json"
-            if extract_ads(rental_html_file_meuble, temp_json):
+        print(f"\nTéléchargement des annonces de locations meublées : {rental_url_meuble}")
+        
+        # Créer un dossier pour stocker les pages téléchargées
+        base_dir = os.path.dirname(rental_html_file_meuble) or '.'
+        base_name = os.path.splitext(os.path.basename(rental_html_file_meuble))[0]
+        output_pattern = os.path.join(base_dir, f"{base_name}_page{{page}}.html")
+        
+        # Télécharger toutes les pages disponibles
+        driver = None
+        page_number = 1
+        has_next_page = True
+        temp_meuble_files = []
+        
+        while has_next_page and page_number <= 20:  # Limite de 20 pages
+            current_output = output_pattern.format(page=page_number)
+            print(f"\nTéléchargement de la page {page_number}...")
+            
+            content, driver, has_next = download_page(
+                rental_url_meuble,
+                output_path=current_output,
+                driver=driver,
+                page_number=page_number,
+                max_pages=20
+            )
+            
+            if not content:
+                print(f"Aucun contenu récupéré pour la page {page_number}")
+                break
+                
+            # Si c'est la première page, on garde une copie avec le nom original
+            if page_number == 1:
+                with open(rental_html_file_meuble, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                print(f"Page 1 sauvegardée dans : {rental_html_file_meuble}")
+            
+            # Extraire les annonces de cette page
+            temp_json = f"temp_meuble_page{page_number}.json"
+            if extract_ads(current_output, temp_json):
                 # Ajouter le champ furnished=True aux annonces
                 try:
-                    with open(temp_json, 'r', encoding='utf-8') as f:
+                    with open(temp_json, 'r+', encoding='utf-8') as f:
                         ads = json.load(f)
                         for ad in ads:
                             ad['furnished'] = True
-                        all_rental_ads.extend(ads)
-                    print(f"{len(ads)} annonces de locations meublées trouvées")
+                        f.seek(0)
+                        json.dump(ads, f, ensure_ascii=False, indent=2)
+                        f.truncate()
                 except Exception as e:
-                    print(f"Erreur lors du traitement des annonces meublées : {str(e)}")
-                finally:
-                    if os.path.exists(temp_json):
-                        os.remove(temp_json)
+                    print(f"Erreur lors de l'ajout du champ 'furnished' : {e}")
+                
+                temp_meuble_files.append(temp_json)
+            
+            if not has_next:
+                print("Dernière page atteinte pour les locations meublées.")
+                break
+                
+            page_number += 1
+            
+            # Ajouter un délai aléatoire entre les requêtes
+            time.sleep(random.uniform(2, 5))
+        
+        # Fermer le navigateur si nécessaire
+        if driver:
+            driver.quit()
+        
+        # Fusionner tous les fichiers JSON temporaires
+        if temp_meuble_files:
+            if os.path.exists(rental_json_file):
+                temp_meuble_files.insert(0, rental_json_file)
+            
+            merge_json_files(temp_meuble_files, rental_json_file)
+            
+            # Nettoyer les fichiers temporaires
+            for temp_file in temp_meuble_files[1:]:  # Ne pas supprimer le fichier de sortie
+                try:
+                    os.remove(temp_file)
+                    os.remove(temp_file.replace('.json', '.html'))  # Supprimer aussi le fichier HTML temporaire
+                except Exception as e:
+                    print(f"Erreur lors du nettoyage des fichiers temporaires : {e}")
+            
+            # Ajouter les annonces à la liste complète
+            for temp_json in temp_meuble_files[1:]:
+                try:
+                    with open(temp_json, 'r', encoding='utf-8') as f:
+                        ads = json.load(f)
+                        all_rental_ads.extend(ads)
+                        print(f"{len(ads)} annonces de locations meublées trouvées")
+                except Exception as e:
+                    print(f"Erreur lors de la lecture du fichier JSON temporaire : {e}")
         
         # Traitement des locations non meublées (furnished=2)
         print("\nRecherche des locations non meublées...")
         rental_url_builder_non_meuble = LBCUrlBuilder()
-        
-        # Utiliser la première localisation de la liste
         loc = locations[0]
         rental_url_builder_non_meuble.add_location(
             loc['name'],
@@ -333,30 +484,97 @@ def main():
         )
         rental_url_non_meuble = rental_url_builder_non_meuble.get_rental_url() + "&furnished=2"
         
-        print(f"Téléchargement de la page des locations non meublées : {rental_url_non_meuble}")
-        if download_page(rental_url_non_meuble, rental_html_file_non_meuble):
-            print(f"Extraction des annonces de location non meublée depuis : {rental_html_file_non_meuble}")
-            temp_json = "temp_non_meuble.json"
-            if extract_ads(rental_html_file_non_meuble, temp_json):
+        print(f"\nTéléchargement des annonces de locations non meublées : {rental_url_non_meuble}")
+        
+        # Créer un dossier pour stocker les pages téléchargées
+        base_dir = os.path.dirname(rental_html_file_non_meuble) or '.'
+        base_name = os.path.splitext(os.path.basename(rental_html_file_non_meuble))[0]
+        output_pattern = os.path.join(base_dir, f"{base_name}_page{{page}}.html")
+        
+        # Télécharger toutes les pages disponibles
+        driver = None
+        page_number = 1
+        has_next_page = True
+        temp_non_meuble_files = []
+        
+        while has_next_page and page_number <= 20:  # Limite de 20 pages
+            current_output = output_pattern.format(page=page_number)
+            print(f"\nTéléchargement de la page {page_number}...")
+            
+            content, driver, has_next = download_page(
+                rental_url_non_meuble,
+                output_path=current_output,
+                driver=driver,
+                page_number=page_number,
+                max_pages=20
+            )
+            
+            if not content:
+                print(f"Aucun contenu récupéré pour la page {page_number}")
+                break
+                
+            # Si c'est la première page, on garde une copie avec le nom original
+            if page_number == 1:
+                with open(rental_html_file_non_meuble, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                print(f"Page 1 sauvegardée dans : {rental_html_file_non_meuble}")
+            
+            # Extraire les annonces de cette page
+            temp_json = f"temp_non_meuble_page{page_number}.json"
+            if extract_ads(current_output, temp_json):
                 # Ajouter le champ furnished=False aux annonces
                 try:
-                    with open(temp_json, 'r', encoding='utf-8') as f:
+                    with open(temp_json, 'r+', encoding='utf-8') as f:
                         ads = json.load(f)
                         for ad in ads:
                             ad['furnished'] = False
-                        all_rental_ads.extend(ads)
-                    print(f"{len(ads)} annonces de locations non meublées trouvées")
+                        f.seek(0)
+                        json.dump(ads, f, ensure_ascii=False, indent=2)
+                        f.truncate()
                 except Exception as e:
-                    print(f"Erreur lors du traitement des annonces non meublées : {str(e)}")
-                finally:
-                    if os.path.exists(temp_json):
-                        os.remove(temp_json)
+                    print(f"Erreur lors de l'ajout du champ 'furnished' : {e}")
+                
+                temp_non_meuble_files.append(temp_json)
+            
+            if not has_next:
+                print("Dernière page atteinte pour les locations non meublées.")
+                break
+                
+            page_number += 1
+            
+            # Ajouter un délai aléatoire entre les requêtes
+            time.sleep(random.uniform(2, 5))
+        
+        # Fermer le navigateur si nécessaire
+        if driver:
+            driver.quit()
+        
+        # Fusionner tous les fichiers JSON temporaires
+        if temp_non_meuble_files:
+            if os.path.exists(rental_json_file):
+                temp_non_meuble_files.insert(0, rental_json_file)
+            
+            merge_json_files(temp_non_meuble_files, rental_json_file)
+            
+            # Nettoyer les fichiers temporaires et ajouter les annonces à la liste complète
+            for temp_file in temp_non_meuble_files[1:]:  # Ne pas supprimer le fichier de sortie
+                try:
+                    # Ajouter les annonces à la liste complète
+                    with open(temp_file, 'r', encoding='utf-8') as f:
+                        ads = json.load(f)
+                        all_rental_ads.extend(ads)
+                        print(f"{len(ads)} annonces de locations non meublées trouvées")
+                    
+                    # Supprimer les fichiers temporaires
+                    os.remove(temp_file)
+                    os.remove(temp_file.replace('.json', '.html'))  # Supprimer aussi le fichier HTML temporaire
+                except Exception as e:
+                    print(f"Erreur lors du traitement du fichier {temp_file} : {e}")
         
         # Écrire toutes les annonces dans le fichier final
         if all_rental_ads:
             with open(rental_json_file, 'w', encoding='utf-8') as f:
                 json.dump(all_rental_ads, f, ensure_ascii=False, indent=2)
-            print(f"\nTotal de {len(all_rental_ads)} annonces de location enregistrées dans {rental_json_file}")
         else:
             print("Aucune annonce de location trouvée.")
             return
@@ -442,6 +660,26 @@ def main():
             print(f"Erreur inattendue : {e}")
         
         print("\n" + "=" * 80)
+        
+        # Nettoyer les fichiers HTML temporaires
+        print("Nettoyage des fichiers HTML temporaires...")
+        patterns_to_clean = [
+            "*_page*.html",
+            "*_telechargee.html",
+            "*_telechargee_page*.html"
+        ]
+        
+        for pattern in patterns_to_clean:
+            for file_path in glob.glob(pattern):
+                try:
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                        print(f"Fichier supprimé : {file_path}")
+                except Exception as e:
+                    print(f"Erreur lors de la suppression de {file_path}: {e}")
+        
+        print("Nettoyage terminé.")
+        print("\n" + "=" * 80)
         print("PIPELINE TERMINÉ AVEC SUCCÈS")
         print("=" * 80)
         
@@ -449,6 +687,24 @@ def main():
         print(f"\nERREUR : {str(e)}")
         import traceback
         traceback.print_exc()
+        
+        # Nettoyer les fichiers temporaires même en cas d'erreur
+        print("\nNettoyage des fichiers temporaires après erreur...")
+        patterns_to_clean = [
+            "*_page*.html",
+            "*_telechargee.html",
+            "*_telechargee_page*.html"
+        ]
+        
+        for pattern in patterns_to_clean:
+            for file_path in glob.glob(pattern):
+                try:
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                        print(f"Fichier supprimé : {file_path}")
+                except Exception as cleanup_error:
+                    print(f"Erreur lors de la suppression de {file_path}: {cleanup_error}")
+        
         sys.exit(1)
 
 if __name__ == "__main__":

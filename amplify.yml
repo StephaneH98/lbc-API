@@ -28,10 +28,10 @@ frontend:
               REGION: '$AWS_REGION'
           };
           
-          console.log('🌍 Variables d\'environnement injectées par Amplify:');
-          console.log('  🔗 API_URL:', window.ENV.API_URL);
-          console.log('  🪣 BUCKET_NAME:', window.ENV.BUCKET_NAME);
-          console.log('  🌐 REGION:', window.ENV.REGION);
+          console.log('Variables injectées par Amplify:');
+          console.log('API_URL:', window.ENV.API_URL);
+          console.log('BUCKET_NAME:', window.ENV.BUCKET_NAME);
+          console.log('REGION:', window.ENV.REGION);
           EOF
         
         # Remplacer les placeholders par les vraies valeurs

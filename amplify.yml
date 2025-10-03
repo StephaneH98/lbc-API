@@ -21,7 +21,7 @@ frontend:
           EOF
         - echo "✅ config.js généré avec API_URL=${API_URL}"
   artifacts:
-    baseDirectory: /
+    baseDirectory: public
     files:
       - '**/*'
   cache:

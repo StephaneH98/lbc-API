@@ -25,7 +25,7 @@
             <div id="annoncesContainer" style="display: none;">
                 <h2>📍 Annonces disponibles (<span id="annoncesCount">0</span>)</h2>
                 
-                <!-- Filtres (optionnel) -->
+                <!-- Filtres -->
                 <div class="filters">
                     <input 
                         type="text" 
@@ -34,7 +34,7 @@
                         class="search-input"
                     >
                     
-                    <!-- NOUVEAU: Checkboxes pour les pièces -->
+                    <!-- Dropdown pour les pièces -->
                     <div class="custom-dropdown">
                         <button type="button" class="dropdown-toggle" id="pieces-dropdown-toggle">
                             <span id="pieces-selected-text">🏠 Nombre de pièces</span>
@@ -80,123 +80,48 @@
                         min="0"
                     >
                     
-                    <button id="apply-filters" class="btn btn-filter">
-                        🔍 Appliquer les filtres
-                    </button>
-                    
-                    <button id="reset-filters" class="btn btn-reset">
-                        🔄 Réinitialiser
-                    </button>
+                    <button id="reset-filters" class="btn btn-secondary">🔄 Réinitialiser</button>
                 </div>
-
+                
                 <!-- Tableau -->
-                <div class="table-container">
-                    <table id="annoncesTable" class="annonces-table">
-                        <thead>
-                            <tr>
-                                <th>🆔 ID</th>
-                                <th>📍 Localisation</th>
-                                <th>🏠 Pièces</th>
-                                <th>📏 Surface</th>
-                                <th>💰 Prix</th>
-                                <th>📊 Prix/m²</th>
-                                <th>🔗 Lien</th>
-                            </tr>
-                        </thead>
-                        <tbody id="annoncesTableBody">
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
-                                    👆 Chargez des annonces pour commencer
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <table id="annoncesTable" class="annonces-table">
+                    <thead>
+                        <tr>
+                            <th>🆔 ID</th>
+                            <th>📍 Localisation</th>
+                            <th>🏠 Pièces</th>
+                            <th>📏 Surface</th>
+                            <th>💰 Prix</th>
+                            <th>📊 Prix/m²</th>
+                            <th>🔗 Lien</th>
+                        </tr>
+                    </thead>
+                    <tbody id="annoncesTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
+                                👆 Chargez des annonces pour commencer
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <!-- Message d'erreur -->
             <div id="errorMessage" class="error" style="display: none;"></div>
-            
+
             <!-- Loader -->
             <div id="loader" class="loader" style="display: none;">
                 <div class="spinner"></div>
-                <p>Chargement des annonces...</p>
+                <p>Chargement en cours...</p>
             </div>
         </div>
     </div>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>📂 Visualiseur de fichiers S3</h1>
-            <p class="subtitle">Sélectionnez et visualisez vos fichiers JSON</p>
-        </header>
 
-        <!-- Section de configuration -->
-        <div class="config-section">
-            <label for="api-url">🔗 URL de l'API Backend:</label>
-            <input 
-                type="text" 
-                id="api-url" 
-                value="http://localhost:5000"
-                placeholder="http://localhost:5000"
-            >
-            <button id="test-connection" class="btn btn-secondary">
-                🔍 Tester la connexion
-            </button>
-        </div>
-
-        <!-- Status de connexion -->
-        <div id="connection-status" class="status hidden"></div>
-
-        <!-- Section de sélection des fichiers -->
-        <div class="file-selection-section">
-            <div class="section-header">
-                <h2>📁 Fichiers disponibles</h2>
-                <button id="refresh-files" class="btn btn-secondary">
-                    🔄 Rafraîchir
-                </button>
-            </div>
-
-            <!-- Liste des fichiers (menu déroulant) -->
-            <div class="dropdown-container">
-                <label for="file-select">Sélectionnez un ou plusieurs fichiers:</label>
-                <select id="file-select" multiple size="8">
-                    <option value="" disabled>Chargement des fichiers...</option>
-                </select>
-                <p class="helper-text">💡 Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs fichiers</p>
-            </div>
-
-            <!-- Boutons d'action -->
-            <div class="action-buttons">
-                <button id="view-files" class="btn btn-primary" disabled>
-                    👁️ Afficher les fichiers sélectionnés
-                </button>
-                <button id="clear-selection" class="btn btn-secondary" disabled>
-                    🗑️ Effacer la sélection
-                </button>
-            </div>
-
-            <!-- Info sur la sélection -->
-            <div id="selection-info" class="info-box hidden"></div>
-        </div>
-
-        <!-- Section d'affichage du contenu -->
-        <div id="content-section" class="content-section hidden">
-            <div class="section-header">
-                <h2>📄 Contenu des fichiers</h2>
-                <button id="close-content" class="btn btn-secondary">
-                    ✖️ Fermer
-                </button>
-            </div>
-
-            <!-- Zone d'affichage -->
-            <div id="content-display"></div>
-        </div>
-
-        <!-- Loader -->
-        <div id="loader" class="loader hidden">
-            <div class="spinner"></div>
-            <p>Chargement en cours...</p>
+    <!-- Modal pour les détails -->
+    <div id="annonceModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalDetails"></div>
         </div>
     </div>
 

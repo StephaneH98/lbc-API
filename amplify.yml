@@ -1,25 +1,50 @@
 version: 1
 frontend:
   phases:
+    preBuild:
+      commands:
+        - echo "🔧 Début du build Amplify..."
+        - echo "📍 Répertoire de travail:" && pwd
+        - echo "📂 Fichiers présents:" && ls -la
+        - echo ""
+        - echo "🔑 Variables d'environnement disponibles:"
+        - echo "  API_URL = $API_URL"
+        - echo "  AWS_REGION = $AWS_REGION"
+        - echo "  ENVIRONMENT = $ENVIRONMENT"
+        - echo ""
+    
     build:
       commands:
-        - echo "🚀 Building frontend..."
-        # Remplacer les placeholders dans config.js
+        - echo "🚀 Génération de env-config.js..."
+        # Créer le fichier env-config.js avec les variables Amplify
         - |
-          cat > config.js << 'EOF'
-          const CONFIG = {
-              API_URL: '${API_URL}',
-              AWS_REGION: '${AWS_REGION}',
-              ENVIRONMENT: '${ENVIRONMENT}'
+          cat > env-config.js << 'EOF'
+          // ⚠️ Fichier AUTO-GÉNÉRÉ par AWS Amplify
+          // Les valeurs proviennent des variables d'environnement Amplify
+          
+          window.ENV = {
+              API_URL: '$API_URL',
+              BUCKET_NAME: '$BUCKET_NAME',
+              REGION: '$AWS_REGION'
           };
           
-          if (typeof module !== 'undefined' && module.exports) {
-              module.exports = CONFIG;
-          }
-          
-          console.log('⚙️ Configuration chargée:', CONFIG);
+          console.log('🌍 Variables d\'environnement injectées par Amplify:');
+          console.log('  🔗 API_URL:', window.ENV.API_URL);
+          console.log('  🪣 BUCKET_NAME:', window.ENV.BUCKET_NAME);
+          console.log('  🌐 REGION:', window.ENV.REGION);
           EOF
-        - echo "✅ config.js généré avec API_URL=${API_URL}"
+        
+        # Remplacer les placeholders par les vraies valeurs
+        - sed -i "s|\$API_URL|$API_URL|g" env-config.js
+        - sed -i "s|\$BUCKET_NAME|$BUCKET_NAME|g" env-config.js
+        - sed -i "s|\$AWS_REGION|$AWS_REGION|g" env-config.js
+        
+        - echo "✅ env-config.js généré avec succès:"
+        - cat env-config.js
+        - echo ""
+        - echo "📦 Fichiers finaux avant déploiement:"
+        - ls -la
+
   artifacts:
     baseDirectory: public
     files:

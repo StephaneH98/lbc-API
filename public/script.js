@@ -385,26 +385,200 @@ async function loadAnnonces() {
 // AFFICHER LES ANNONCES
 // ============================================
 function displayAnnonces(annonces) {
-    const tbody = document.getElementById('annoncesBody');
-    if (!tbody) return;
+    console.log(`📊 Affichage de ${annonces.length} annonces`);
     
-    tbody.innerHTML = '';
-    
-    if (!annonces || annonces.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-data">Aucune annonce trouvée</td></tr>';
+    if (!annoncesTableBody) {
+        console.error('❌ Element annoncesTableBody non trouvé');
         return;
     }
     
-    console.log(`📋 Affichage de ${annonces.length} annonces`);
+    // Vider le tableau
+    annoncesTableBody.innerHTML = '';
     
-    annonces.forEach((annonce, index) => {
-        try {
-            const row = createAnnonceRow(annonce);
-            tbody.appendChild(row);
-        } catch (error) {
-            console.error(`❌ Erreur ligne ${index}:`, error, annonce);
+    if (annonces.length === 0) {
+        annoncesTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                    📭 Aucune annonce à afficher
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Créer les lignes du tableau
+    annonces.forEach(annonce => {
+        const row = document.createElement('tr');
+        row.style.cursor = 'pointer';
+        row.style.transition = 'background-color 0.2s';
+        
+        // Récupération des valeurs
+        const id = annonce.id || 'N/A';
+        const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'Non spécifiée';
+        const pieces = annonce.pieces || annonce.nb_pieces || annonce.nombre_pieces || 'N/A';
+        const surface = annonce.surface_m2 || annonce.surface || annonce.superficie || 0;
+        const prix = annonce.prix || annonce.loyer || 0;
+        const url = annonce.url || annonce.lien || annonce.link || null;
+
+        // 🆕 CALCUL DU PRIX AU M²
+        let prixM2 = 0;
+        let prixM2Display = 'N/A';
+        
+        if (prix > 0 && surface > 0) {
+            prixM2 = prix / surface;
+            prixM2Display = `${prixM2.toFixed(2)} €`;
         }
+        
+        // Formatage du prix
+        const prixFormate = prix > 0 ? 
+            `${prix.toLocaleString('fr-FR')} €` : 
+            'N/A';
+        
+        // Formatage de la surface
+        const surfaceFormatee = surface > 0 ? 
+            `${surface} m²` : 
+            'N/A';
+
+        // 🆕 Bouton URL
+        let urlButton = '';
+        if (url) {
+            urlButton = `<button class="btn-url" onclick="window.open('${url}', '_blank'); event.stopPropagation();">🔗 Voir l'annonce</button>`;
+        } else {
+            urlButton = `<span style="color: #a0aec0; font-size: 12px;">Pas de lien</span>`;
+        }
+        
+        row.innerHTML = `
+            <td style="font-weight: 600; color: #667eea;">${id}</td>
+            <td>${localisation}</td>
+            <td style="text-align: center;">${pieces}</td>
+            <td style="text-align: right;">${surfaceFormatee}</td>
+            <td style="text-align: right; font-weight: 600;">${prixFormate}</td>
+            <td style="text-align: right; color: #48bb78; font-weight: 600;">${prixM2Display}</td>
+            <td style="text-align: center;">${urlButton}</td>
+        `;
+        
+        // Effet hover
+        row.addEventListener('mouseenter', () => {
+            row.style.backgroundColor = '#f7fafc';
+        });
+        
+        row.addEventListener('mouseleave', () => {
+            row.style.backgroundColor = '';
+        });
+        
+        // Clic pour afficher les détails
+        row.addEventListener('click', () => {
+            showAnnonceDetails(annonce);
+        });
+        
+        annoncesTableBody.appendChild(row);
     });
+    
+    console.log(`✅ ${annonces.length} lignes ajoutées au tableau`);
+}
+
+function showAnnonceDetails(annonce) {
+    console.log('👁️ Affichage des détails pour:', annonce.id);
+    
+    if (!modal || !modalDetails) {
+        console.error('❌ Éléments modal non trouvés');
+        return;
+    }
+    
+    // Récupération des valeurs
+    const id = annonce.id || 'N/A';
+    const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'Non spécifiée';
+    const pieces = annonce.pieces || annonce.nb_pieces || annonce.nombre_pieces || 'N/A';
+    const surface = annonce.surface_m2 || annonce.surface || annonce.superficie || 0;
+    const prix = annonce.prix || annonce.loyer || 0;
+    const type = annonce.type || 'Non spécifié';
+    const description = annonce.description || 'Aucune description disponible';
+    const url = annonce.url || annonce.lien || annonce.link || null;
+    
+    // Calcul du prix au m²
+    let prixM2Display = 'N/A';
+    if (prix > 0 && surface > 0) {
+        const prixM2 = prix / surface;
+        prixM2Display = `${prixM2.toFixed(2)} €/m²`;
+    }
+    
+    // Formatage du prix
+    const prixFormate = prix > 0 ? 
+        `${prix.toLocaleString('fr-FR')} €` : 
+        'N/A';
+    
+    // Formatage de la surface
+    const surfaceFormatee = surface > 0 ? 
+        `${surface} m²` : 
+        'N/A';
+    
+    // 🆕 Bouton URL dans la modal
+    let urlSection = '';
+    if (url) {
+        urlSection = `
+            <div style="margin: 20px 0; text-align: center;">
+                <a href="${url}" target="_blank" class="btn-url-modal">
+                    🔗 Voir l'annonce complète
+                </a>
+            </div>
+        `;
+    }
+    
+    // Construire le HTML
+    modalDetails.innerHTML = `
+        <div class="detail-header">
+            <span class="badge ${type.toLowerCase() === 'vente' ? 'badge-vente' : 'badge-location'}">
+                ${type}
+            </span>
+            <h2 style="margin: 10px 0; color: #2d3748;">Annonce #${id}</h2>
+        </div>
+        
+        ${urlSection}
+        
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">📍 Localisation</span>
+                <span class="detail-value">${localisation}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">🏠 Nombre de pièces</span>
+                <span class="detail-value">${pieces}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">📏 Surface</span>
+                <span class="detail-value">${surfaceFormatee}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">💰 Prix</span>
+                <span class="detail-value" style="color: #667eea; font-weight: 700;">${prixFormate}</span>
+            </div>
+            
+            <div class="detail-item">
+                <span class="detail-label">📊 Prix au m²</span>
+                <span class="detail-value" style="color: #48bb78; font-weight: 700;">${prixM2Display}</span>
+            </div>
+        </div>
+        
+        <div class="detail-description">
+            <h3 style="margin-bottom: 10px; color: #4a5568;">📝 Description</h3>
+            <p style="color: #718096; line-height: 1.6;">${description}</p>
+        </div>
+        
+        <div class="detail-raw">
+            <details>
+                <summary style="cursor: pointer; color: #667eea; font-weight: 600;">
+                    🔧 Données brutes (JSON)
+                </summary>
+                <pre style="background: #f7fafc; padding: 15px; border-radius: 6px; overflow-x: auto; margin-top: 10px;">${JSON.stringify(annonce, null, 2)}</pre>
+            </details>
+        </div>
+    `;
+    
+    // Afficher le modal
+    modal.style.display = 'flex';
 }
 
 // ============================================
@@ -585,7 +759,7 @@ function resetFilters() {
     if (surfaceMaxInput) surfaceMaxInput.value = '';
     piecesCheckboxes.forEach(cb => cb.checked = false);
     updatePiecesDropdownText();
-        
+
     // Afficher toutes les annonces
     displayAnnonces(allAnnonces);
     

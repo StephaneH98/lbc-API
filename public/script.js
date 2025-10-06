@@ -189,7 +189,7 @@ async function displaySelectedFile() {
     try {
         // Appeler l'API pour récupérer le contenu du fichier
         // ⚠️ Adapter l'URL selon votre API
-        const response = await fetch(`${API_URL}/files/${encodeURIComponent(fileName)}`);
+        const response = await fetch(`${API_URL}/file/${encodeURIComponent(fileName)}`);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);

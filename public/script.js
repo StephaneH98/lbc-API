@@ -111,7 +111,7 @@ async function loadAnnonces() {
     hideError();
     
     try {
-        const response = await fetch(`${API_URL}/annonces`);
+        const response = await fetch(`${API_URL}/files`);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);

@@ -275,76 +275,77 @@ async function testConnection() {
     }
 }
 
-// ============================================
-// AFFICHAGE DES ANNONCES
-// ============================================
+// ==========================================
+// AFFICHAGE DES ANNONCES (VERSION DEBUG)
+// ==========================================
 function displayAnnonces(annonces) {
-    console.log(`📊 Affichage de ${annonces.length} annonces`);
+    console.log('🎨 displayAnnonces() appelée');
+    console.log('📊 Nombre d\'annonces reçues:', annonces?.length);
+    console.log('📦 Type de données:', typeof annonces, Array.isArray(annonces));
+    console.log('🔍 Première annonce:', annonces[0]);
     
-    if (!annoncesTableBody) {
-        console.error('❌ Element annoncesTableBody introuvable');
+    if (!Array.isArray(annonces)) {
+        console.error('❌ Les annonces ne sont pas un tableau !');
+        showError('Format de données invalide');
         return;
     }
-    
-    annoncesTableBody.innerHTML = '';
     
     if (annonces.length === 0) {
-        annoncesTableBody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
-                    🔍 Aucune annonce trouvée
-                </td>
-            </tr>
-        `;
+        console.error('❌ Le tableau est vide !');
+        showError('Aucune annonce à afficher');
         return;
     }
-    
-    annonces.forEach(annonce => {
-        const row = document.createElement('tr');
+
+    console.log('✅ Validation OK, génération du HTML...');
+
+    // Créer le tableau
+    let html = `
+        <h3>📊 ${annonces.length} annonce(s) trouvée(s)</h3>
+        <div class="table-responsive">
+            <table class="annonces-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Prix</th>
+                        <th>Localisation</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    annonces.forEach((annonce, index) => {
+        console.log(`📝 Annonce ${index}:`, annonce);
         
-        const id = annonce.id || annonce.ID || 'N/A';
-        const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'N/A';
-        const pieces = annonce.pieces || annonce.nb_pieces || annonce.nombre_pieces || 'N/A';
-        const surface = annonce.surface || annonce.superficie || 'N/A';
-        const prix = annonce.prix || annonce.price || 0;
-        const url = annonce.url || annonce.link || annonce.lien || '#';
+        const prix = formatPrice(annonce.prix || annonce.price || 0);
+        const localisation = escapeHtml(annonce.localisation || annonce.location || 'Non spécifié');
+        const id = escapeHtml(annonce.id || '');
         
-        const prixFormate = prix ? new Intl.NumberFormat('fr-FR', { 
-            style: 'currency', 
-            currency: 'EUR',
-            minimumFractionDigits: 0
-        }).format(prix) : 'N/A';
-        
-        const prixM2 = (prix && surface && surface !== 'N/A') ? 
-            Math.round(prix / parseFloat(surface)) : null;
-        
-        const prixM2Display = prixM2 ? 
-            new Intl.NumberFormat('fr-FR', { 
-                style: 'currency', 
-                currency: 'EUR',
-                minimumFractionDigits: 0
-            }).format(prixM2) + '/m²' : 'N/A';
-        
-        row.innerHTML = `
-            <td>${escapeHtml(id)}</td>
-            <td>${escapeHtml(localisation)}</td>
-            <td>${escapeHtml(pieces)}</td>
-            <td>${surface !== 'N/A' ? surface + ' m²' : 'N/A'}</td>
-            <td style="font-weight: 600; color: #667eea;">${prixFormate}</td>
-            <td style="color: #48bb78;">${prixM2Display}</td>
-            <td>
-                <a href="${escapeHtml(url)}" target="_blank" class="btn-url">🔗 Voir</a>
-            </td>
+        html += `
+            <tr>
+                <td>${id}</td>
+                <td class="prix">${prix}</td>
+                <td>${localisation}</td>
+            </tr>
         `;
-        
-        row.style.cursor = 'pointer';
-        row.addEventListener('click', () => showAnnonceDetails(annonce));
-        
-        annoncesTableBody.appendChild(row);
     });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    console.log('📏 Longueur du HTML généré:', html.length, 'caractères');
+    console.log('🎯 Container trouvé:', annoncesContainer ? 'OUI' : 'NON');
+    console.log('🎯 Container display avant:', getComputedStyle(annoncesContainer).display);
+
+    annoncesContainer.innerHTML = html;
+    annoncesContainer.style.display = 'block';
     
-    console.log(`✅ ${annonces.length} lignes ajoutées`);
+    console.log('🎯 Container display après:', getComputedStyle(annoncesContainer).display);
+    console.log('✅ HTML injecté dans le container');
 }
+
 
 // ============================================
 // MODAL DE DÉTAILS

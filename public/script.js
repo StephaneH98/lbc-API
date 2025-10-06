@@ -12,6 +12,7 @@ console.log('🌍 Environnement:', CONFIG?.ENVIRONMENT || 'dev');
 // ============================================
 let allAnnonces = [];
 let availableFiles = []; // Cache de la liste des fichiers
+let selectedFileName = null; 
 
 // ============================================
 // ELEMENTS DOM
@@ -145,10 +146,12 @@ function onFileSelected() {
     if (selectedIndex === '') {
         displayFileBtn.disabled = true;
         fileInfo.style.display = 'none';
+        selectedFileName = null;
         return;
     }
     
     const file = availableFiles[selectedIndex];
+    selectedFileName = file.name || file.Key; 
     
     // Afficher les infos du fichier
     const fileName = file.Key || file.name || file.filename || 'Nom inconnu';

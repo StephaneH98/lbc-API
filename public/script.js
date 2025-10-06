@@ -184,7 +184,7 @@ async function displaySelectedFile() {
     console.log('📥 Chargement du fichier:', selectedFileName);
 
     try {
-        const url = `${CONFIG.API_URL}/files/${encodeURIComponent(selectedFileName)}`;
+        const url = `${CONFIG.API_URL}/file/${encodeURIComponent(selectedFileName)}`;
         console.log('🔗 URL appelée:', url);
         
         const response = await fetch(url, {

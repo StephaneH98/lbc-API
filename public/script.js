@@ -276,6 +276,69 @@ async function testConnection() {
 }
 
 // ==========================================
+// FONCTIONS UTILITAIRES
+// ==========================================
+function showLoader(show) {
+    loader.style.display = show ? 'block' : 'none';
+}
+
+function hideError() {
+    errorMessage.style.display = 'none';
+}
+
+function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 octets';
+    const k = 1024;
+    const sizes = ['octets', 'Ko', 'Mo', 'Go'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
+function formatPrice(price) {
+    if (!price && price !== 0) return 'N/A';
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(price);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Date inconnue';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        console.error('Erreur formatage date:', e);
+        return dateString;
+    }
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// ==========================================
 // AFFICHAGE DES ANNONCES (VERSION DEBUG)
 // ==========================================
 function displayAnnonces(annonces) {

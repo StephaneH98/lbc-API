@@ -84,7 +84,7 @@ async function testConnection() {
     testResult.className = 'result';
     
     try {
-        const response = await fetch(`${API_URL}/test`);
+        const response = await fetch(`${API_URL}/health`);
         const data = await response.json();
         
         if (response.ok) {

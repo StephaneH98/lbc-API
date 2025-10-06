@@ -2,9 +2,10 @@
 // CONFIGURATION
 // ============================================
 
-let API_URL = CONFIG?.API_URL || 'http://localhost:5000';
+let API_URL = CONFIG?.API_URL;
 
 console.log('📡 API configurée:', API_URL);
+console.log(CONFIG);
 console.log('🌍 Environnement:', CONFIG?.ENVIRONMENT || 'dev');
 
 // ============================================

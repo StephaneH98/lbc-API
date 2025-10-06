@@ -2,7 +2,7 @@
 // Ce fichier sera modifié après le déploiement de l'API
 
 const CONFIG = {
-    API_URL: window.ENV?.API_URL || 'http://localhost:5000',
+    API_URL: window.ENV?.API_URL,
     BUCKET_NAME: window.ENV?.BUCKET_NAME || 'bucket-test-new-app',
     AWS_REGION: window.ENV?.REGION || 'eu-west-3',
     ENVIRONMENT: 'dev'

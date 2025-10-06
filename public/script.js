@@ -169,64 +169,81 @@ function onFileSelected() {
 
 // Charger et afficher le contenu du fichier sélectionné
 async function displaySelectedFile() {
-    const selectedIndex = fileSelect.value;
-    
-    if (selectedIndex === '') {
-        alert('⚠️ Veuillez sélectionner un fichier');
+    if (!selectedFileName) {
+        showError('Aucun fichier sélectionné');
         return;
     }
-    
-    const file = availableFiles[selectedIndex];
-    const fileName = file.Key || file.name || file.filename;
-    
-    console.log('📥 Chargement du fichier:', fileName);
-    
-    showLoader(true);
+
     hideError();
-    displayFileBtn.disabled = true;
-    displayFileBtn.textContent = '⏳ Chargement...';
-    
+    showLoader(true);
+    annoncesContainer.style.display = 'none';
+
+    console.log('📥 Chargement du fichier:', selectedFileName);
+
     try {
-        // Appeler l'API pour récupérer le contenu du fichier
-        // ⚠️ Adapter l'URL selon votre API
-        const response = await fetch(`${API_URL}/file/${encodeURIComponent(fileName)}`);
+        const url = `${CONFIG.API_URL}/files/${encodeURIComponent(selectedFileName)}`;
+        console.log('🔗 URL appelée:', url);
         
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('📡 Status:', response.status);
+
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ Erreur API:', errorText);
+            throw new Error(`Erreur ${response.status}: ${errorText}`);
         }
-        
+
         const data = await response.json();
         console.log('📦 Contenu du fichier:', data);
+
+        // ✅ EXTRACTION ADAPTÉE À VOTRE FORMAT
+        let annonces = [];
         
-        // Extraire les annonces selon le format
-        allAnnonces = data.annonces || data.body || data;
-        
-        if (!Array.isArray(allAnnonces)) {
-            throw new Error('Format de données invalide');
+        if (data.content && Array.isArray(data.content)) {
+            // Format: { success: true, content: [...] }
+            annonces = data.content;
+        } else if (Array.isArray(data)) {
+            // Format: [...]
+            annonces = data;
+        } else if (data.annonces && Array.isArray(data.annonces)) {
+            // Format: { annonces: [...] }
+            annonces = data.annonces;
+        } else if (data.data && Array.isArray(data.data)) {
+            // Format: { data: [...] }
+            annonces = data.data;
+        } else {
+            console.warn('⚠️ Format inattendu:', data);
+            throw new Error('Format de données non reconnu');
         }
+
+        if (annonces.length === 0) {
+            showError('Aucune annonce trouvée dans ce fichier');
+            return;
+        }
+
+        console.log(`✅ ${annonces.length} annonce(s) trouvée(s)`);
+        displayAnnonces(annonces);
         
-        console.log(`✅ ${allAnnonces.length} annonces chargées`);
-        
-        // Afficher le conteneur et les annonces
-        annoncesContainer.style.display = 'block';
-        displayAnnonces(allAnnonces);
-        
-        // Mettre à jour le compteur
-        const countSpan = document.getElementById('annoncesCount');
-        if (countSpan) countSpan.textContent = allAnnonces.length;
-        
-        // Scroll vers les annonces
-        annoncesContainer.scrollIntoView({ behavior: 'smooth' });
-        
+        // Scroll vers les résultats
+        setTimeout(() => {
+            annoncesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
     } catch (error) {
         console.error('❌ Erreur de chargement du fichier:', error);
-        showError(`Erreur: ${error.message}`);
+        showError(`Impossible de charger le fichier: ${error.message}`);
     } finally {
         showLoader(false);
-        displayFileBtn.disabled = false;
-        displayFileBtn.textContent = '👁️ Afficher les annonces';
     }
 }
+
 
 // ============================================
 // TEST DE CONNEXION API

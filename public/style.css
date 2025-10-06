@@ -539,3 +539,125 @@ td {
         width: 95%;
     }
 }
+
+
+/* ============================================
+   SÉLECTEUR DE FICHIERS
+   ============================================ */
+
+   .file-selector-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border: 2px solid #e9ecef;
+}
+
+.file-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.file-select-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.file-label {
+    font-weight: 600;
+    color: #2d3748;
+    white-space: nowrap;
+}
+
+.file-select {
+    flex: 1;
+    min-width: 300px;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2d3748;
+}
+
+.file-select:hover {
+    border-color: #667eea;
+}
+
+.file-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.file-select option {
+    padding: 10px;
+}
+
+/* Info box pour les détails du fichier */
+.info-box {
+    background: linear-gradient(135deg, #e7f3ff 0%, #f0f7ff 100%);
+    border-left: 4px solid #667eea;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.info-box h4 {
+    margin: 0 0 15px 0;
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.info-box p {
+    margin: 8px 0;
+    color: #4a5568;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-box strong {
+    color: #2d3748;
+    min-width: 180px;
+    font-weight: 600;
+}
+
+/* État désactivé des boutons */
+.btn:disabled {
+    background: #cbd5e0;
+    color: #a0aec0;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn:disabled:hover {
+    background: #cbd5e0;
+    transform: none;
+}
+
+/* Responsive pour le sélecteur */
+@media (max-width: 768px) {
+    .file-select-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .file-select {
+        min-width: 100%;
+    }
+    
+    .file-label {
+        text-align: left;
+    }
+}

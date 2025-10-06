@@ -20,7 +20,34 @@
 
         <!-- Section principale -->
         <div class="main-section">
-            <button id="loadBtn" class="btn btn-success">Charger les annonces</button>
+            <h2>📂 Sélection du fichier</h2>
+            
+            <!-- ✨ NOUVEAU : Sélecteur de fichiers -->
+            <div class="file-selector-section">
+                <div class="file-controls">
+                    <button id="loadFilesBtn" class="btn btn-primary">🔄 Charger la liste des fichiers</button>
+                    
+                    <div class="file-select-group" style="display: none;" id="fileSelectGroup">
+                        <label for="fileSelect" class="file-label">📄 Choisir un fichier :</label>
+                        <select id="fileSelect" class="file-select">
+                            <option value="">-- Sélectionnez un fichier --</option>
+                        </select>
+                        <button id="displayFileBtn" class="btn btn-success" disabled>👁️ Afficher les annonces</button>
+                    </div>
+                </div>
+                
+                <!-- Info du fichier sélectionné -->
+                <div id="fileInfo" class="info-box" style="display: none;"></div>
+            </div>
+
+            <!-- Message d'erreur -->
+            <div id="errorMessage" class="error" style="display: none;"></div>
+
+            <!-- Loader -->
+            <div id="loader" class="loader" style="display: none;">
+                <div class="spinner"></div>
+                <p>Chargement en cours...</p>
+            </div>
             
             <!-- Tableau des annonces -->
             <div id="annoncesContainer" style="display: none;">
@@ -100,20 +127,11 @@
                     <tbody id="annoncesTableBody">
                         <tr>
                             <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
-                                👆 Chargez des annonces pour commencer
+                                📂 Sélectionnez un fichier pour commencer
                             </td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
-
-            <!-- Message d'erreur -->
-            <div id="errorMessage" class="error" style="display: none;"></div>
-
-            <!-- Loader -->
-            <div id="loader" class="loader" style="display: none;">
-                <div class="spinner"></div>
-                <p>Chargement en cours...</p>
             </div>
         </div>
     </div>

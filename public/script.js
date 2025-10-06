@@ -5,19 +5,23 @@
 let API_URL = CONFIG?.API_URL;
 
 console.log('📡 API configurée:', API_URL);
-console.log(CONFIG);
 console.log('🌍 Environnement:', CONFIG?.ENVIRONMENT || 'dev');
 
 // ============================================
 // STATE
 // ============================================
 let allAnnonces = [];
+let availableFiles = []; // Cache de la liste des fichiers
 
 // ============================================
 // ELEMENTS DOM
 // ============================================
 const testBtn = document.getElementById('testBtn');
-const loadBtn = document.getElementById('loadBtn');
+const loadFilesBtn = document.getElementById('loadFilesBtn');
+const displayFileBtn = document.getElementById('displayFileBtn');
+const fileSelect = document.getElementById('fileSelect');
+const fileSelectGroup = document.getElementById('fileSelectGroup');
+const fileInfo = document.getElementById('fileInfo');
 const testResult = document.getElementById('testResult');
 const errorMessage = document.getElementById('errorMessage');
 const loader = document.getElementById('loader');
@@ -46,9 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Application démarrée');
     console.log('📡 API URL:', API_URL);
     
-    // Event listeners
+    // Event listeners principaux
     if (testBtn) testBtn.addEventListener('click', testConnection);
-    if (loadBtn) loadBtn.addEventListener('click', loadAnnonces);
+    if (loadFilesBtn) loadFilesBtn.addEventListener('click', loadFilesList);
+    if (displayFileBtn) displayFileBtn.addEventListener('click', displaySelectedFile);
+    if (fileSelect) fileSelect.addEventListener('change', onFileSelected);
     if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', resetFilters);
     if (closeModalBtn) closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
     
@@ -73,6 +79,154 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// ============================================
+// GESTION DES FICHIERS
+// ============================================
+
+// Charger la liste des fichiers disponibles
+async function loadFilesList() {
+    console.log('📂 Chargement de la liste des fichiers...');
+    
+    showLoader(true);
+    hideError();
+    loadFilesBtn.disabled = true;
+    loadFilesBtn.textContent = '⏳ Chargement...';
+    
+    try {
+        const response = await fetch(`${API_URL}/files`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 Réponse API /files:', data);
+        
+        // Adapter selon le format de votre API
+        availableFiles = data.files || data.annonces || data;
+        
+        if (!Array.isArray(availableFiles) || availableFiles.length === 0) {
+            throw new Error('Aucun fichier trouvé');
+        }
+        
+        // Remplir le select
+        fileSelect.innerHTML = '<option value="">-- Sélectionnez un fichier --</option>';
+        availableFiles.forEach((file, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            
+            // Adapter selon la structure de vos fichiers
+            const fileName = file.Key || file.name || file.filename || `Fichier ${index + 1}`;
+            option.textContent = fileName;
+            
+            fileSelect.appendChild(option);
+        });
+        
+        // Afficher le groupe de sélection
+        fileSelectGroup.style.display = 'flex';
+        
+        console.log(`✅ ${availableFiles.length} fichier(s) chargé(s)`);
+        
+    } catch (error) {
+        console.error('❌ Erreur de chargement des fichiers:', error);
+        showError(`Erreur: ${error.message}`);
+    } finally {
+        showLoader(false);
+        loadFilesBtn.disabled = false;
+        loadFilesBtn.textContent = '🔄 Recharger la liste';
+    }
+}
+
+// Quand un fichier est sélectionné dans le dropdown
+function onFileSelected() {
+    const selectedIndex = fileSelect.value;
+    
+    if (selectedIndex === '') {
+        displayFileBtn.disabled = true;
+        fileInfo.style.display = 'none';
+        return;
+    }
+    
+    const file = availableFiles[selectedIndex];
+    
+    // Afficher les infos du fichier
+    const fileName = file.Key || file.name || file.filename || 'Nom inconnu';
+    const fileSize = formatFileSize(file.Size || file.size || 0);
+    const lastModified = formatDate(file.LastModified || file.lastModified || file.date);
+    
+    fileInfo.innerHTML = `
+        <h4>📄 Informations du fichier</h4>
+        <p><strong>📝 Nom :</strong> ${escapeHtml(fileName)}</p>
+        <p><strong>📦 Taille :</strong> ${fileSize}</p>
+        <p><strong>🕒 Dernière modification :</strong> ${lastModified}</p>
+    `;
+    fileInfo.style.display = 'block';
+    displayFileBtn.disabled = false;
+    
+    console.log('📄 Fichier sélectionné:', file);
+}
+
+// Charger et afficher le contenu du fichier sélectionné
+async function displaySelectedFile() {
+    const selectedIndex = fileSelect.value;
+    
+    if (selectedIndex === '') {
+        alert('⚠️ Veuillez sélectionner un fichier');
+        return;
+    }
+    
+    const file = availableFiles[selectedIndex];
+    const fileName = file.Key || file.name || file.filename;
+    
+    console.log('📥 Chargement du fichier:', fileName);
+    
+    showLoader(true);
+    hideError();
+    displayFileBtn.disabled = true;
+    displayFileBtn.textContent = '⏳ Chargement...';
+    
+    try {
+        // Appeler l'API pour récupérer le contenu du fichier
+        // ⚠️ Adapter l'URL selon votre API
+        const response = await fetch(`${API_URL}/files/${encodeURIComponent(fileName)}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 Contenu du fichier:', data);
+        
+        // Extraire les annonces selon le format
+        allAnnonces = data.annonces || data.body || data;
+        
+        if (!Array.isArray(allAnnonces)) {
+            throw new Error('Format de données invalide');
+        }
+        
+        console.log(`✅ ${allAnnonces.length} annonces chargées`);
+        
+        // Afficher le conteneur et les annonces
+        annoncesContainer.style.display = 'block';
+        displayAnnonces(allAnnonces);
+        
+        // Mettre à jour le compteur
+        const countSpan = document.getElementById('annoncesCount');
+        if (countSpan) countSpan.textContent = allAnnonces.length;
+        
+        // Scroll vers les annonces
+        annoncesContainer.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('❌ Erreur de chargement du fichier:', error);
+        showError(`Erreur: ${error.message}`);
+    } finally {
+        showLoader(false);
+        displayFileBtn.disabled = false;
+        displayFileBtn.textContent = '👁️ Afficher les annonces';
+    }
+}
 
 // ============================================
 // TEST DE CONNEXION API
@@ -102,55 +256,13 @@ async function testConnection() {
 }
 
 // ============================================
-// CHARGER LES ANNONCES
-// ============================================
-async function loadAnnonces() {
-    console.log('📥 Chargement des annonces...');
-    
-    showLoader(true);
-    hideError();
-    
-    try {
-        const response = await fetch(`${API_URL}/files`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('📦 Données reçues:', data);
-        
-        if (!data.annonces || !Array.isArray(data.annonces)) {
-            throw new Error('Format de données invalide');
-        }
-        
-        allAnnonces = data.annonces;
-        console.log(`✅ ${allAnnonces.length} annonces chargées`);
-        
-        // Afficher le conteneur et les annonces
-        if (annoncesContainer) annoncesContainer.style.display = 'block';
-        displayAnnonces(allAnnonces);
-        
-        // Mettre à jour le compteur
-        const countSpan = document.getElementById('annoncesCount');
-        if (countSpan) countSpan.textContent = allAnnonces.length;
-        
-    } catch (error) {
-        console.error('❌ Erreur de chargement:', error);
-        showError(`Erreur: ${error.message}`);
-    } finally {
-        showLoader(false);
-    }
-}
-
-// ============================================
-// AFFICHER LES ANNONCES
+// AFFICHAGE DES ANNONCES
 // ============================================
 function displayAnnonces(annonces) {
     console.log(`📊 Affichage de ${annonces.length} annonces`);
     
     if (!annoncesTableBody) {
-        console.error('❌ Element annoncesTableBody non trouvé');
+        console.error('❌ Element annoncesTableBody introuvable');
         return;
     }
     
@@ -159,8 +271,8 @@ function displayAnnonces(annonces) {
     if (annonces.length === 0) {
         annoncesTableBody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
-                    📭 Aucune annonce à afficher
+                <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
+                    🔍 Aucune annonce trouvée
                 </td>
             </tr>
         `;
@@ -169,46 +281,43 @@ function displayAnnonces(annonces) {
     
     annonces.forEach(annonce => {
         const row = document.createElement('tr');
-        row.style.cursor = 'pointer';
-        row.style.transition = 'background-color 0.2s';
         
-        const id = annonce.id || 'N/A';
-        const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'Non spécifiée';
+        const id = annonce.id || annonce.ID || 'N/A';
+        const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'N/A';
         const pieces = annonce.pieces || annonce.nb_pieces || annonce.nombre_pieces || 'N/A';
-        const surface = annonce.surface_m2 || annonce.surface || annonce.superficie || 0;
-        const prix = annonce.prix || annonce.loyer || 0;
-        const url = annonce.url || annonce.lien || annonce.link || null;
+        const surface = annonce.surface || annonce.superficie || 'N/A';
+        const prix = annonce.prix || annonce.price || 0;
+        const url = annonce.url || annonce.link || annonce.lien || '#';
         
-        // Calcul prix/m²
-        let prixM2Display = 'N/A';
-        if (prix > 0 && surface > 0) {
-            const prixM2 = prix / surface;
-            prixM2Display = `${prixM2.toFixed(2)} €`;
-        }
+        const prixFormate = prix ? new Intl.NumberFormat('fr-FR', { 
+            style: 'currency', 
+            currency: 'EUR',
+            minimumFractionDigits: 0
+        }).format(prix) : 'N/A';
         
-        const prixFormate = prix > 0 ? `${prix.toLocaleString('fr-FR')} €` : 'N/A';
-        const surfaceFormatee = surface > 0 ? `${surface} m²` : 'N/A';
+        const prixM2 = (prix && surface && surface !== 'N/A') ? 
+            Math.round(prix / parseFloat(surface)) : null;
         
-        // Bouton URL
-        let urlButton = '';
-        if (url) {
-            urlButton = `<button class="btn-url" onclick="window.open('${url}', '_blank'); event.stopPropagation();">🔗 Voir l'annonce</button>`;
-        } else {
-            urlButton = `<span style="color: #a0aec0; font-size: 12px;">Pas de lien</span>`;
-        }
+        const prixM2Display = prixM2 ? 
+            new Intl.NumberFormat('fr-FR', { 
+                style: 'currency', 
+                currency: 'EUR',
+                minimumFractionDigits: 0
+            }).format(prixM2) + '/m²' : 'N/A';
         
         row.innerHTML = `
-            <td style="font-weight: 600; color: #667eea;">${id}</td>
-            <td>${localisation}</td>
-            <td style="text-align: center;">${pieces}</td>
-            <td style="text-align: right;">${surfaceFormatee}</td>
-            <td style="text-align: right; font-weight: 600;">${prixFormate}</td>
-            <td style="text-align: right; color: #48bb78; font-weight: 600;">${prixM2Display}</td>
-            <td style="text-align: center;">${urlButton}</td>
+            <td>${escapeHtml(id)}</td>
+            <td>${escapeHtml(localisation)}</td>
+            <td>${escapeHtml(pieces)}</td>
+            <td>${surface !== 'N/A' ? surface + ' m²' : 'N/A'}</td>
+            <td style="font-weight: 600; color: #667eea;">${prixFormate}</td>
+            <td style="color: #48bb78;">${prixM2Display}</td>
+            <td>
+                <a href="${escapeHtml(url)}" target="_blank" class="btn-url">🔗 Voir</a>
+            </td>
         `;
         
-        row.addEventListener('mouseenter', () => row.style.backgroundColor = '#f7fafc');
-        row.addEventListener('mouseleave', () => row.style.backgroundColor = '');
+        row.style.cursor = 'pointer';
         row.addEventListener('click', () => showAnnonceDetails(annonce));
         
         annoncesTableBody.appendChild(row);
@@ -218,36 +327,40 @@ function displayAnnonces(annonces) {
 }
 
 // ============================================
-// AFFICHER DÉTAILS ANNONCE
+// MODAL DE DÉTAILS
 // ============================================
 function showAnnonceDetails(annonce) {
-    console.log('👁️ Affichage des détails:', annonce.id);
+    console.log('👁️ Affichage détails:', annonce);
     
-    if (!modal || !modalDetails) return;
-    
-    const id = annonce.id || 'N/A';
-    const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'Non spécifiée';
+    const id = annonce.id || annonce.ID || 'N/A';
+    const type = annonce.type || annonce.transaction || 'Vente';
+    const localisation = annonce.localisation || annonce.ville || annonce.adresse || 'N/A';
     const pieces = annonce.pieces || annonce.nb_pieces || annonce.nombre_pieces || 'N/A';
-    const surface = annonce.surface_m2 || annonce.surface || annonce.superficie || 0;
-    const prix = annonce.prix || annonce.loyer || 0;
-    const type = annonce.type || 'Non spécifié';
-    const description = annonce.description || 'Aucune description disponible';
-    const url = annonce.url || annonce.lien || annonce.link || null;
+    const surface = annonce.surface || annonce.superficie || 'N/A';
+    const prix = annonce.prix || annonce.price || 0;
+    const url = annonce.url || annonce.link || annonce.lien || null;
     
-    let prixM2Display = 'N/A';
-    if (prix > 0 && surface > 0) {
-        const prixM2 = prix / surface;
-        prixM2Display = `${prixM2.toFixed(2)} €/m²`;
-    }
+    const prixFormate = prix ? new Intl.NumberFormat('fr-FR', { 
+        style: 'currency', 
+        currency: 'EUR'
+    }).format(prix) : 'N/A';
     
-    const prixFormate = prix > 0 ? `${prix.toLocaleString('fr-FR')} €` : 'N/A';
-    const surfaceFormatee = surface > 0 ? `${surface} m²` : 'N/A';
+    const surfaceFormatee = surface !== 'N/A' ? surface + ' m²' : 'N/A';
+    
+    const prixM2 = (prix && surface && surface !== 'N/A') ? 
+        Math.round(prix / parseFloat(surface)) : null;
+    
+    const prixM2Display = prixM2 ? 
+        new Intl.NumberFormat('fr-FR', { 
+            style: 'currency', 
+            currency: 'EUR'
+        }).format(prixM2) + '/m²' : 'N/A';
     
     let urlSection = '';
-    if (url) {
+    if (url && url !== '#') {
         urlSection = `
-            <div style="margin: 20px 0; text-align: center;">
-                <a href="${url}" target="_blank" class="btn-url-modal">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="${escapeHtml(url)}" target="_blank" class="btn-url-modal">
                     🔗 Voir l'annonce complète
                 </a>
             </div>
@@ -257,9 +370,9 @@ function showAnnonceDetails(annonce) {
     modalDetails.innerHTML = `
         <div class="detail-header">
             <span class="badge ${type.toLowerCase() === 'vente' ? 'badge-vente' : 'badge-location'}">
-                ${type}
+                ${escapeHtml(type)}
             </span>
-            <h2 style="margin: 10px 0; color: #2d3748;">Annonce #${id}</h2>
+            <h2 style="margin: 10px 0; color: #2d3748;">Annonce #${escapeHtml(id)}</h2>
         </div>
         
         ${urlSection}
@@ -267,12 +380,12 @@ function showAnnonceDetails(annonce) {
         <div class="detail-grid">
             <div class="detail-item">
                 <span class="detail-label">📍 Localisation</span>
-                <span class="detail-value">${localisation}</span>
+                <span class="detail-value">${escapeHtml(localisation)}</span>
             </div>
             
             <div class="detail-item">
                 <span class="detail-label">🏠 Nombre de pièces</span>
-                <span class="detail-value">${pieces}</span>
+                <span class="detail-value">${escapeHtml(pieces)}</span>
             </div>
             
             <div class="detail-item">
@@ -290,59 +403,9 @@ function showAnnonceDetails(annonce) {
                 <span class="detail-value" style="color: #48bb78; font-weight: 700;">${prixM2Display}</span>
             </div>
         </div>
-        
-        <div class="detail-description">
-            <h3 style="margin-bottom: 10px; color: #4a5568;">📝 Description</h3>
-            <p style="color: #718096; line-height: 1.6;">${description}</p>
-        </div>
-        
-        <div class="detail-raw">
-            <details>
-                <summary style="cursor: pointer; color: #667eea; font-weight: 600;">
-                    🔧 Données brutes (JSON)
-                </summary>
-                <pre style="background: #f7fafc; padding: 15px; border-radius: 6px; overflow-x: auto; margin-top: 10px;">${JSON.stringify(annonce, null, 2)}</pre>
-            </details>
-        </div>
     `;
     
     modal.style.display = 'flex';
-}
-
-// ============================================
-// CUSTOM DROPDOWN
-// ============================================
-function setupCustomDropdown() {
-    if (!piecesDropdownToggle || !piecesDropdownMenu) return;
-    
-    piecesDropdownToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        piecesDropdownMenu.classList.toggle('show');
-        piecesDropdownToggle.classList.toggle('active');
-    });
-    
-    piecesDropdownMenu.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-    
-    document.addEventListener('click', () => {
-        piecesDropdownMenu.classList.remove('show');
-        piecesDropdownToggle.classList.remove('active');
-    });
-}
-
-function updatePiecesDropdownText() {
-    const checkedBoxes = Array.from(piecesCheckboxes).filter(cb => cb.checked);
-    const count = checkedBoxes.length;
-    
-    if (count === 0) {
-        piecesSelectedText.innerHTML = '🏠 Nombre de pièces';
-    } else if (count === 1) {
-        const value = checkedBoxes[0].value;
-        piecesSelectedText.innerHTML = `🏠 ${value === '5+' ? '5+ pièces' : value + ' pièce' + (value > 1 ? 's' : '')}`;
-    } else {
-        piecesSelectedText.innerHTML = `🏠 ${count} sélections <span class="selection-badge">${count}</span>`;
-    }
 }
 
 // ============================================
@@ -379,22 +442,21 @@ function filterAnnonces() {
         // Filtre surface min
         let matchSurfaceMin = true;
         if (surfaceMin !== null) {
-            const surface = annonce.surface_m2 || annonce.surface || annonce.superficie || 0;
+            const surface = parseFloat(annonce.surface || annonce.superficie || 0);
             matchSurfaceMin = surface >= surfaceMin;
         }
         
         // Filtre surface max
         let matchSurfaceMax = true;
         if (surfaceMax !== null) {
-            const surface = annonce.surface_m2 || annonce.surface || annonce.superficie || 0;
+            const surface = parseFloat(annonce.surface || annonce.superficie || 0);
             matchSurfaceMax = surface <= surfaceMax;
         }
         
         return matchSearch && matchPieces && matchSurfaceMin && matchSurfaceMax;
     });
     
-    console.log(`✅ ${filtered.length} annonces correspondent aux critères`);
-    
+    console.log(`🔍 ${filtered.length} annonces après filtrage`);
     displayAnnonces(filtered);
     
     const countSpan = document.getElementById('annoncesCount');
@@ -420,6 +482,40 @@ function resetFilters() {
 }
 
 // ============================================
+// CUSTOM DROPDOWN (Pièces)
+// ============================================
+function setupCustomDropdown() {
+    if (!piecesDropdownToggle || !piecesDropdownMenu) return;
+    
+    piecesDropdownToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        piecesDropdownMenu.classList.toggle('show');
+        piecesDropdownToggle.classList.toggle('active');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-dropdown')) {
+            piecesDropdownMenu.classList.remove('show');
+            piecesDropdownToggle.classList.remove('active');
+        }
+    });
+}
+
+function updatePiecesDropdownText() {
+    const selected = Array.from(piecesCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    
+    if (selected.length === 0) {
+        piecesSelectedText.textContent = '🏠 Nombre de pièces';
+    } else if (selected.length === 1) {
+        piecesSelectedText.innerHTML = `🏠 Nombre de pièces <span class="selection-badge">${selected.length}</span>`;
+    } else {
+        piecesSelectedText.innerHTML = `🏠 Nombre de pièces <span class="selection-badge">${selected.length}</span>`;
+    }
+}
+
+// ============================================
 // HELPERS
 // ============================================
 function showLoader(show) {
@@ -435,4 +531,35 @@ function showError(message) {
 
 function hideError() {
     if (errorMessage) errorMessage.style.display = 'none';
+}
+
+function escapeHtml(text) {
+    if (!text) return 'N/A';
+    const div = document.createElement('div');
+    div.textContent = text.toString();
+    return div.innerHTML;
+}
+
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function formatDate(date) {
+    if (!date) return 'N/A';
+    try {
+        const d = new Date(date);
+        return d.toLocaleDateString('fr-FR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch {
+        return 'N/A';
+    }
 }

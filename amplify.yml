@@ -15,10 +15,10 @@ frontend:
     
     build:
       commands:
-        - echo "🚀 Génération de env-config.js..."
-        # Créer le fichier env-config.js avec les variables Amplify
+        - echo "🚀 Génération de public/env-config.js..."
+        # Créer le fichier public/env-config.js avec les variables Amplify
         - |
-          cat > env-config.js << 'EOF'
+          cat > public/env-config.js << 'EOF'
           // ⚠️ Fichier AUTO-GÉNÉRÉ par AWS Amplify
           // Les valeurs proviennent des variables d'environnement Amplify
           
@@ -35,12 +35,12 @@ frontend:
           EOF
         
         # Remplacer les placeholders par les vraies valeurs
-        - sed -i "s|\$API_URL|$API_URL|g" env-config.js
-        - sed -i "s|\$BUCKET_NAME|$BUCKET_NAME|g" env-config.js
-        - sed -i "s|\$AWS_REGION|$AWS_REGION|g" env-config.js
+        - sed -i "s|\$API_URL|$API_URL|g" public/env-config.js
+        - sed -i "s|\$BUCKET_NAME|$BUCKET_NAME|g" public/env-config.js
+        - sed -i "s|\$AWS_REGION|$AWS_REGION|g" public/env-config.js
         
-        - echo "✅ env-config.js généré avec succès:"
-        - cat env-config.js
+        - echo "✅ public/env-config.js généré avec succès:"
+        - cat public/env-config.js
         - echo ""
         - echo "📦 Fichiers finaux avant déploiement:"
         - ls -la

@@ -661,3 +661,54 @@ td {
         text-align: left;
     }
 }
+
+/* ==========================================
+   TRI DES COLONNES
+   ========================================== */
+
+   .sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+    position: relative;
+    padding-right: 30px !important;
+}
+
+.sortable:hover {
+    background-color: #e2e8f0;
+    color: #667eea;
+}
+
+.sortable .sort-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    color: #a0aec0;
+    transition: all 0.2s;
+}
+
+.sortable:hover .sort-icon {
+    color: #667eea;
+}
+
+.sortable.sort-asc .sort-icon {
+    color: #38a169;
+    font-weight: bold;
+}
+
+.sortable.sort-desc .sort-icon {
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+/* Animation lors du tri */
+@keyframes sortFlash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #ebf8ff; }
+}
+
+.sortable.sorting {
+    animation: sortFlash 0.3s;
+}

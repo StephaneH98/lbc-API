@@ -13,7 +13,11 @@ console.log('🌍 Environnement:', CONFIG?.ENVIRONMENT || 'dev');
 let allAnnonces = [];
 let availableFiles = []; // Cache de la liste des fichiers
 let selectedFileName = null; 
-
+let currentAnnonces = []; // Stocker les annonces actuelles
+let currentSort = {
+    column: null,
+    direction: 'asc' // 'asc' ou 'desc'
+};
 // ============================================
 // ELEMENTS DOM
 // ============================================
@@ -416,6 +420,180 @@ function calculateAnnonceAge(annonce) {
     }
 }
 
+function renderAnnoncesTable(annonces) {
+    const tbody = document.getElementById('annoncesTableBody');
+    
+    if (!tbody) {
+        console.error('❌ tbody introuvable !');
+        return;
+    }
+    
+    let html = '';
+    
+    // Détecter le type de fichier
+    const isLocation = annonces[0]?.hasOwnProperty('furnished') || annonces[0]?.hasOwnProperty('prix_m2');
+    
+    annonces.forEach((annonce, index) => {
+        // Extraction des données
+        const id = escapeHtml(annonce.id || index + 1);
+        const localisation = escapeHtml(annonce.localisation || annonce.location || 'Non spécifié');
+        const description = escapeHtml(annonce.description || 'Aucune description');
+        const url = annonce.url || annonce.link || annonce.lien || '#';
+        
+        // Prix
+        const prix = annonce.prix || annonce.price || 0;
+        const prixFormate = formatPrice(prix);
+        
+        // Surface
+        const surface = annonce.surface_m2 || annonce.surface || null;
+        const surfaceDisplay = surface ? `${surface} m²` : 'N/A';
+        
+        // Pièces
+        const pieces = annonce.pieces || annonce.rooms || annonce.nb_pieces || 'N/A';
+        
+        // Prix au m²
+        let prixM2 = null;
+        let prixM2Display = 'N/A';
+        
+        if (prix && surface && surface > 0) {
+            prixM2 = Math.round(prix / surface);
+            prixM2Display = formatPrice(prixM2) + '/m²';
+        }
+        
+        // Calcul de l'âge de l'annonce
+        const ageInfo = calculateAnnonceAge(annonce);
+        
+        // Construction de la ligne
+        html += `<tr>`;
+        html += `<td class="id">${id}</td>`;
+        html += `<td class="localisation">${localisation}</td>`;
+        html += `<td class="pieces">${pieces}</td>`;
+        html += `<td class="surface">${surfaceDisplay}</td>`;
+        html += `<td class="prix">${prixFormate}</td>`;
+        html += `<td class="prix-m2 ${prixM2 ? 'has-value' : ''}">${prixM2Display}</td>`;
+        html += `<td class="age ${ageInfo.class}" title="${ageInfo.tooltip}">${ageInfo.display}</td>`;
+        html += `<td class="description">${description}</td>`;
+        html += `<td class="url"><a href="${url}" target="_blank" rel="noopener">🔗 Voir</a></td>`;
+        html += `</tr>`;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function updateSortIcons() {
+    // Réinitialiser toutes les icônes
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.textContent = '⇅';
+    });
+    
+    // Mettre à jour l'icône de la colonne active
+    if (currentSort.column) {
+        const activeTh = document.querySelector(`[data-sort="${currentSort.column}"]`);
+        if (activeTh) {
+            activeTh.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            const icon = activeTh.querySelector('.sort-icon');
+            if (icon) {
+                icon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+            }
+        }
+    }
+}
+
+// ==========================================
+// FONCTION DE TRI
+// ==========================================
+function sortAnnonces(column) {
+    console.log(`🔄 Tri par colonne: ${column}`);
+    
+    // Inverser la direction si on clique sur la même colonne
+    if (currentSort.column === column) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.column = column;
+        currentSort.direction = 'asc';
+    }
+    
+    // Copie du tableau pour ne pas modifier l'original
+    const sorted = [...currentAnnonces].sort((a, b) => {
+        let valA, valB;
+        
+        switch(column) {
+            case 'id':
+                valA = parseInt(a.id) || 0;
+                valB = parseInt(b.id) || 0;
+                break;
+                
+            case 'localisation':
+                valA = (a.localisation || a.location || '').toLowerCase();
+                valB = (b.localisation || b.location || '').toLowerCase();
+                break;
+                
+            case 'pieces':
+                valA = parseInt(a.pieces || a.rooms || a.nb_pieces) || 0;
+                valB = parseInt(b.pieces || b.rooms || b.nb_pieces) || 0;
+                break;
+                
+            case 'surface':
+                valA = parseFloat(a.surface_m2 || a.surface) || 0;
+                valB = parseFloat(b.surface_m2 || b.surface) || 0;
+                break;
+                
+            case 'prix':
+                valA = parseFloat(a.prix || a.price) || 0;
+                valB = parseFloat(b.prix || b.price) || 0;
+                break;
+                
+            case 'prix_m2':
+                const surfaceA = parseFloat(a.surface_m2 || a.surface) || 0;
+                const surfaceB = parseFloat(b.surface_m2 || b.surface) || 0;
+                const prixA = parseFloat(a.prix || a.price) || 0;
+                const prixB = parseFloat(b.prix || b.price) || 0;
+                valA = surfaceA > 0 ? prixA / surfaceA : 0;
+                valB = surfaceB > 0 ? prixB / surfaceB : 0;
+                break;
+                
+            case 'age':
+                // Tri par date (plus récent = valeur plus grande)
+                const dateFields = ['date', 'date_publication', 'published_at', 'created_at', 'timestamp'];
+                
+                let dateA = null;
+                let dateB = null;
+                
+                for (const field of dateFields) {
+                    if (a[field]) dateA = new Date(a[field]);
+                    if (b[field]) dateB = new Date(b[field]);
+                    if (dateA && dateB) break;
+                }
+                
+                valA = dateA ? dateA.getTime() : 0;
+                valB = dateB ? dateB.getTime() : 0;
+                break;
+                
+            default:
+                return 0;
+        }
+        
+        // Comparaison
+        let comparison = 0;
+        if (typeof valA === 'string') {
+            comparison = valA.localeCompare(valB, 'fr');
+        } else {
+            comparison = valA - valB;
+        }
+        
+        // Appliquer la direction
+        return currentSort.direction === 'asc' ? comparison : -comparison;
+    });
+    
+    console.log(`✅ Tri ${currentSort.direction === 'asc' ? '↑' : '↓'} appliqué sur ${column}`);
+    
+    // Ré-afficher avec les données triées
+    renderAnnoncesTable(sorted);
+    updateSortIcons();
+}
+
 
 // ==========================================
 // AFFICHAGE DES ANNONCES (VERSION DEBUG)
@@ -443,26 +621,27 @@ function displayAnnonces(annonces) {
 
     // Créer le tableau
     let html = `
-        <div class="results-header">
-            <h3>📊 ${annonces.length} annonce(s) ${isLocation ? 'de location' : 'de vente'}</h3>
-        </div>
-        <div class="table-responsive">
-            <table class="annonces-table">
-                <thead>
-                    <tr>
-                        <th>🆔 ID</th>
-                        <th>📍 Localisation</th>
-                        <th>🏠 Pièces</th>
-                        <th>📏 Surface</th>
-                        <th>💰 Prix ${isLocation ? '/mois' : ''}</th>
-                        <th>📊 Prix/m²</th>
-                        <th>⏰ Âge</th>
-                        <th>📝 Description</th>
-                        <th>🔗 Lien</th>
-                    </tr>
-                </thead>
-                <tbody>
+    <div class="results-header">
+        <h3>📊 ${annonces.length} annonce(s) ${isLocation ? 'de location' : 'de vente'}</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="annonces-table">
+            <thead>
+                <tr>
+                    <th data-sort="id" class="sortable">🆔 ID <span class="sort-icon">⇅</span></th>
+                    <th data-sort="localisation" class="sortable">📍 Localisation <span class="sort-icon">⇅</span></th>
+                    <th data-sort="pieces" class="sortable">🏠 Pièces <span class="sort-icon">⇅</span></th>
+                    <th data-sort="surface" class="sortable">📏 Surface <span class="sort-icon">⇅</span></th>
+                    <th data-sort="prix" class="sortable">💰 Prix ${isLocation ? '/mois' : ''} <span class="sort-icon">⇅</span></th>
+                    <th data-sort="prix_m2" class="sortable">📊 Prix/m² <span class="sort-icon">⇅</span></th>
+                    <th data-sort="age" class="sortable">⏰ Âge <span class="sort-icon">⇅</span></th>
+                    <th>📝 Description</th>
+                    <th>🔗 Lien</th>
+                </tr>
+            </thead>
+            <tbody id="annoncesTableBody">
     `;
+
 
     annonces.forEach((annonce, index) => {
         // Extraction des données
@@ -523,7 +702,21 @@ function displayAnnonces(annonces) {
     annoncesContainer.innerHTML = html;
     annoncesContainer.style.display = 'block';
     
+    // Sauvegarder les annonces actuelles
+    currentAnnonces = annonces;
+    currentSort = { column: null, direction: 'asc' };
+    
     console.log('✅ HTML injecté dans le container');
+    
+    // Ajouter les événements de tri sur les en-têtes
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.addEventListener('click', function() {
+            const column = this.getAttribute('data-sort');
+            sortAnnonces(column);
+        });
+    });
+    
+    console.log('✅ Événements de tri ajoutés');
     
     // Scroll vers les résultats
     setTimeout(() => {

@@ -3,80 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏠 Gestion des Annonces - Sélection</title>
+    <title>Sélection de fichier - LBC Analyzer</title>
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/file_selection.css">
+    
+    <!-- Scripts -->
+    <script src="../env-config.js" defer></script>
+    <script src="../config.js" defer></script>
+    <script src="../scripts/file_selection.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>🏠 Gestion des Annonces Immobilières</h1>
-            <p class="subtitle">Tableau de bord administrateur</p>
-        </header>
-
-        <!-- Section de sélection du fichier -->
-        <section class="file-selection-page">
-            <div class="selection-card">
-                <div class="card-icon">📂</div>
-                <h2>Sélectionner un fichier d'annonces</h2>
-                <p class="card-description">Choisissez un fichier JSON contenant les annonces à afficher</p>
-                
-                <!-- Bouton de chargement des fichiers -->
-                <div class="action-section">
-                    <button id="loadFilesBtn" class="btn btn-primary btn-large">
-                        📥 Charger les fichiers disponibles
-                    </button>
-                </div>
-
-                <!-- Sélecteur de fichier (caché au départ) -->
-                <div id="fileSelectionSection" class="file-selector-wrapper" style="display: none;">
-                    <div class="file-selector-group">
-                        <label for="fileSelect" class="file-label">
-                            <span class="label-icon">📄</span>
-                            Fichier à afficher :
-                        </label>
-                        <select id="fileSelect" class="file-select">
-                            <option value="">-- Chargement... --</option>
-                        </select>
-                    </div>
-
-                    <!-- Info du fichier sélectionné -->
-                    <div id="fileInfo" class="file-info-card" style="display: none;">
-                        <h3>📋 Informations du fichier</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">📝 Nom :</span>
-                                <span id="infoFileName" class="info-value">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">📦 Taille :</span>
-                                <span id="infoFileSize" class="info-value">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🕒 Modifié :</span>
-                                <span id="infoFileDate" class="info-value">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bouton d'affichage -->
-                    <button id="displayFileBtn" class="btn btn-success btn-large" disabled>
-                        👁️ Afficher les annonces
-                    </button>
-                </div>
-
-                <!-- Messages -->
-                <div id="loading" class="loading-message" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Chargement en cours...</p>
-                </div>
-
-                <div id="error-message" class="error-message" style="display: none;"></div>
-                <div id="success-message" class="success-message" style="display: none;"></div>
-            </div>
-        </section>
+    <!-- Loader -->
+    <div id="loader" class="loader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Chargement des fichiers...</p>
     </div>
 
-    <script src="../scripts/file_selection.js"></script>
+    <!-- Conteneur d'erreur -->
+    <div id="error-container" class="error-container" style="display: none;">
+        <div class="error-content">
+            <span class="error-icon">⚠️</span>
+            <p id="error-message" class="error-message"></p>
+            <button onclick="hideError()" class="error-close">✕</button>
+        </div>
+    </div>
+
+    <!-- En-tête avec dégradé -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>📁 Sélection de Fichier</h1>
+                <p>Choisissez un fichier JSON à analyser</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Barre d'actions -->
+            <div class="actions-bar">
+                <button id="load-files-btn" class="refresh-btn">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">Actualiser</span>
+                </button>
+                <div id="files-count" class="files-count">
+                    📊 <span id="count-number">0</span> fichier(s)
+                </div>
+            </div>
+
+            <!-- Grid des fichiers -->
+            <div id="files-container" class="files-grid">
+                <!-- Les cartes seront injectées ici -->
+            </div>
+
+            <!-- État vide -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h2>Aucun fichier disponible</h2>
+                <p>Il n'y a pas encore de fichiers JSON sur le serveur.</p>
+                <button id="retry-btn" class="btn btn-primary">
+                    🔄 Réessayer
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Pied de page -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 LBC Analyzer - Tous droits réservés</p>
+        </div>
+    </footer>
+
 </body>
 </html>

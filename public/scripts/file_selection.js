@@ -1,160 +1,482 @@
-// ==========================================
-// ÉLÉMENTS DOM
-// ==========================================
-const loadFilesBtn = document.getElementById('loadFilesBtn');
-const fileSelect = document.getElementById('fileSelect');
-const displayFileBtn = document.getElementById('displayFileBtn');
-const fileSelectionSection = document.getElementById('fileSelectionSection');
-const fileInfo = document.getElementById('fileInfo');
-const loading = document.getElementById('loading');
-const errorMessage = document.getElementById('error-message');
-const successMessage = document.getElementById('success-message');
+/* ==========================================
+   FILE SELECTION - UTILISE CONFIG GLOBAL
+   ========================================== */
 
-// ==========================================
-// VARIABLES GLOBALES
-// ==========================================
-let currentFiles = [];
-let selectedFile = null;
+   console.log('📄 === CHARGEMENT DE file_selection.js ===');
 
-// ==========================================
-// ÉVÉNEMENTS
-// ==========================================
-loadFilesBtn.addEventListener('click', loadFiles);
-fileSelect.addEventListener('change', handleFileSelection);
-displayFileBtn.addEventListener('click', goToAnnoncesPage);
+   // Vérifier que CONFIG existe (défini dans config.js)
+   if (typeof CONFIG === 'undefined') {
+       console.error('❌ CONFIG n\'est pas défini ! Vérifiez que config.js est chargé avant file_selection.js');
+       alert('ERREUR CRITIQUE : Configuration manquante. Rechargez la page.');
+       throw new Error('CONFIG is not defined');
+   }
+   
+   console.log('✅ CONFIG détecté:', CONFIG);
+   
+   /* ==========================================
+      UTILITAIRES
+      ========================================== */
 
-// ==========================================
-// CHARGEMENT DES FICHIERS
-// ==========================================
-async function loadFiles() {
-    console.log('🔄 Chargement des fichiers...');
-    showLoading(true);
-    hideMessages();
-
-    try {
-        const response = await fetch('http://127.0.0.1:5000/get_all_files');
+      /**
+ * Formate la taille d'un fichier en unités lisibles
+ * @param {number} bytes - Taille en octets
+ * @returns {string} - Taille formatée (ex: "1.5 MB")
+ */
+    function formatFileSize(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
         
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('📦 Réponse API:', data);
-
-        if (data.success && Array.isArray(data.files) && data.files.length > 0) {
-            currentFiles = data.files;
-            populateFileSelect(data.files);
-            fileSelectionSection.style.display = 'block';
-            showSuccess(`${data.files.length} fichier(s) trouvé(s)`);
-        } else {
-            showError('Aucun fichier disponible');
-        }
-
-    } catch (error) {
-        console.error('❌ Erreur:', error);
-        showError('Impossible de charger les fichiers');
-    } finally {
-        showLoading(false);
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        const size = (bytes / Math.pow(1024, i)).toFixed(2);
+        
+        return `${size} ${sizes[i]}`;
     }
+
+    function formatDate(isoDate) {
+        if (!isoDate) return 'Date inconnue';
+        
+        try {
+            const date = new Date(isoDate);
+            
+            // Vérifier si la date est valide
+            if (isNaN(date.getTime())) {
+                return 'Date invalide';
+            }
+            
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            
+            return `${day}/${month}/${year} à ${hours}:${minutes}`;
+        } catch (error) {
+            console.error('❌ Erreur formatage date:', error);
+            return 'Date invalide';
+        }
+    }
+    
+    /**
+     * Formate un nombre avec des séparateurs de milliers
+     * @param {number} num - Nombre à formater
+     * @returns {string} - Nombre formaté (ex: "1 234 567")
+     */
+    function formatNumber(num) {
+        if (!num && num !== 0) return 'N/A';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+    
+    /**
+     * Extrait le nom de base d'un fichier (sans extension)
+     * @param {string} filename - Nom du fichier
+     * @returns {string} - Nom sans extension
+     */
+    function getFileBaseName(filename) {
+        if (!filename) return '';
+        return filename.replace(/\.[^/.]+$/, '');
+    }
+    
+    /**
+     * Vérifie si un fichier est un JSON valide
+     * @param {string} filename - Nom du fichier
+     * @returns {boolean}
+     */
+    function isJsonFile(filename) {
+        if (!filename) return false;
+        return filename.toLowerCase().endsWith('.json');
+    }
+
+   
+   function showLoader() {
+       console.log('⏳ Affichage du loader');
+       const loader = document.getElementById('loader');
+       if (loader) {
+           loader.style.display = 'flex';
+       } else {
+           console.warn('⚠️ Élément #loader introuvable');
+       }
+   }
+   
+   function hideLoader() {
+       console.log('✅ Masquage du loader');
+       const loader = document.getElementById('loader');
+       if (loader) {
+           loader.style.display = 'none';
+       }
+   }
+   
+   function showError(message) {
+       console.error('❌ Affichage erreur:', message);
+       
+       const errorContainer = document.getElementById('error-container');
+       const errorMessage = document.getElementById('error-message');
+       
+       if (errorContainer && errorMessage) {
+           errorMessage.textContent = message;
+           errorContainer.style.display = 'flex';
+           
+           setTimeout(() => {
+               hideError();
+           }, 8000);
+       } else {
+           console.error('⚠️ Conteneur d\'erreur introuvable');
+           alert(message);
+       }
+   }
+   
+   function hideError() {
+       const errorContainer = document.getElementById('error-container');
+       if (errorContainer) {
+           errorContainer.style.display = 'none';
+       }
+   }
+   
+   function showEmptyState() {
+       console.log('📭 Affichage état vide');
+       const emptyState = document.getElementById('empty-state');
+       if (emptyState) {
+           emptyState.style.display = 'flex';
+       }
+   }
+   
+   function hideEmptyState() {
+       const emptyState = document.getElementById('empty-state');
+       if (emptyState) {
+           emptyState.style.display = 'none';
+       }
+   }
+   
+   /* ==========================================
+      CHARGEMENT DES FICHIERS
+      ========================================== */
+   
+   async function loadFiles() {
+       console.log('🚀 === DÉBUT loadFiles() ===');
+       
+       try {
+           showLoader();
+           hideError();
+           hideEmptyState();
+           
+           // Utiliser CONFIG.getApiUrl (défini dans config.js)
+           const url = CONFIG.getApiUrl('GET_ALL_FILES');
+           console.log('🔗 URL API:', url);
+           
+           console.log('📍 Envoi de la requête fetch...');
+           const response = await fetch(url, {
+               method: 'GET',
+               headers: {
+                   'Accept': 'application/json',
+                   'Content-Type': 'application/json'
+               }
+           });
+           
+           console.log('📍 Réponse reçue:');
+           console.log('   Status:', response.status);
+           console.log('   StatusText:', response.statusText);
+           console.log('   OK:', response.ok);
+           
+           if (!response.ok) {
+               const errorText = await response.text();
+               console.error('   Corps de l\'erreur:', errorText);
+               throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+           }
+           
+           console.log('📍 Parsing JSON...');
+           const data = await response.json();
+           console.log('   Données brutes:', data);
+           console.log('   Type:', typeof data);
+           
+           // Vérifier la structure de la réponse
+           if (!data.files) {
+               console.error('❌ Propriété "files" manquante');
+               console.log('   Structure reçue:', JSON.stringify(data, null, 2));
+               throw new Error('Format de réponse invalide: propriété "files" manquante');
+           }
+           
+           if (!Array.isArray(data.files)) {
+               console.error('❌ "files" n\'est pas un tableau');
+               console.log('   Type de files:', typeof data.files);
+               throw new Error('Format de réponse invalide: "files" doit être un tableau');
+           }
+           
+           console.log('✅ Nombre de fichiers:', data.files.length);
+           
+           if (data.files.length === 0) {
+               console.log('📭 Aucun fichier trouvé');
+               showEmptyState();
+               return;
+           }
+           
+           console.log('📍 Affichage des fichiers...');
+           displayFiles(data.files);
+           
+           console.log('✅ === FIN loadFiles() - SUCCÈS ===');
+           
+       } catch (error) {
+           console.error('❌ === FIN loadFiles() - ERREUR ===');
+           console.error('   Type:', error.constructor.name);
+           console.error('   Message:', error.message);
+           console.error('   Stack:', error.stack);
+           
+           showError(`${CONFIG.MESSAGES.ERROR_NETWORK}: ${error.message}`);
+       } finally {
+           hideLoader();
+       }
+   }
+   
+   function displayFiles(files) {
+    console.log('🎨 === AFFICHAGE DES FICHIERS ===');
+    console.log('   Nombre:', files.length);
+    
+    const container = document.getElementById('files-container');
+    const emptyState = document.getElementById('empty-state');
+    const countNumber = document.getElementById('count-number');
+    
+    if (!container) {
+        console.error('❌ Container #files-container introuvable');
+        return;
+    }
+    
+    // Mettre à jour le compteur
+    if (countNumber) {
+        countNumber.textContent = files.length;
+    }
+    
+    // Si aucun fichier
+    if (!files || files.length === 0) {
+        console.log('   ℹ️ Aucun fichier - affichage empty state');
+        container.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'flex';
+        return;
+    }
+    
+    // Masquer empty state et afficher la grid
+    if (emptyState) emptyState.style.display = 'none';
+    container.style.display = 'grid';
+    
+    // Créer les cartes HTML
+    container.innerHTML = files.map((file, index) => {
+        const filename = file.name || 'fichier_inconnu.json';
+        const fileSize = file.size || 0;
+        const lastModified = file.last_modified || '';
+        const adsCount = file.ads_count || null;
+        
+        return `
+            <div class="file-card" data-filename="${escapeHtml(filename)}" style="animation-delay: ${index * 0.1}s">
+                <div class="file-header">
+                    <div class="file-icon">📄</div>
+                    <div class="file-info-header">
+                        <h3 class="file-name">${escapeHtml(filename)}</h3>
+                        <span class="file-size">${formatFileSize(fileSize)}</span>
+                    </div>
+                </div>
+                
+                <div class="file-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">📦 Taille</span>
+                        <span class="meta-value">${formatFileSize(fileSize)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">🕒 Modifié</span>
+                        <span class="meta-value">${formatDate(lastModified)}</span>
+                    </div>
+                    ${adsCount !== null ? `
+                    <div class="meta-item">
+                        <span class="meta-label">📢 Annonces</span>
+                        <span class="meta-value">${formatNumber(adsCount)}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="file-actions">
+                    <button class="file-btn btn-view" onclick="selectFile('${escapeHtml(filename)}')">
+                        <span class="btn-icon">👁️</span>
+                        <span class="btn-text">Ouvrir</span>
+                    </button>
+                    <button class="file-btn btn-download" onclick="downloadFile('${escapeHtml(filename)}')">
+                        <span class="btn-icon">⬇️</span>
+                        <span class="btn-text">Télécharger</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    console.log('   ✅ Cartes créées et affichées');
+    
+    // Scroll vers le container
+    setTimeout(() => {
+        container.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }, 200);
 }
 
-// ==========================================
-// REMPLISSAGE DU SELECT
-// ==========================================
-function populateFileSelect(files) {
-    fileSelect.innerHTML = '<option value="">-- Sélectionnez un fichier --</option>';
+// Fonction de téléchargement
+function downloadFile(filename) {
+    console.log('📥 Téléchargement:', filename);
+    const link = document.createElement('a');
+    link.href = `${CONFIG.dataPath}/${filename}`;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Fonction d'échappement HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+   
+   function createFileCard(file) {
+       const card = document.createElement('div');
+       card.className = 'file-card';
+       
+       // Adapter selon la structure de votre réponse API
+       const fileName = file.name || file.fileName || file;
+       const fileSize = file.size || 0;
+       const lastModified = file.lastModified || file.last_modified || null;
+       
+       console.log('   📄 Fichier:', { fileName, fileSize, lastModified });
+       
+       // Formater la taille
+       const sizeInMB = fileSize ? (fileSize / (1024 * 1024)).toFixed(2) : '?';
+       
+       // Formater la date
+       let formattedDate = 'Date inconnue';
+       if (lastModified) {
+           try {
+               const date = new Date(lastModified);
+               formattedDate = date.toLocaleDateString('fr-FR', {
+                   day: '2-digit',
+                   month: '2-digit',
+                   year: 'numeric',
+                   hour: '2-digit',
+                   minute: '2-digit'
+               });
+           } catch (e) {
+               console.warn('   Erreur formatage date:', e);
+           }
+       }
+       
+       card.innerHTML = `
+           <div class="file-icon">📄</div>
+           <h3 class="file-name">${escapeHtml(fileName)}</h3>
+           <div class="file-meta">
+               <span>📊 ${sizeInMB} MB</span>
+               <span>🕒 ${formattedDate}</span>
+           </div>
+           <button class="file-btn" data-filename="${escapeHtml(fileName)}">
+               Ouvrir →
+           </button>
+       `;
+       
+       const button = card.querySelector('.file-btn');
+       button.addEventListener('click', () => {
+           const fn = button.getAttribute('data-filename');
+           console.log('👆 Clic sur fichier:', fn);
+           selectFile(fn);
+       });
+       
+       return card;
+   }
+   
+   function escapeHtml(text) {
+       const div = document.createElement('div');
+       div.textContent = text;
+       return div.innerHTML;
+   }
+   
+   /* ==========================================
+      SÉLECTION D'UN FICHIER
+      ========================================== */
+   
+      function selectFile(filename) {
+        console.log('═══════════════════════════════════════');
+        console.log('📂 SÉLECTION DU FICHIER');
+        console.log('   Nom du fichier:', filename);
+        console.log('   Type:', typeof filename);
+        console.log('═══════════════════════════════════════');
+        
+        if (!filename) {
+            alert('❌ Nom de fichier invalide');
+            return;
+        }
     
-    files.forEach(file => {
-        const option = document.createElement('option');
-        option.value = file.filename;
-        option.textContent = file.filename;
-        option.dataset.fileData = JSON.stringify(file);
-        fileSelect.appendChild(option);
+        // ✅ MÉTHODE 1 : localStorage (peut être effacé)
+        try {
+            localStorage.setItem('selectedFile', filename);
+            console.log('✅ Fichier stocké dans localStorage:', filename);
+        } catch (e) {
+            console.warn('⚠️ localStorage non disponible:', e);
+        }
+    
+        // ✅ MÉTHODE 2 : URL (backup fiable)
+        console.log('🔄 Redirection avec paramètre URL');
+        const targetUrl = `annonces.html?file=${encodeURIComponent(filename)}`;
+        console.log('   URL cible:', targetUrl);
+        
+        window.location.href = targetUrl;
+    }
+    
+    
+   /* ==========================================
+      INITIALISATION
+      ========================================== */
+   
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎬 === DOMContentLoaded ===');
+        console.log('   URL:', window.location.href);
+        
+        // Vérifier les éléments DOM
+        const requiredIds = ['loader', 'error-container', 'files-container', 'empty-state', 'load-files-btn'];
+        console.log('🔍 Vérification DOM:');
+        requiredIds.forEach(id => {
+            const el = document.getElementById(id);
+            console.log(`   #${id}:`, el ? '✅' : '❌');
+        });
+        
+        // Bouton de rechargement
+        const loadFilesBtn = document.getElementById('load-files-btn');
+        if (loadFilesBtn) {
+            console.log('🔘 Bouton rechargement OK');
+            loadFilesBtn.addEventListener('click', () => {
+                console.log('👆 Clic rechargement');
+                loadFiles();
+            });
+        }
+        
+        // Charger automatiquement
+        console.log('🚀 Chargement initial...');
+        loadFiles();
     });
 
-    fileSelect.disabled = false;
-    console.log('✅ Select rempli avec', files.length, 'fichiers');
-}
+    // Gestion des erreurs globales
+    window.addEventListener('error', (event) => {
+        console.error('💥 Erreur globale:', event.message, event.filename, event.lineno);
+    });
 
-// ==========================================
-// GESTION DE LA SÉLECTION
-// ==========================================
-function handleFileSelection() {
-    const selectedOption = fileSelect.options[fileSelect.selectedIndex];
-    
-    if (selectedOption.value === '') {
-        fileInfo.style.display = 'none';
-        displayFileBtn.disabled = true;
-        selectedFile = null;
-        return;
-    }
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('💥 Promise rejetée:', event.reason);
+    });
 
-    selectedFile = JSON.parse(selectedOption.dataset.fileData);
-    console.log('📄 Fichier sélectionné:', selectedFile);
+    console.log('✅ === file_selection.js CHARGÉ ===');
 
-    // Afficher les informations
-    document.getElementById('infoFileName').textContent = selectedFile.filename;
-    document.getElementById('infoFileSize').textContent = formatFileSize(selectedFile.size);
-    document.getElementById('infoFileDate').textContent = formatDate(selectedFile.last_modified);
+    window.selectFile = selectFile;
+    window.downloadFile = downloadFile;
+    window.hideError = hideError;
+    window.loadFiles = loadFiles;
 
-    fileInfo.style.display = 'block';
-    displayFileBtn.disabled = false;
-}
-
-// ==========================================
-// NAVIGATION VERS LA PAGE ANNONCES
-// ==========================================
-function goToAnnoncesPage() {
-    if (!selectedFile) {
-        showError('Veuillez sélectionner un fichier');
-        return;
-    }
-
-    console.log('🚀 Navigation vers annonces.html avec:', selectedFile.filename);
-    
-    // Stocker le nom du fichier dans localStorage
-    localStorage.setItem('selectedFile', selectedFile.filename);
-    
-    // Rediriger vers la page d'affichage
-    window.location.href = 'annonces.html';
-}
-
-// ==========================================
-// UTILITAIRES D'AFFICHAGE
-// ==========================================
-function showLoading(show) {
-    loading.style.display = show ? 'flex' : 'none';
-}
-
-function hideMessages() {
-    errorMessage.style.display = 'none';
-    successMessage.style.display = 'none';
-}
-
-function showError(message) {
-    errorMessage.textContent = `❌ ${message}`;
-    errorMessage.style.display = 'block';
-    setTimeout(() => errorMessage.style.display = 'none', 5000);
-}
-
-function showSuccess(message) {
-    successMessage.textContent = `✅ ${message}`;
-    successMessage.style.display = 'block';
-    setTimeout(() => successMessage.style.display = 'none', 3000);
-}
-
-// ==========================================
-// FORMATAGE
-// ==========================================
-function formatFileSize(bytes) {
-    if (!bytes) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + units[i];
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleString('fr-FR');
-}
+    console.log('✅ Fonctions globales exposées:', {
+        selectFile: typeof window.selectFile,
+        downloadFile: typeof window.downloadFile,
+        hideError: typeof window.hideError,
+        loadFiles: typeof window.loadFiles
+    });
+   

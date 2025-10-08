@@ -3,147 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annonces Immobilières</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="env-config.js"></script>
-    <script src="config.js"></script>
+    <title>🏠 Gestion Immobilière - Accueil</title>
+    <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
-    <div class="container">
-        <h1>📋 Visualiseur d'Annonces</h1>
+    <div class="hero-container">
+        <!-- Background avec effet de particules (optionnel) -->
+        <div class="hero-background"></div>
         
-        <!-- Section de test de connexion -->
-        <div class="test-section">
-            <button id="testBtn" class="btn btn-primary">Test API Connection</button>
-            <div id="testResult" class="result"></div>
-        </div>
+        <!-- Contenu principal -->
+        <div class="hero-content">
+            <!-- Logo et titre -->
+            <div class="hero-header">
+                <div class="logo-container">
+                    <div class="logo-icon">🏠</div>
+                </div>
+                <h1 class="hero-title">
+                    Gestion des Annonces Immobilières
+                </h1>
+                <p class="hero-subtitle">
+                    Tableau de bord administrateur
+                </p>
+            </div>
 
-        <!-- Section principale -->
-        <div class="main-section">
-            <h2>📂 Sélection du fichier</h2>
-            
-            <!-- ✨ NOUVEAU : Sélecteur de fichiers -->
-            <div class="file-selector-section">
-                <div class="file-controls">
-                    <button id="loadFilesBtn" class="btn btn-primary">🔄 Charger la liste des fichiers</button>
-                    
-                    <div class="file-select-group" style="display: none;" id="fileSelectGroup">
-                        <label for="fileSelect" class="file-label">📄 Choisir un fichier :</label>
-                        <select id="fileSelect" class="file-select">
-                            <option value="">-- Sélectionnez un fichier --</option>
-                        </select>
-                        <button id="displayFileBtn" class="btn btn-success" disabled>👁️ Afficher les annonces</button>
+            <!-- Carte principale -->
+            <div class="welcome-card">
+                <div class="welcome-icon">✨</div>
+                <h2>Bienvenue sur votre espace de gestion</h2>
+                <p class="welcome-text">
+                    Consultez, analysez et gérez vos annonces immobilières en toute simplicité.
+                    Accédez à tous vos fichiers d'annonces et visualisez les données de manière claire et intuitive.
+                </p>
+
+                <!-- Fonctionnalités -->
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <span class="feature-text">Tableau de bord complet</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔍</span>
+                        <span class="feature-text">Recherche avancée</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📈</span>
+                        <span class="feature-text">Statistiques détaillées</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <span class="feature-text">Tri intelligent</span>
                     </div>
                 </div>
-                
-                <!-- Info du fichier sélectionné -->
-                <div id="fileInfo" class="info-box" style="display: none;"></div>
-            </div>
 
-            <!-- Message d'erreur -->
-            <div id="errorMessage" class="error" style="display: none;"></div>
-
-            <!-- Loader -->
-            <div id="loader" class="loader" style="display: none;">
-                <div class="spinner"></div>
-                <p>Chargement en cours...</p>
-            </div>
-            
-            <!-- Tableau des annonces -->
-            <div id="annoncesContainer" style="display: none;">
-                <h2>📍 Annonces disponibles (<span id="annoncesCount">0</span>)</h2>
-                
-                <!-- Filtres -->
-                <div class="filters">
-                    <input 
-                        type="text" 
-                        id="search" 
-                        placeholder="🔍 Rechercher par ID, localisation..." 
-                        class="search-input"
-                    >
-                    
-                    <!-- Dropdown pour les pièces -->
-                    <div class="custom-dropdown">
-                        <button type="button" class="dropdown-toggle" id="pieces-dropdown-toggle">
-                            <span id="pieces-selected-text">🏠 Nombre de pièces</span>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="dropdown-menu" id="pieces-dropdown-menu">
-                            <label class="dropdown-item">
-                                <input type="checkbox" name="pieces" value="1">
-                                <span>1 pièce</span>
-                            </label>
-                            <label class="dropdown-item">
-                                <input type="checkbox" name="pieces" value="2">
-                                <span>2 pièces</span>
-                            </label>
-                            <label class="dropdown-item">
-                                <input type="checkbox" name="pieces" value="3">
-                                <span>3 pièces</span>
-                            </label>
-                            <label class="dropdown-item">
-                                <input type="checkbox" name="pieces" value="4">
-                                <span>4 pièces</span>
-                            </label>
-                            <label class="dropdown-item">
-                                <input type="checkbox" name="pieces" value="5+">
-                                <span>5+ pièces</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <input 
-                        type="number" 
-                        id="surface-min" 
-                        placeholder="📏 Surface min (m²)" 
-                        class="filter-input"
-                        min="0"
-                    >
-                    
-                    <input 
-                        type="number" 
-                        id="surface-max" 
-                        placeholder="📏 Surface max (m²)" 
-                        class="filter-input"
-                        min="0"
-                    >
-                    
-                    <button id="reset-filters" class="btn btn-secondary">🔄 Réinitialiser</button>
+                <!-- Bouton principal -->
+                <div class="cta-section">
+                    <a href="pages/file_selection.html" class="cta-button">
+                        <span class="button-icon">🚀</span>
+                        <span class="button-text">Accéder aux annonces</span>
+                        <span class="button-arrow">→</span>
+                    </a>
+                    <p class="cta-hint">Cliquez pour commencer</p>
                 </div>
-                
-                <!-- Tableau -->
-                <table id="annoncesTable" class="annonces-table">
-                    <thead>
-                        <tr>
-                            <th>🆔 ID</th>
-                            <th>📍 Localisation</th>
-                            <th>🏠 Pièces</th>
-                            <th>📏 Surface</th>
-                            <th>💰 Prix</th>
-                            <th>📊 Prix/m²</th>
-                            <th>🔗 Lien</th>
-                        </tr>
-                    </thead>
-                    <tbody id="annoncesTableBody">
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
-                                📂 Sélectionnez un fichier pour commencer
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
+
+            <!-- Footer -->
+            <footer class="hero-footer">
+                <p>&copy; 2024 Gestion Immobilière - Tous droits réservés</p>
+            </footer>
         </div>
     </div>
-
-    <!-- Modal pour les détails -->
-    <div id="annonceModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div id="modalDetails"></div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Annonces - Tableau</title>
+    <link rel="stylesheet" href="../css/annonces.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1>🏠 Annonces Immobilières</h1>
+                    <p class="subtitle" id="fileNameDisplay">Chargement...</p>
+                </div>
+                <a href="index.html" class="btn btn-secondary">
+                    ← Retour à la sélection
+                </a>
+            </div>
+        </header>
+
+        <!-- Messages -->
+        <div id="loading" class="loading-message">
+            <div class="spinner"></div>
+            <p>Chargement des annonces...</p>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <!-- Container des annonces -->
+        <div id="annonces-container" class="annonces-container" style="display: none;"></div>
+    </div>
+
+    <script src="../scripts/annonces.js"></script>
+</body>
+</html>

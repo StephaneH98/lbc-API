@@ -17,6 +17,7 @@ env/
 ENV/
 
 # Fichiers de configuration locaux
+public/env-config.js
 .env
 
 # Fichiers de l'IDE

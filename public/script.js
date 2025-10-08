@@ -344,8 +344,6 @@ function escapeHtml(text) {
 function displayAnnonces(annonces) {
     console.log('🎨 displayAnnonces() appelée');
     console.log('📊 Nombre d\'annonces reçues:', annonces?.length);
-    console.log('📦 Type de données:', typeof annonces, Array.isArray(annonces));
-    console.log('🔍 Première annonce:', annonces[0]);
     
     if (!Array.isArray(annonces)) {
         console.error('❌ Les annonces ne sont pas un tableau !');
@@ -361,52 +359,101 @@ function displayAnnonces(annonces) {
 
     console.log('✅ Validation OK, génération du HTML...');
 
+    // Détecter le type de fichier
+    const isLocation = annonces[0].hasOwnProperty('furnished') || annonces[0].hasOwnProperty('prix_m2');
+
     // Créer le tableau
     let html = `
-        <h3>📊 ${annonces.length} annonce(s) trouvée(s)</h3>
+        <div class="results-header">
+            <h3>📊 ${annonces.length} annonce(s) ${isLocation ? 'de location' : 'de vente'}</h3>
+        </div>
         <div class="table-responsive">
             <table class="annonces-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Prix</th>
-                        <th>Localisation</th>
+                        <th>🆔 ID</th>
+                        <th>📍 Localisation</th>
+                        <th>🏠 Pièces</th>
+                        <th>📏 Surface</th>
+                        <th>💰 Prix ${isLocation ? '/mois' : ''}</th>
+                        <th>📊 Prix/m²</th>
+                        ${isLocation ? '<th>🛋️ Meublé</th>' : ''}
+                        <th>📝 Description</th>
+                        <th>🔗 Lien</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
 
     annonces.forEach((annonce, index) => {
-        console.log(`📝 Annonce ${index}:`, annonce);
-        
-        const prix = formatPrice(annonce.prix || annonce.price || 0);
+        // Extraction des données
+        const id = escapeHtml(annonce.id || index + 1);
         const localisation = escapeHtml(annonce.localisation || annonce.location || 'Non spécifié');
-        const id = escapeHtml(annonce.id || '');
+        const description = escapeHtml(annonce.description || 'Aucune description');
+        const url = annonce.url || annonce.link || annonce.lien || '#';
         
-        html += `
-            <tr>
-                <td>${id}</td>
-                <td class="prix">${prix}</td>
-                <td>${localisation}</td>
-            </tr>
-        `;
+        // Prix
+        const prix = annonce.prix || annonce.price || 0;
+        const prixFormate = formatPrice(prix);
+        
+        // Surface
+        const surface = annonce.surface_m2 || annonce.surface || null;
+        const surfaceDisplay = surface ? `${surface} m²` : 'N/A';
+        
+        // Pièces
+        const pieces = annonce.pieces || annonce.rooms || annonce.nb_pieces || 'N/A';
+        
+        // Prix au m²
+        let prixM2 = null;
+        let prixM2Display = 'N/A';
+        
+        if (prix && surface && surface > 0) {
+            prixM2 = Math.round(prix / surface);
+            prixM2Display = formatPrice(prixM2) + '/m²';
+        }
+        
+        // Meublé (pour locations)
+        const furnished = annonce.furnished ? '✅ Oui' : '❌ Non';
+        
+        // Construction de la ligne
+        html += `<tr>`;
+        html += `<td class="id">${id}</td>`;
+        html += `<td class="localisation">${localisation}</td>`;
+        html += `<td class="pieces">${pieces}</td>`;
+        html += `<td class="surface">${surfaceDisplay}</td>`;
+        html += `<td class="prix">${prixFormate}</td>`;
+        html += `<td class="prix-m2 ${prixM2 ? 'has-value' : ''}">${prixM2Display}</td>`;
+        
+        if (isLocation) {
+            html += `<td class="furnished">${furnished}</td>`;
+        }
+        
+        html += `<td class="description">${description}</td>`;
+        html += `<td class="url"><a href="${url}" target="_blank" rel="noopener">🔗 Voir</a></td>`;
+        html += `</tr>`;
     });
 
     html += `
                 </tbody>
             </table>
         </div>
+        
+        <div class="table-stats">
+            <p>💡 Astuce : Cliquez sur les en-têtes pour trier (fonctionnalité à venir)</p>
+        </div>
     `;
 
     console.log('📏 Longueur du HTML généré:', html.length, 'caractères');
-    console.log('🎯 Container trouvé:', annoncesContainer ? 'OUI' : 'NON');
-    console.log('🎯 Container display avant:', getComputedStyle(annoncesContainer).display);
 
     annoncesContainer.innerHTML = html;
     annoncesContainer.style.display = 'block';
     
-    console.log('🎯 Container display après:', getComputedStyle(annoncesContainer).display);
     console.log('✅ HTML injecté dans le container');
+    
+    // Scroll vers les résultats
+    setTimeout(() => {
+        annoncesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 

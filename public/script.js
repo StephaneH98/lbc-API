@@ -339,6 +339,85 @@ function escapeHtml(text) {
 }
 
 // ==========================================
+// CALCUL DE L'ÂGE D'UNE ANNONCE
+// ==========================================
+function calculateAnnonceAge(annonce) {
+    const dateFields = ['date', 'date_publication', 'published_at', 'created_at', 'timestamp'];
+    let dateString = null;
+    
+    // Chercher le champ de date
+    for (const field of dateFields) {
+        if (annonce[field]) {
+            dateString = annonce[field];
+            break;
+        }
+    }
+    
+    if (!dateString) {
+        return {
+            display: 'N/A',
+            tooltip: 'Date de publication inconnue',
+            class: 'age-unknown'
+        };
+    }
+    
+    try {
+        const dateAnnonce = new Date(dateString);
+        const maintenant = new Date();
+        const diffMs = maintenant - dateAnnonce;
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffHeures = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffJours = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffSemaines = Math.floor(diffJours / 7);
+        const diffMois = Math.floor(diffJours / 30);
+        
+        let display = '';
+        let cssClass = '';
+        
+        if (diffMinutes < 60) {
+            display = `${diffMinutes} min`;
+            cssClass = 'age-fresh';
+        } else if (diffHeures < 24) {
+            display = `${diffHeures}h`;
+            cssClass = 'age-fresh';
+        } else if (diffJours === 1) {
+            display = 'Hier';
+            cssClass = 'age-recent';
+        } else if (diffJours < 7) {
+            display = `${diffJours}j`;
+            cssClass = 'age-recent';
+        } else if (diffSemaines < 4) {
+            display = `${diffSemaines} sem.`;
+            cssClass = 'age-medium';
+        } else if (diffMois < 12) {
+            display = `${diffMois} mois`;
+            cssClass = 'age-old';
+        } else {
+            const annees = Math.floor(diffMois / 12);
+            display = `${annees} an${annees > 1 ? 's' : ''}`;
+            cssClass = 'age-very-old';
+        }
+        
+        const tooltip = `Publié le ${formatDate(dateString)}`;
+        
+        return {
+            display: display,
+            tooltip: tooltip,
+            class: cssClass
+        };
+        
+    } catch (e) {
+        console.error('Erreur calcul âge:', e);
+        return {
+            display: 'Erreur',
+            tooltip: 'Date invalide',
+            class: 'age-error'
+        };
+    }
+}
+
+
+// ==========================================
 // AFFICHAGE DES ANNONCES (VERSION DEBUG)
 // ==========================================
 function displayAnnonces(annonces) {
@@ -377,7 +456,7 @@ function displayAnnonces(annonces) {
                         <th>📏 Surface</th>
                         <th>💰 Prix ${isLocation ? '/mois' : ''}</th>
                         <th>📊 Prix/m²</th>
-                        ${isLocation ? '<th>🛋️ Meublé</th>' : ''}
+                        <th>⏰ Âge</th>
                         <th>📝 Description</th>
                         <th>🔗 Lien</th>
                     </tr>
@@ -412,8 +491,8 @@ function displayAnnonces(annonces) {
             prixM2Display = formatPrice(prixM2) + '/m²';
         }
         
-        // Meublé (pour locations)
-        const furnished = annonce.furnished ? '✅ Oui' : '❌ Non';
+        // Calcul de l'âge de l'annonce
+        const ageInfo = calculateAnnonceAge(annonce);
         
         // Construction de la ligne
         html += `<tr>`;
@@ -423,11 +502,7 @@ function displayAnnonces(annonces) {
         html += `<td class="surface">${surfaceDisplay}</td>`;
         html += `<td class="prix">${prixFormate}</td>`;
         html += `<td class="prix-m2 ${prixM2 ? 'has-value' : ''}">${prixM2Display}</td>`;
-        
-        if (isLocation) {
-            html += `<td class="furnished">${furnished}</td>`;
-        }
-        
+        html += `<td class="age ${ageInfo.class}" title="${ageInfo.tooltip}">${ageInfo.display}</td>`;
         html += `<td class="description">${description}</td>`;
         html += `<td class="url"><a href="${url}" target="_blank" rel="noopener">🔗 Voir</a></td>`;
         html += `</tr>`;
@@ -439,7 +514,7 @@ function displayAnnonces(annonces) {
         </div>
         
         <div class="table-stats">
-            <p>💡 Astuce : Cliquez sur les en-têtes pour trier (fonctionnalité à venir)</p>
+            <p>💡 Astuce : Survolez l'âge pour voir la date exacte de publication</p>
         </div>
     `;
 

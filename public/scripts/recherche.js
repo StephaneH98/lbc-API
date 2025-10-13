@@ -1,3 +1,4 @@
+// recherche.js
 // ==========================================
 // ATTENDRE LE CHARGEMENT COMPLET DU DOM
 // ==========================================
@@ -14,8 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Boutons
         resetBtn: document.getElementById('resetBtn'),
-        previewBtn: document.getElementById('previewBtn'),
-        copyUrlBtn: document.getElementById('copyUrlBtn'),
         
         // Champs du formulaire
         category: document.getElementById('category'),
@@ -31,8 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         chambresMax: document.getElementById('chambresMax'),
         
         // Zones d'affichage
-        urlPreview: document.getElementById('urlPreview'),
-        generatedUrl: document.getElementById('generatedUrl'),
         statusMessage: document.getElementById('statusMessage')
     };
     
@@ -159,78 +156,69 @@ document.addEventListener('DOMContentLoaded', function() {
         const baseUrl = 'https://www.leboncoin.fr/recherche';
         const params = new URLSearchParams();
         
-        // Catégorie (toujours présente)
-        params.append('category', formData.category);
-        
-        // Localisation
-        if (formData.ville && formData.codePostal) {
-            const location = `${formData.ville}_${formData.codePostal}__`;
-            params.append('locations', location);
+        // Catégorie (obligatoire)
+        if (formData.category) {
+            params.append('category', formData.category);
         }
         
         // Prix
         if (formData.prixMin || formData.prixMax) {
-            const prixMin = formData.prixMin || '0';
-            const prixMax = formData.prixMax || '999999';
+            const prixMin = formData.prixMin || 'min';
+            const prixMax = formData.prixMax || 'max';
             params.append('price', `${prixMin}-${prixMax}`);
         }
         
         // Surface
         if (formData.surfaceMin || formData.surfaceMax) {
-            const surfMin = formData.surfaceMin || '0';
-            const surfMax = formData.surfaceMax || '999';
-            params.append('square', `${surfMin}-${surfMax}`);
+            const surfaceMin = formData.surfaceMin || 'min';
+            const surfaceMax = formData.surfaceMax || 'max';
+            params.append('square', `${surfaceMin}-${surfaceMax}`);
         }
         
         // Pièces
         if (formData.piecesMin || formData.piecesMax) {
-            const piecMin = formData.piecesMin || '1';
-            const piecMax = formData.piecesMax || '10';
-            params.append('rooms', `${piecMin}-${piecMax}`);
+            const piecesMin = formData.piecesMin || 'min';
+            const piecesMax = formData.piecesMax || 'max';
+            params.append('rooms', `${piecesMin}-${piecesMax}`);
         }
         
-        // Chambres
+        // Chambres (bedrooms)
         if (formData.chambresMin || formData.chambresMax) {
-            const chambMin = formData.chambresMin || '1';
-            const chambMax = formData.chambresMax || '10';
-            params.append('bedrooms', `${chambMin}-${chambMax}`);
+            const chambresMin = formData.chambresMin || 'min';
+            const chambresMax = formData.chambresMax || 'max';
+            params.append('bedrooms', `${chambresMin}-${chambresMax}`);
         }
         
-        const finalUrl = `${baseUrl}?${params.toString()}`;
-        console.log('✅ URL générée:', finalUrl);
+        // Localisation simplifiée
+        if (formData.ville || formData.codePostal) {
+            const location = formData.ville || formData.codePostal;
+            params.append('locations', location);
+        }
+        
+        const finalUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+        console.log('🔗 URL construite:', finalUrl);
         
         return finalUrl;
     }
     
     // ==========================================
-    // FONCTION : AFFICHER L'APERÇU DE L'URL
+    // FONCTION : AFFICHER UN MESSAGE DE STATUT
     // ==========================================
     
-    function showUrlPreview(url) {
-        if (!elements.urlPreview || !elements.generatedUrl) {
-            console.warn('⚠️ Zone d\'aperçu introuvable');
-            return;
-        }
-        
-        elements.generatedUrl.value = url;
-        elements.urlPreview.style.display = 'block';
-        
-        elements.urlPreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    
-    // ==========================================
-    // FONCTION : AFFICHER LES ERREURS
-    // ==========================================
-    
-    function showErrors(errors) {
+    function showStatus(message, type = 'info', details = '') {
         if (!elements.statusMessage) return;
         
-        elements.statusMessage.className = 'status-message error';
+        const icons = {
+            'loading': '⏳',
+            'success': '✅',
+            'error': '❌',
+            'info': 'ℹ️'
+        };
+        
+        elements.statusMessage.className = `status-message ${type}`;
         elements.statusMessage.innerHTML = `
-            <strong>❌ Erreurs détectées :</strong>
-            <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
-                ${errors.map(err => `<li>${err}</li>`).join('')}
-            </ul>
+            <strong>${icons[type]} ${message}</strong>
+            ${details ? `<small>${details}</small>` : ''}
         `;
         elements.statusMessage.style.display = 'block';
         
@@ -238,122 +226,357 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ==========================================
-    // FONCTION : TÉLÉCHARGER ET AFFICHER LE CONTENU
+    // FONCTION : AFFICHER APERÇU HTML DANS LA CONSOLE
     // ==========================================
-    async function fetchAndDisplayContent(url) {
-        console.log('🌐 Récupération du contenu de:', url);
+    
+    function displayHtmlPreview(html, maxLines = 100) {
+        if (!html) {
+            console.warn('⚠️ Aucun HTML à afficher');
+            return;
+        }
         
-        const apiEndpoint = `${ENV_CONFIG.API_URL}/page`;
+        const lines = html.split('\n');
         
-        console.log('🔗 Endpoint API:', apiEndpoint);
+        console.log('═══════════════════════════════════════════════════════');
+        console.log(`📄 APERÇU HTML (${maxLines} premières lignes / ${lines.length} total)`);
+        console.log('═══════════════════════════════════════════════════════');
+        
+        lines.slice(0, maxLines).forEach((line, index) => {
+            const lineNum = (index + 1).toString().padStart(4, '0');
+            console.log(`${lineNum} │ ${line}`);
+        });
+        
+        if (lines.length > maxLines) {
+            console.log(`... (${lines.length - maxLines} lignes supplémentaires)`);
+        }
+        
+        console.log('═══════════════════════════════════════════════════════');
+        console.log(`📊 Stats: ${lines.length} lignes | ${formatBytes(html.length)}`);
+        console.log('═══════════════════════════════════════════════════════');
+    }
+    
+    /**
+     * 📡 Envoie l'URL à la Lambda AWS avec le proxy CORS
+     */
+    async function sendToLambda(url) {
+        const startTime = Date.now();
         
         try {
-            // Afficher un message de chargement
-            if (elements.statusMessage) {
-                elements.statusMessage.className = 'status-message loading';
-                elements.statusMessage.innerHTML = `
-                    <strong>⏳ Récupération du contenu...</strong>
-                    <small>Utilisation de vos headers navigateur pour éviter la détection...</small>
-                `;
-                elements.statusMessage.style.display = 'block';
-            }
+            console.log('🚀 Envoi vers Lambda...');
+            console.log('📍 URL originale:', url);
             
-            // 🔥 CAPTURER LES HEADERS DE L'UTILISATEUR
-            const userHeaders = await getUserHeaders();
+            // ========== CONSTRUCTION DE L'URL FINALE ==========
+            // Format: https://corsproxy.io/?https://www.leboncoin.fr/recherche?...
+            const proxiedUrl = `${CONFIG.PROXY_URL}${url}`;
+            console.log('🔗 URL avec proxy:', proxiedUrl);
             
-            console.log('📡 Envoi requête avec headers utilisateur');
+            // ========== HEADERS UTILISATEUR RÉALISTES ==========
+            const userHeaders = {
+                'User-Agent': navigator.userAgent,
+                'Accept-Language': navigator.language || 'fr-FR,fr;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'DNT': '1'
+            };
             
+            console.log('📋 Headers:', userHeaders);
+            
+            // ========== CONSTRUCTION DES QUERY PARAMS ==========
+            const lambdaUrl = `${CONFIG.API_URL}/page`;
+            
+            const params = new URLSearchParams({
+                url: proxiedUrl,  // ← URL complète avec proxy
+                userHeaders: JSON.stringify(userHeaders)
+            });
+            
+            const finalUrl = `${lambdaUrl}?${params.toString()}`;
+            console.log('🎯 URL finale Lambda:', finalUrl);
+            
+            // ========== REQUÊTE FETCH ==========
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), ENV_CONFIG.TIMEOUT);
+            const timeoutId = setTimeout(() => {
+                console.warn('⏱️ Timeout atteint');
+                controller.abort();
+            }, CONFIG.TIMEOUT);
             
-            // 🔥 ENVOYER EN POST AVEC LES HEADERS
-            const response = await fetch(apiEndpoint, {
-                method: 'POST',
-                signal: controller.signal,
+            const response = await fetch(finalUrl, {
+                method: 'GET',
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Origin': window.location.origin
                 },
-                body: JSON.stringify({
-                    url: url,
-                    userHeaders: userHeaders  // 🔥 Envoyer les headers
-                })
+                signal: controller.signal
             });
             
             clearTimeout(timeoutId);
             
-            console.log('📡 Status HTTP:', response.status);
+            const duration = Date.now() - startTime;
+            console.log(`⏱️ Durée: ${duration}ms`);
             
+            // ========== GESTION DE LA RÉPONSE ==========
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ 
-                    error: `Erreur HTTP ${response.status}` 
-                }));
-                throw new Error(errorData.error || `HTTP ${response.status}`);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            const data = await response.json();
+            const html = await response.text();
+            console.log('✅ HTML reçu:', html.length, 'octets');
             
-            console.log('✅ Réponse API reçue');
-            console.log('📊 Données:', {
-                success: data.success,
-                contentLength: data.content?.length,
-                title: data.title,
-                headersUsed: data.headersUsed,
-                userAgent: data.userAgent
+            // Vérification CAPTCHA
+            if (html.includes('captcha') || html.includes('DataDome')) {
+                console.warn('⚠️ CAPTCHA détecté dans la réponse !');
+                showError('Le site a détecté un bot. Réessayez dans quelques secondes.');
+                return null;
+            }
+            
+            // Vérification contenu vide
+            if (html.length < 500) {
+                console.warn('⚠️ Réponse trop courte, potentiellement vide');
+                showError('Réponse invalide du serveur');
+                return null;
+            }
+            // ✨ Analyse du contenu
+            console.log('═'.repeat(80));
+            console.log('📊 ANALYSE DE LA RÉPONSE');
+            console.log('═'.repeat(80));
+            
+            console.log('📏 Taille:', html.length.toLocaleString(), 'caractères');
+            console.log('📦 Poids:', (html.length / 1024).toFixed(2), 'Ko');
+            console.log('⏱️  Temps:', (performance.now() - startTime).toFixed(0), 'ms');
+            
+            // Détection du type de contenu
+            const isHTML = html.trim().startsWith('<!DOCTYPE') || html.trim().startsWith('<html');
+            const isJSON = html.trim().startsWith('{') || html.trim().startsWith('[');
+            const contentType = isHTML ? '🌐 HTML' : isJSON ? '📋 JSON' : '📄 Texte';
+            console.log('🔍 Type détecté:', contentType);
+            
+            // Comptage des lignes
+            const lines = html.split('\n');
+            console.log('📝 Nombre de lignes:', lines.length);
+            
+            console.log('─'.repeat(80));
+            console.log('📄 APERÇU DU CONTENU');
+            console.log('─'.repeat(80));
+            
+            // Afficher les 15 premières lignes non vides
+            const nonEmptyLines = lines.filter(line => line.trim().length > 0).slice(0, 15);
+            
+            nonEmptyLines.forEach((line, index) => {
+                const lineNum = (index + 1).toString().padStart(2, '0');
+                const content = line.trim().substring(0, 100);
+                const truncated = content.length < line.trim().length ? '...' : '';
+                
+                console.log(`%c${lineNum} %c${content}${truncated}`, 
+                    'color: #888; font-weight: bold',
+                    'color: #333'
+                );
             });
             
-            // Afficher aperçu dans la console
-            displayContentPreview(data.content);
-            
-            // Afficher les statistiques dans l'interface
-            if (elements.statusMessage) {
-                elements.statusMessage.className = 'status-message success';
-                elements.statusMessage.innerHTML = `
-                    <strong>✅ Contenu récupéré avec succès</strong>
-                    <small>Avec vos headers navigateur (anti-détection activée)</small>
-                    <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 4px; font-family: monospace; font-size: 0.85em;">
-                        📊 Statistiques:<br>
-                        • Taille: ${formatBytes(data.content.length)}<br>
-                        • Titre: ${data.title || 'N/A'}<br>
-                        • Headers utilisés: ${data.headersUsed || 'N/A'}<br>
-                        • User-Agent: ${data.userAgent?.substring(0, 50)}...<br>
-                        ${data.detectionFlags?.hasDataDome ? '⚠️ DataDome détecté<br>' : ''}
-                        ${data.detectionFlags?.hasCaptcha ? '⚠️ Captcha détecté<br>' : ''}
-                    </div>
-                `;
+            if (lines.length > 15) {
+                console.log(`%c... et ${lines.length - 15} lignes supplémentaires`, 'color: #888; font-style: italic');
             }
             
-            return data.content;
+            console.log('═'.repeat(80));
+
+            // Si c'est du HTML, afficher quelques stats
+            if (isHTML) {
+                const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+                const title = titleMatch ? titleMatch[1] : 'Non trouvé';
+                
+                const scriptCount = (html.match(/<script/gi) || []).length;
+                const linkCount = (html.match(/<link/gi) || []).length;
+                const divCount = (html.match(/<div/gi) || []).length;
+                
+                console.log('🏷️  Titre:', title);
+                console.log('📊 Statistiques HTML:');
+                console.log('   • <script> tags:', scriptCount);
+                console.log('   • <link> tags:', linkCount);
+                console.log('   • <div> tags:', divCount);
+                console.log('═'.repeat(80));
+            }
+
+
+            console.log('⏱️  Temps:', (performance.now() - startTime).toFixed(0), 'ms');
+            
+            return html;
             
         } catch (error) {
-            console.error('❌ Erreur API:', error);
-            handleFetchError(error);
+            const duration = Date.now() - startTime;
+            console.error('❌ Erreur après', duration, 'ms:', error);
+            
+            if (error.name === 'AbortError') {
+                showError(`Timeout après ${CONFIG.TIMEOUT/1000}s`);
+            } else if (error.message.includes('Failed to fetch')) {
+                showError('Erreur réseau. Vérifiez votre connexion.');
+            } else {
+                showError(`Erreur: ${error.message}`);
+            }
+            
             return null;
         }
     }
-    
-    // ==========================================
-    // FONCTION : AFFICHER L'APERÇU DU CONTENU
-    // ==========================================
-    
-    function displayContentPreview(content) {
-        if (!content) return;
+
+    /**
+     * 🎬 Gestionnaire du bouton de recherche
+     */
+    async function handleSearch() {
+        const button = document.getElementById('searchButton');
+        const originalText = button.textContent;
         
-        const lines = content.split('\n');
-        const previewLines = 50;
-        
-        console.log('📄 ========================================');
-        console.log(`📄 APERÇU DES ${previewLines} PREMIÈRES LIGNES:`);
-        console.log('📄 ========================================');
-        
-        lines.slice(0, previewLines).forEach((line, index) => {
-            console.log(`${(index + 1).toString().padStart(3, '0')} | ${line}`);
-        });
-        
-        console.log('📄 ========================================');
-        console.log(`📄 Total: ${lines.length} lignes | ${formatBytes(content.length)}`);
-        console.log('📄 ========================================');
+        try {
+            // UI: Mode chargement
+            button.disabled = true;
+            button.textContent = '⏳ Chargement...';
+            button.classList.add('loading');
+            
+            // Récupération de l'URL générée
+            const generatedUrl = generateLeboncoinUrl();
+            console.log('🔗 URL générée:', generatedUrl);
+            
+            // Envoi à la Lambda
+            const html = await sendToLambda(generatedUrl);
+            
+            if (!html) {
+                throw new Error('Aucune donnée reçue');
+            }
+            
+            // Affichage des résultats
+            displayResults(html);
+            
+            // Log de succès
+            console.log('✅ Recherche terminée avec succès');
+            
+        } catch (error) {
+            console.error('❌ Erreur recherche:', error);
+            showError(error.message);
+            
+        } finally {
+            // Restauration du bouton
+            button.disabled = false;
+            button.textContent = originalText;
+            button.classList.remove('loading');
+        }
     }
+
+    /**
+     * ⚠️ Affichage d'une erreur
+     */
+    function showError(container, message) {
+        // Vérification de sécurité
+        if (!container) {
+            console.error('❌ showError: container est null, message:', message);
+            // Créer un container temporaire en haut de page
+            const tempContainer = document.createElement('div');
+            tempContainer.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #f44336;
+                color: white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 9999;
+                max-width: 80%;
+                text-align: center;
+                font-family: Arial, sans-serif;
+            `;
+            tempContainer.innerHTML = `
+                <strong>❌ Erreur</strong><br>
+                ${message}
+            `;
+            document.body.appendChild(tempContainer);
+            
+            // Auto-supprimer après 5 secondes
+            setTimeout(() => {
+                tempContainer.remove();
+            }, 5000);
+            
+            return;
+        }
+        
+        // Comportement normal si le container existe
+        container.innerHTML = `
+            <div class="error-message" style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 4px; border-left: 4px solid #f44336;">
+                <strong>❌ Erreur:</strong> ${message}
+            </div>
+        `;
+        container.style.display = 'block';
+    }
+    
+
+    /**
+     * 📊 Affichage des résultats
+     */
+    function displayResults(html) {
+        const container = document.getElementById('results-container');
+        
+        try {
+            // Parsing du HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extraction des annonces (à adapter selon la structure Leboncoin)
+            const annonces = doc.querySelectorAll('[data-qa-id="aditem_container"]');
+            
+            if (annonces.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <span>😕</span>
+                        <p>Aucune annonce trouvée</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log(`📦 ${annonces.length} annonces trouvées`);
+            
+            // Affichage des annonces
+            let resultsHtml = `<h2>📋 ${annonces.length} résultats</h2><div class="annonces-grid">`;
+            
+            annonces.forEach((annonce, index) => {
+                const titre = annonce.querySelector('[data-qa-id="aditem_title"]')?.textContent || 'Sans titre';
+                const prix = annonce.querySelector('[data-qa-id="aditem_price"]')?.textContent || 'Prix non spécifié';
+                const lien = annonce.querySelector('a')?.href || '#';
+                const image = annonce.querySelector('img')?.src || '';
+                
+                resultsHtml += `
+                    <div class="annonce-card" data-index="${index}">
+                        ${image ? `<img src="${image}" alt="${titre}" loading="lazy">` : ''}
+                        <h3>${titre}</h3>
+                        <p class="prix">${prix}</p>
+                        <a href="${lien}" target="_blank" rel="noopener">Voir l'annonce →</a>
+                    </div>
+                `;
+            });
+            
+            resultsHtml += '</div>';
+            container.innerHTML = resultsHtml;
+            
+        } catch (error) {
+            console.error('❌ Erreur parsing HTML:', error);
+            showError('Impossible d\'analyser les résultats');
+        }
+    }
+
+    // ========== INITIALISATION ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.getElementById('searchButton');
+        if (button) {
+            button.addEventListener('click', handleSearch);
+            console.log('✅ Gestionnaire de recherche initialisé');
+        }
+    });
+
+
+
     
     // ==========================================
     // FONCTION : FORMATER LES BYTES
@@ -377,66 +600,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (error.name === 'AbortError') {
             errorMessage = 'Timeout dépassé';
-            errorDetails = `La requête a pris plus de ${ENV_CONFIG.TIMEOUT / 1000} secondes`;
+            errorDetails = `La requête a pris plus de ${CONFIG.TIMEOUT / 1000} secondes`;
         } else if (error.message.includes('Failed to fetch')) {
             errorMessage = 'Impossible de contacter l\'API';
-            errorDetails = `Vérifiez que l'API est accessible: ${ENV_CONFIG.API_URL}`;
+            errorDetails = `Vérifiez que l'API est accessible: ${CONFIG.API_URL}`;
         } else if (error.message.includes('NetworkError')) {
             errorMessage = 'Erreur réseau';
             errorDetails = 'Vérifiez votre connexion internet';
         }
         
-        if (elements.statusMessage) {
-            elements.statusMessage.className = 'status-message error';
-            elements.statusMessage.innerHTML = `
-                <strong>❌ ${errorMessage}</strong>
-                <small>${errorDetails || error.message}</small>
-            `;
-        }
-    }
-    
-    // ==========================================
-    // FONCTION : TÉLÉCHARGER LA PAGE HTML
-    // ==========================================
-    async function downloadPage(url) {
-        if (!elements.statusMessage) return;
-        
-        console.log('📥 Téléchargement de la page:', url);
-        
-        // Récupérer le contenu via Lambda avec headers utilisateur
-        const content = await fetchAndDisplayContent(url);
-        
-        if (content) {
-            // Créer un blob et télécharger
-            const blob = new Blob([content], { type: 'text/html' });
-            const downloadUrl = URL.createObjectURL(blob);
-            
-            // Créer un nom de fichier
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const filename = `leboncoin_${timestamp}.html`;
-            
-            // Créer un lien de téléchargement
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            // Nettoyer
-            URL.revokeObjectURL(downloadUrl);
-            
-            console.log('✅ Fichier téléchargé:', filename);
-            
-            // Mettre à jour le message
-            if (elements.statusMessage && elements.statusMessage.className === 'status-message success') {
-                elements.statusMessage.innerHTML += `
-                    <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(76, 175, 80, 0.1); border-radius: 4px;">
-                        📥 <strong>Fichier téléchargé: ${filename}</strong>
-                    </div>
-                `;
-            }
-        }
+        showStatus(errorMessage, 'error', errorDetails);
     }
     
     // ==========================================
@@ -447,32 +620,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!elements.searchForm) return;
         
         elements.searchForm.reset();
-        
-        if (elements.urlPreview) elements.urlPreview.style.display = 'none';
         if (elements.statusMessage) elements.statusMessage.style.display = 'none';
         
         console.log('🔄 Formulaire réinitialisé');
-    }
-    
-    // ==========================================
-    // FONCTION : COPIER L'URL
-    // ==========================================
-    
-    function copyUrlToClipboard() {
-        if (!elements.generatedUrl) return;
-        
-        elements.generatedUrl.select();
-        document.execCommand('copy');
-        
-        const originalText = elements.copyUrlBtn ? elements.copyUrlBtn.textContent : '';
-        if (elements.copyUrlBtn) {
-            elements.copyUrlBtn.textContent = '✅ Copié !';
-            setTimeout(() => {
-                elements.copyUrlBtn.textContent = originalText;
-            }, 2000);
-        }
-        
-        console.log('📋 URL copiée');
     }
     
     // ==========================================
@@ -481,55 +631,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Soumission du formulaire
     if (elements.searchForm) {
-        elements.searchForm.addEventListener('submit', (e) => {
+        elements.searchForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            console.log('📥 Soumission du formulaire');
             
+            console.log('📝 Soumission du formulaire...');
+            
+            // Récupérer les données
             const formData = getFormData();
-            const errors = validateForm(formData);
             
+            // Valider
+            const errors = validateForm(formData);
             if (errors.length > 0) {
-                showErrors(errors);
+                showStatus('Erreurs de validation', 'error', errors.join('<br>'));
                 return;
             }
             
+            // Construire l'URL
             const url = buildLeboncoinUrl(formData);
-            showUrlPreview(url);
-            downloadPage(url);
+            
+            // Envoyer à Lambda
+            await sendToLambda(url);
         });
     }
     
-    // Bouton aperçu
-    if (elements.previewBtn) {
-        elements.previewBtn.addEventListener('click', () => {
-            console.log('👁️ Aperçu de l\'URL');
-            
-            const formData = getFormData();
-            const errors = validateForm(formData);
-            
-            if (errors.length > 0) {
-                showErrors(errors);
-                return;
-            }
-            
-            const url = buildLeboncoinUrl(formData);
-            showUrlPreview(url);
-            
-            if (elements.statusMessage) {
-                elements.statusMessage.style.display = 'none';
-            }
-        });
-    }
-    
-    // Bouton reset
+    // Bouton réinitialiser
     if (elements.resetBtn) {
         elements.resetBtn.addEventListener('click', resetForm);
     }
     
-    // Bouton copier
-    if (elements.copyUrlBtn) {
-        elements.copyUrlBtn.addEventListener('click', copyUrlToClipboard);
-    }
-    
-    console.log('✅ Page de recherche prête avec capture des headers utilisateur !');
+    console.log('✅ Page de recherche prête !');
 });

@@ -1,3 +1,4 @@
+<!-- recherche.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -61,7 +62,7 @@
                                 id="prixMin" 
                                 name="prixMin" 
                                 min="0" 
-                                step="1000" 
+                                step="10000" 
                                 placeholder="0"
                                 class="form-input"
                             >
@@ -76,7 +77,7 @@
                                 id="prixMax" 
                                 name="prixMax" 
                                 min="0" 
-                                step="1000" 
+                                step="10000" 
                                 placeholder="1000000"
                                 class="form-input"
                             >
@@ -85,7 +86,7 @@
                     </div>
                 </div>
             </div>
-        
+
             <!-- Section Surface -->
             <div class="form-section">
                 <h2>📏 Surface</h2>
@@ -122,10 +123,10 @@
                     </div>
                 </div>
             </div>
-        
-            <!-- Section Pièces -->
+
+            <!-- Section Pièces et Chambres -->
             <div class="form-section">
-                <h2>🏠 Configuration</h2>
+                <h2>🛏️ Pièces et Chambres</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="piecesMin">Nombre de pièces (min)</label>
@@ -196,26 +197,11 @@
                 <button type="button" id="resetBtn" class="btn btn-secondary">
                     🔄 Réinitialiser
                 </button>
-                <button type="button" id="previewBtn" class="btn btn-info">
-                    👁️ Voir l'URL
-                </button>
                 <button type="submit" class="btn btn-primary">
-                    📥 Télécharger la page
+                    🚀 Lancer la recherche
                 </button>
             </div>
         </form>
-        
-        <!-- Affichage de l'URL générée -->
-        <div id="urlPreview" class="url-preview" style="display: none;">
-            <h3>🔗 URL générée :</h3>
-            <div class="url-box">
-                <code id="generatedUrl"></code>
-                <button id="copyUrlBtn" class="btn-copy">📋 Copier</button>
-            </div>
-            <a id="openUrlBtn" href="#" target="_blank" class="btn btn-link">
-                🌐 Ouvrir dans un nouvel onglet
-            </a>
-        </div>
         
         <!-- Zone de statut -->
         <div id="statusMessage" class="status-message"></div>
@@ -234,7 +220,7 @@
             ← Retour aux annonces
         </a>
     </div>
-
+    <div id="error-container" style="display: none; margin: 20px 0;"></div>
     <!-- Scripts -->
     <script src="../env-config.js"></script>
     <script src="../config.js"></script>

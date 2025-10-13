@@ -24,6 +24,7 @@ frontend:
           
           window.ENV = {
               API_URL: '$API_URL',
+              PROXY_URL: '$PROXY_URL',
               BUCKET_NAME: '$BUCKET_NAME',
               REGION: '$AWS_REGION'
           };
@@ -36,6 +37,7 @@ frontend:
         
         # Remplacer les placeholders par les vraies valeurs
         - sed -i "s|\$API_URL|$API_URL|g" public/env-config.js
+        - sed -i "s|\$PROXY_URL|$PROXY_URL|g" public/env-config.js
         - sed -i "s|\$BUCKET_NAME|$BUCKET_NAME|g" public/env-config.js
         - sed -i "s|\$AWS_REGION|$AWS_REGION|g" public/env-config.js
         

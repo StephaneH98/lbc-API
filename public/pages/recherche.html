@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Recherche Avancée - Annonces</title>
+    <link rel="stylesheet" href="../css/recherche.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>🔍 Recherche Avancée</h1>
+            <p class="subtitle">Trouvez l'annonce parfaite selon vos critères</p>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <div class="recherche-container">
+        
+        <!-- Formulaire de recherche -->
+        <form id="searchForm" class="search-form">
+    
+            <!-- Section Localisation -->
+            <div class="form-section">
+                <h2>📍 Localisation</h2>
+                <div class="form-group">
+                    <label for="ville">Ville</label>
+                    <input 
+                        type="text" 
+                        id="ville" 
+                        name="ville" 
+                        placeholder="Ex: Perpignan, Elne, Paris..."
+                        class="form-input"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="codePostal">Code Postal</label>
+                    <input 
+                        type="text" 
+                        id="codePostal" 
+                        name="codePostal" 
+                        placeholder="Ex: 66200"
+                        class="form-input"
+                        pattern="[0-9]{5}"
+                        maxlength="5"
+                    >
+                    <small class="form-help">5 chiffres</small>
+                </div>
+            </div>
+        
+            <!-- Section Budget -->
+            <div class="form-section">
+                <h2>💰 Budget</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="prixMin">Prix minimum</label>
+                        <div class="input-with-unit">
+                            <input 
+                                type="number" 
+                                id="prixMin" 
+                                name="prixMin" 
+                                min="0" 
+                                step="1000" 
+                                placeholder="0"
+                                class="form-input"
+                            >
+                            <span class="input-unit">€</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prixMax">Prix maximum</label>
+                        <div class="input-with-unit">
+                            <input 
+                                type="number" 
+                                id="prixMax" 
+                                name="prixMax" 
+                                min="0" 
+                                step="1000" 
+                                placeholder="1000000"
+                                class="form-input"
+                            >
+                            <span class="input-unit">€</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Section Surface -->
+            <div class="form-section">
+                <h2>📏 Surface</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="surfaceMin">Surface minimum</label>
+                        <div class="input-with-unit">
+                            <input 
+                                type="number" 
+                                id="surfaceMin" 
+                                name="surfaceMin" 
+                                min="0" 
+                                step="5" 
+                                placeholder="0"
+                                class="form-input"
+                            >
+                            <span class="input-unit">m²</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="surfaceMax">Surface maximum</label>
+                        <div class="input-with-unit">
+                            <input 
+                                type="number" 
+                                id="surfaceMax" 
+                                name="surfaceMax" 
+                                min="0" 
+                                step="5" 
+                                placeholder="300"
+                                class="form-input"
+                            >
+                            <span class="input-unit">m²</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Section Pièces -->
+            <div class="form-section">
+                <h2>🏠 Configuration</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="piecesMin">Nombre de pièces (min)</label>
+                        <select id="piecesMin" name="piecesMin" class="form-input">
+                            <option value="">Indifférent</option>
+                            <option value="1">1 pièce</option>
+                            <option value="2">2 pièces</option>
+                            <option value="3">3 pièces</option>
+                            <option value="4">4 pièces</option>
+                            <option value="5">5 pièces</option>
+                            <option value="6">6+ pièces</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="piecesMax">Nombre de pièces (max)</label>
+                        <select id="piecesMax" name="piecesMax" class="form-input">
+                            <option value="">Indifférent</option>
+                            <option value="1">1 pièce</option>
+                            <option value="2">2 pièces</option>
+                            <option value="3">3 pièces</option>
+                            <option value="4">4 pièces</option>
+                            <option value="5">5 pièces</option>
+                            <option value="6">6+ pièces</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="chambresMin">Nombre de chambres (min)</label>
+                        <select id="chambresMin" name="chambresMin" class="form-input">
+                            <option value="">Indifférent</option>
+                            <option value="1">1 chambre</option>
+                            <option value="2">2 chambres</option>
+                            <option value="3">3 chambres</option>
+                            <option value="4">4 chambres</option>
+                            <option value="5">5+ chambres</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="chambresMax">Nombre de chambres (max)</label>
+                        <select id="chambresMax" name="chambresMax" class="form-input">
+                            <option value="">Indifférent</option>
+                            <option value="1">1 chambre</option>
+                            <option value="2">2 chambres</option>
+                            <option value="3">3 chambres</option>
+                            <option value="4">4 chambres</option>
+                            <option value="5">5+ chambres</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Section Type -->
+            <div class="form-section">
+                <h2>🏘️ Type de bien</h2>
+                <div class="form-group">
+                    <label for="category">Catégorie</label>
+                    <select id="category" name="category" class="form-input">
+                        <option value="10">Locations</option>
+                        <option value="9">Ventes immobilières</option>
+                        <option value="11">Colocations</option>
+                    </select>
+                </div>
+            </div>
+        
+            <!-- Boutons d'action -->
+            <div class="form-actions">
+                <button type="button" id="resetBtn" class="btn btn-secondary">
+                    🔄 Réinitialiser
+                </button>
+                <button type="button" id="previewBtn" class="btn btn-info">
+                    👁️ Voir l'URL
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    📥 Télécharger la page
+                </button>
+            </div>
+        </form>
+        
+        <!-- Affichage de l'URL générée -->
+        <div id="urlPreview" class="url-preview" style="display: none;">
+            <h3>🔗 URL générée :</h3>
+            <div class="url-box">
+                <code id="generatedUrl"></code>
+                <button id="copyUrlBtn" class="btn-copy">📋 Copier</button>
+            </div>
+            <a id="openUrlBtn" href="#" target="_blank" class="btn btn-link">
+                🌐 Ouvrir dans un nouvel onglet
+            </a>
+        </div>
+        
+        <!-- Zone de statut -->
+        <div id="statusMessage" class="status-message"></div>
+
+        <!-- Résumé des filtres actifs -->
+        <div id="activeFilters" class="active-filters" style="display: none;">
+            <h3>🎯 Filtres actifs :</h3>
+            <div id="filtersList" class="filters-list"></div>
+        </div>
+
+    </div>
+
+    <!-- Bouton retour -->
+    <div class="back-button-container">
+        <a href="annonces.html" class="btn btn-back">
+            ← Retour aux annonces
+        </a>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../env-config.js"></script>
+    <script src="../config.js"></script>
+    <script src="../scripts/recherche.js"></script>
+</body>
+</html>

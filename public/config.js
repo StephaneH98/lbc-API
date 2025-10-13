@@ -23,11 +23,14 @@ const CONFIG = {
     // AWS Configuration
     BUCKET_NAME: window.ENV.BUCKET_NAME || 'default-bucket',
     REGION: window.ENV.REGION || 'eu-west-3',
+    PROXY_URL: window.ENV.PROXY_URL || 'https://test.io/?',
+    TIMEOUT: window.ENV.TIMEOUT || 60000,
     
     // Endpoints API
     ENDPOINTS: {
         GET_ALL_FILES: '/files',
         GET_FILE_DATA: '/file/{filename}',
+        GET_PAGE: '/page',
         UPLOAD_FILE: '/upload_file',
         DELETE_FILE: '/delete_file'
     },
@@ -61,6 +64,7 @@ window.CONFIG = CONFIG;
 // Log de la configuration
 console.log('✅ CONFIG chargé avec succès');
 console.log('📡 CONFIG.API_URL:', CONFIG.API_URL);
+console.log('📡 CONFIG.PROXY_URL:', CONFIG.PROXY_URL);
 console.log('🪣 CONFIG.BUCKET_NAME:', CONFIG.BUCKET_NAME);
 console.log('🌍 CONFIG.REGION:', CONFIG.REGION);
 console.log('📝 CONFIG.ENDPOINTS:', CONFIG.ENDPOINTS);

@@ -26,7 +26,17 @@ frontend:
               API_URL: '$API_URL',
               PROXY_URL: '$PROXY_URL',
               BUCKET_NAME: '$BUCKET_NAME',
-              REGION: '$AWS_REGION'
+              REGION: '$AWS_REGION',
+              COGNITO: {
+                  USER_POOL_ID: '$COGNITO_USER_POOL_ID',
+                  CLIENT_ID: '$COGNITO_CLIENT_ID',
+                  REGION: '$AWS_REGION'
+              },
+              AUTH: {
+                  LOGIN_PAGE: 'pages/login.html',
+                  HOME_PAGE: '../index.html',
+                  LOGOUT_REDIRECT: 'pages/login.html'
+              }
           };
           
           console.log('Variables injectées par Amplify:');
@@ -41,6 +51,11 @@ frontend:
         - sed -i "s|\$PROXY_URL|$PROXY_URL|g" public/env-config.js
         - sed -i "s|\$BUCKET_NAME|$BUCKET_NAME|g" public/env-config.js
         - sed -i "s|\$AWS_REGION|$AWS_REGION|g" public/env-config.js
+        - sed -i "s|\$COGNITO_USER_POOL_ID|$COGNITO_USER_POOL_ID|g" public/env-config.js
+        - sed -i "s|\$COGNITO_CLIENT_ID|$COGNITO_CLIENT_ID|g" public/env-config.js
+        - sed -i "s|\$AUTH_LOGIN_PAGE|$AUTH_LOGIN_PAGE|g" public/env-config.js
+        - sed -i "s|\$AUTH_HOME_PAGE|$AUTH_HOME_PAGE|g" public/env-config.js
+        - sed -i "s|\$AUTH_LOGOUT_REDIRECT|$AUTH_LOGOUT_REDIRECT|g" public/env-config.js
         
         - echo "✅ public/env-config.js généré avec succès:"
         - cat public/env-config.js

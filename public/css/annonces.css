@@ -375,9 +375,6 @@
     border-collapse: collapse;
 }
 
-/* Sur grands écrans (>1600px), limiter encore plus */
-
-
 /* Sur petits écrans, prendre toute la largeur */
 @media (max-width: 768px) {
     .annonces-container {

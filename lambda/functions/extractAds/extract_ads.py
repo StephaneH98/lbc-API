@@ -326,7 +326,7 @@ def lambda_handler(event, context):
         
         bucket_name, object_key = parse_s3_url(s3_url)
         
-        #print(f"Bucket: {bucket_name}, Key: {object_key}")
+        print(f"Bucket: {bucket_name}, Key: {object_key}")
 
         if not bucket_name or not object_key:
             return {
@@ -344,17 +344,17 @@ def lambda_handler(event, context):
         #html_content = response['Body'].read().decode('utf-8')
         html_content = get_s3_file_content(s3_url)
         
-        #print(f"HTML Content: {html_content[:100]}...")
+        print(f"HTML Content: {html_content[:100]}...")
         data = extract_ads(html_content)
         # Parser le HTML avec BeautifulSoup
-        soup = BeautifulSoup(html_content, 'html.parser')
+        #soup = BeautifulSoup(html_content, 'html.parser')
         #print("Soup :")
         #print(f"Soup: {soup}")
 
         # Extraire les données (adaptez selon votre structure HTML)
         #data = extract_data_from_html(soup)
-        #print("Data :")
-        #print(f"Data: {data}")
+        print("Data :")
+        print(f"Data: {data}")
 
         # Retourner le contenu HTML
         return {
@@ -363,7 +363,7 @@ def lambda_handler(event, context):
                 'Content-Type': 'text/html',
                 'Access-Control-Allow-Origin': '*'
             },
-            'body': data
+            'body': data['announcements']
         }
         
     except ClientError as e:

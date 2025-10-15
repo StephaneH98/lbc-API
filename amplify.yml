@@ -44,6 +44,11 @@ frontend:
           console.log('PROXY_URL:', window.ENV.PROXY_URL);
           console.log('BUCKET_NAME:', window.ENV.BUCKET_NAME);
           console.log('REGION:', window.ENV.REGION);
+          console.log('COGNITO_USER_POOL_ID:', window.ENV.COGNITO.USER_POOL_ID);
+          console.log('COGNITO_CLIENT_ID:', window.ENV.COGNITO.CLIENT_ID);
+          console.log('AUTH_LOGIN_PAGE:', window.ENV.AUTH.LOGIN_PAGE);
+          console.log('AUTH_HOME_PAGE:', window.ENV.AUTH.HOME_PAGE);
+          console.log('AUTH_LOGOUT_REDIRECT:', window.ENV.AUTH.LOGOUT_REDIRECT);
           EOF
         
         # Remplacer les placeholders par les vraies valeurs

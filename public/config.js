@@ -10,7 +10,17 @@ if (!window.ENV) {
     window.ENV = {
         API_URL: 'http://127.0.0.1:5000',
         BUCKET_NAME: 'fallback-bucket',
-        REGION: 'eu-west-3'
+        REGION: 'eu-west-3',
+        COGNITO: {
+            USER_POOL_ID: '',
+            CLIENT_ID: '',
+            REGION: 'eu-west-3'
+        },
+        AUTH: {
+            LOGIN_PAGE: 'pages/login.html',
+            HOME_PAGE: '../index.html',
+            LOGOUT_REDIRECT: 'pages/login.html'
+        }
     };
     console.warn('⚠️ Utilisation des valeurs par défaut pour ENV');
 }
@@ -19,13 +29,29 @@ if (!window.ENV) {
 const CONFIG = {
     // API URL - Utilise env-config.js
     API_URL: window.ENV.API_URL || 'http://127.0.0.1:5000',
-    
+
     // AWS Configuration
     BUCKET_NAME: window.ENV.BUCKET_NAME || 'default-bucket',
     REGION: window.ENV.REGION || 'eu-west-3',
     PROXY_URL: window.ENV.PROXY_URL || 'https://test.io/?',
     TIMEOUT: window.ENV.TIMEOUT || 60000,
-    
+
+    // ⭐ Configuration Cognito
+    COGNITO: {
+        USER_POOL_ID: window.ENV.COGNITO?.USER_POOL_ID || '',
+        CLIENT_ID: window.ENV.COGNITO?.CLIENT_ID || '',
+        REGION: window.ENV.COGNITO?.REGION || window.ENV.REGION || 'eu-west-3'
+    },
+
+    // ⭐ Configuration Auth
+    AUTH: {
+        LOGIN_PAGE: window.ENV.AUTH?.LOGIN_PAGE || 'index.html',
+        HOME_PAGE: window.ENV.AUTH?.HOME_PAGE || 'accueil.html',
+        TOKEN_KEY: 'idToken',
+        USER_KEY: 'userEmail',
+        SESSION_KEY: 'cognitoSession'
+    },
+
     // Endpoints API
     ENDPOINTS: {
         GET_ALL_FILES: '/files',
@@ -34,11 +60,11 @@ const CONFIG = {
         UPLOAD_FILE: '/upload_file',
         DELETE_FILE: '/delete_file'
     },
-    
+
     // Constantes application
     MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB
     ALLOWED_FILE_TYPES: ['.json'],
-    
+
     // Messages
     MESSAGES: {
         ERROR_NETWORK: 'Erreur de connexion au serveur',
@@ -46,16 +72,54 @@ const CONFIG = {
         ERROR_FILE_NOT_FOUND: 'Fichier introuvable',
         ERROR_INVALID_FORMAT: 'Format de fichier invalide',
         SUCCESS_UPLOAD: 'Fichier uploadé avec succès',
-        SUCCESS_DELETE: 'Fichier supprimé avec succès'
+        SUCCESS_DELETE: 'Fichier supprimé avec succès',
+        // ⭐ Messages d'authentification
+        ERROR_NOT_AUTHENTICATED: 'Vous devez être connecté',
+        ERROR_SESSION_EXPIRED: 'Session expirée, veuillez vous reconnecter',
+        SUCCESS_LOGIN: 'Connexion réussie',
+        SUCCESS_LOGOUT: 'Déconnexion réussie'
     }
 };
 
-// ⚠️ IMPORTANT : Définir getApiUrl comme propriété de CONFIG
+// Fonction pour construire les URLs d'API
 CONFIG.getApiUrl = function(endpoint) {
     const path = this.ENDPOINTS[endpoint] || endpoint;
     const url = `${this.API_URL}${path}`;
     console.log(`🔗 getApiUrl("${endpoint}") => ${url}`);
     return url;
+};
+
+// ⭐ Fonction pour récupérer le token d'authentification
+CONFIG.getAuthToken = function() {
+    const token = localStorage.getItem(this.AUTH.TOKEN_KEY);
+    if (!token) {
+        console.warn('⚠️ Aucun token d\'authentification trouvé');
+    }
+    return token;
+};
+
+// ⭐ Fonction pour récupérer l'utilisateur courant
+CONFIG.getCurrentUser = function() {
+    return localStorage.getItem(this.AUTH.USER_KEY);
+};
+
+// ⭐ Fonction pour vérifier si l'utilisateur est authentifié
+CONFIG.isAuthenticated = function() {
+    const token = this.getAuthToken();
+    const isAuth = !!token;
+    console.log(`🔐 isAuthenticated: ${isAuth}`);
+    return isAuth;
+};
+
+// ⭐ Fonction pour effacer la session
+CONFIG.clearSession = function() {
+    localStorage.removeItem(this.AUTH.TOKEN_KEY);
+    localStorage.removeItem(this.AUTH.USER_KEY);
+    localStorage.removeItem(this.AUTH.SESSION_KEY);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('loginTime');
+    console.log('🗑️ Session effacée');
 };
 
 // Rendre CONFIG disponible globalement
@@ -67,8 +131,10 @@ console.log('📡 CONFIG.API_URL:', CONFIG.API_URL);
 console.log('📡 CONFIG.PROXY_URL:', CONFIG.PROXY_URL);
 console.log('🪣 CONFIG.BUCKET_NAME:', CONFIG.BUCKET_NAME);
 console.log('🌍 CONFIG.REGION:', CONFIG.REGION);
+console.log('🔐 CONFIG.COGNITO.USER_POOL_ID:', CONFIG.COGNITO.USER_POOL_ID);
+console.log('🔐 CONFIG.COGNITO.CLIENT_ID:', CONFIG.COGNITO.CLIENT_ID ? '***' + CONFIG.COGNITO.CLIENT_ID.slice(-4) : 'Non défini');
+console.log('🏠 CONFIG.AUTH.HOME_PAGE:', CONFIG.AUTH.HOME_PAGE);
 console.log('📝 CONFIG.ENDPOINTS:', CONFIG.ENDPOINTS);
-console.log('💬 CONFIG.MESSAGES:', CONFIG.MESSAGES);
 
 // Test de la fonction getApiUrl
 console.log('🧪 Test getApiUrl:');
@@ -83,6 +149,14 @@ if (CONFIG.API_URL.includes('localhost') || CONFIG.API_URL.includes('127.0.0.1')
     console.warn('⚠️ Mode développement détecté - API locale');
 } else {
     console.log('✅ Mode production - API distante');
+}
+
+// ⭐ Vérification de la configuration Cognito
+if (!CONFIG.COGNITO.USER_POOL_ID || !CONFIG.COGNITO.CLIENT_ID) {
+    console.warn('⚠️ Configuration Cognito incomplète - L\'authentification ne fonctionnera pas');
+    console.warn('   Définissez USER_POOL_ID et CLIENT_ID dans env-config.js');
+} else {
+    console.log('✅ Configuration Cognito OK');
 }
 
 console.log('✅ config.js chargé complètement');

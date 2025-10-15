@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - MonApp</title>
+    <link rel="stylesheet" href="../css/login.css">
+    <script src="../env-config.js"></script>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <div class="logo-icon">🔐</div>
+            <h1>Bienvenue</h1>
+            <p class="subtitle">Connectez-vous pour continuer</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">Connexion</button>
+            <button class="tab" onclick="switchTab('register')">Inscription</button>
+        </div>
+
+        <div class="alert alert-error" id="errorAlert"></div>
+        <div class="alert alert-success" id="successAlert"></div>
+
+        <!-- Formulaire de connexion -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="votre@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Mot de passe</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+                Se connecter
+            </button>
+            <div class="forgot-password">
+                <a href="#" onclick="showForgotPassword(); return false;">Mot de passe oublié ?</a>
+            </div>
+        </form>
+
+        <!-- Formulaire d'inscription -->
+        <form id="registerForm" class="hidden">
+            <div class="form-group">
+                <label for="registerName">Nom complet</label>
+                <input type="text" id="registerName" placeholder="Jean Dupont" required>
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" placeholder="votre@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Mot de passe</label>
+                <input type="password" id="registerPassword" placeholder="••••••••" required minlength="8">
+            </div>
+            <div class="form-group">
+                <label for="registerPasswordConfirm">Confirmer le mot de passe</label>
+                <input type="password" id="registerPasswordConfirm" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="registerBtn">
+                Créer mon compte
+            </button>
+        </form>
+
+        <!-- Formulaire de confirmation -->
+        <form id="confirmForm" class="hidden">
+            <p class="confirm-message">
+                Un code de vérification a été envoyé à votre email
+            </p>
+            <div class="form-group">
+                <label for="confirmCode">Code de vérification</label>
+                <input type="text" id="confirmCode" placeholder="123456" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                Vérifier
+            </button>
+        </form>
+    </div>
+    <script src="../libs/amazon-cognito-identity.min.js"></script>
+    <script src="../config.js"></script>
+    <script src="../scripts/auth.js"></script>
+</body>
+</html>

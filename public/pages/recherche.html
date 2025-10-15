@@ -18,10 +18,10 @@
 
     <!-- Container principal -->
     <div class="recherche-container">
-        
+
         <!-- Formulaire de recherche -->
         <form id="searchForm" class="search-form">
-    
+
             <!-- Section Localisation -->
             <div class="form-section">
                 <h2>📍 Localisation</h2>
@@ -49,7 +49,7 @@
                     <small class="form-help">5 chiffres</small>
                 </div>
             </div>
-        
+
             <!-- Section Budget -->
             <div class="form-section">
                 <h2>💰 Budget</h2>
@@ -178,20 +178,9 @@
                     </div>
                 </div>
             </div>
-        
-            <!-- Section Type -->
-            <div class="form-section">
-                <h2>🏘️ Type de bien</h2>
-                <div class="form-group">
-                    <label for="category">Catégorie</label>
-                    <select id="category" name="category" class="form-input">
-                        <option value="10">Locations</option>
-                        <option value="9">Ventes immobilières</option>
-                        <option value="11">Colocations</option>
-                    </select>
-                </div>
-            </div>
-        
+
+            <!-- ❌ SECTION "TYPE DE BIEN" SUPPRIMÉE -->
+
             <!-- Boutons d'action -->
             <div class="form-actions">
                 <button type="button" id="resetBtn" class="btn btn-secondary">
@@ -202,7 +191,7 @@
                 </button>
             </div>
         </form>
-        
+
         <!-- Zone de statut -->
         <div id="statusMessage" class="status-message"></div>
 
@@ -213,14 +202,17 @@
         </div>
 
     </div>
-
+    <div id="results" class="results-container"></div>
+    
     <!-- Bouton retour -->
     <div class="back-button-container">
         <a href="annonces.html" class="btn btn-back">
             ← Retour aux annonces
         </a>
     </div>
+
     <div id="error-container" style="display: none; margin: 20px 0;"></div>
+
     <!-- Scripts -->
     <script src="../env-config.js"></script>
     <script src="../config.js"></script>

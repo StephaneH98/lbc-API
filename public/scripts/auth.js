@@ -1,497 +1,422 @@
 console.log('🔐 Chargement de auth.js...');
 
-// ===== CONFIGURATION COGNITO =====
+// Configuration Cognito
 const poolData = {
     UserPoolId: CONFIG.COGNITO.USER_POOL_ID,
     ClientId: CONFIG.COGNITO.CLIENT_ID
 };
+
 console.log('🔐 Initialisation Cognito UserPool:', poolData);
 
+if (typeof AmazonCognitoIdentity === 'undefined') {
+    console.error('❌ ERREUR CRITIQUE: SDK Amazon Cognito non chargé !');
+    console.error('❌ Vérifiez que le script CDN est bien présent dans le HTML');
+} else {
+    console.log('✅ SDK Amazon Cognito chargé');
+}
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+// Test de validation
+if (!userPool) {
+    console.error('❌ ERREUR: UserPool est null !');
+} else {
+    console.log('✅ UserPool valide');
+}
 
 console.log('✅ UserPool créé avec succès');
 
-// ============================================
-// VÉRIFICATION SESSION AU CHARGEMENT
-// ============================================
-
-console.log('🔍 Vérification de session existante...');
-const cognitoUser = userPool.getCurrentUser();
-const user = userPool.getCurrentUser();
-if (user) {
-  user.getSession((err, session) => {
-    if (err) {
-      console.error("Erreur de session :", err);
-      return; // Pas de redirection
-    }
-    if (session.isValid()) {
-      console.log("✅ Session valide, redirection vers index.html");
-      window.location.href = "../index.html"; // Redirige seulement si la session est valide
-    } else {
-      console.log("⚠️ Session expirée ou invalide");
-      // Optionnel : déconnecter l'utilisateur
-      user.signOut();
-    }
-  });
-}
-
-
-
-// ===== VÉRIFICATION : Si déjà connecté, rediriger =====
-window.addEventListener('load', () => {
+// ✅ Fonction pour obtenir l'utilisateur actuellement connecté
+function getCurrentUser() {
     console.log('🔍 Vérification de session existante...');
+    return userPool.getCurrentUser();
+}
+
+// ✅ Vérification de la session au chargement
+function checkExistingSession() {
+    const cognitoUser = getCurrentUser();
     
-    const idToken = localStorage.getItem('idToken');
-    
-    if (idToken) {
-        try {
-            const payload = JSON.parse(atob(idToken.split('.')[1]));
-            const exp = payload.exp * 1000;
-            
-            if (Date.now() < exp) {
-                console.log('✅ Session valide détectée, redirection vers index.html');
-                window.location.href = '../index.html';
+    if (cognitoUser != null) {
+        console.log('👤 Utilisateur trouvé:', cognitoUser.getUsername());
+        
+        cognitoUser.getSession((err, session) => {
+            if (err) {
+                console.error('❌ Erreur de session:', err);
+                showLoginForm();
                 return;
-            } else {
-                console.log('⚠️ Token expiré, nettoyage');
-                localStorage.clear();
             }
-        } catch (error) {
-            console.error('❌ Erreur décodage token:', error);
-            localStorage.clear();
-        }
-    }
-    
-    console.log('✅ Pas de session, affichage du formulaire de login');
-});
-
-// ===== VARIABLES GLOBALES =====
-let pendingVerificationEmail = null;
-
-// ===== FONCTIONS UTILITAIRES =====
-function showError(message) {
-    console.log('❌ Erreur:', message);
-    const errorDiv = document.getElementById('errorMessage');
-    if (errorDiv) {
-        errorDiv.textContent = message;
-        errorDiv.classList.remove('hidden');
-    }
-}
-
-function hideError() {
-    const errorDiv = document.getElementById('errorMessage');
-    if (errorDiv) {
-        errorDiv.classList.add('hidden');
-    }
-}
-
-function showSuccess(message) {
-    console.log('✅ Succès:', message);
-    const successDiv = document.getElementById('successMessage');
-    if (successDiv) {
-        successDiv.innerHTML = message;
-        successDiv.classList.remove('hidden');
+            
+            if (session.isValid()) {
+                console.log('✅ Session valide détectée');
+                const idToken = session.getIdToken().getJwtToken();
+                const accessToken = session.getAccessToken().getJwtToken();
+                
+                // Sauvegarder les tokens
+                localStorage.setItem('idToken', idToken);
+                localStorage.setItem('accessToken', accessToken);
+                
+                console.log('🎫 Tokens sauvegardés');
+                
+                // Si on est sur la page de login, rediriger vers home
+                if (window.location.pathname.includes('login.html')) {
+                    console.log('↪️ Redirection vers home...');
+                    window.location.href = CONFIG.AUTH.HOME_PAGE;
+                }
+            } else {
+                console.log('⚠️ Session expirée');
+                showLoginForm();
+            }
+        });
+    } else {
+        console.log('✅ Pas de session, affichage du formulaire de login');
+        showLoginForm();
     }
 }
 
-function hideSuccess() {
-    const successDiv = document.getElementById('successMessage');
-    if (successDiv) {
-        successDiv.classList.add('hidden');
+function showLoginForm() {
+    const loginSection = document.getElementById('login-section');
+    if (loginSection) {
+        loginSection.style.display = 'block';
     }
 }
 
-function setButtonLoading(buttonId, isLoading) {
-    const button = document.getElementById(buttonId);
-    if (button) {
-        button.disabled = isLoading;
-        button.textContent = isLoading ? 'Chargement...' : button.dataset.originalText || button.textContent;
-        if (!button.dataset.originalText && !isLoading) {
-            button.dataset.originalText = button.textContent;
-        }
-    }
-}
+// ========================
+// 🔐 GESTION DE L'INSCRIPTION
+// ========================
 
-// ===== FONCTION DE NAVIGATION ENTRE ONGLETS =====
-window.switchTab = function(tab) {
-    console.log('🔵 Changement d\'onglet:', tab);
+async function handleRegister(event) {
+    event.preventDefault();
     
-    // Gérer les onglets (boutons)
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t => t.classList.remove('active'));
+    const email = document.getElementById('register-email')?.value.trim();
+    const password = document.getElementById('register-password')?.value;
+    const confirmPassword = document.getElementById('register-confirm-password')?.value;
     
-    // Masquer tous les formulaires
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const confirmForm = document.getElementById('confirmForm');
+    console.log('📝 Tentative d\'inscription pour:', email);
     
-    if (loginForm) loginForm.classList.add('hidden');
-    if (registerForm) registerForm.classList.add('hidden');
-    if (confirmForm) confirmForm.classList.add('hidden');
-    
-    // Effacer les messages
-    hideError();
-    hideSuccess();
-    
-    // Afficher le bon formulaire et activer le bon onglet
-    if (tab === 'login') {
-        if (loginForm) loginForm.classList.remove('hidden');
-        if (tabs[0]) tabs[0].classList.add('active');
-        console.log('✅ Onglet Connexion activé');
-    } else if (tab === 'register') {
-        if (registerForm) registerForm.classList.remove('hidden');
-        if (tabs[1]) tabs[1].classList.add('active');
-        console.log('✅ Onglet Inscription activé');
-    }
-};
-
-// ===== FONCTION D'INSCRIPTION =====
-window.handleRegister = async function(e) {
-    e.preventDefault();
-    console.log('🔵 === DÉBUT handleRegister ===');
-    hideError();
-    hideSuccess();
-    
-    const name = document.getElementById('registerName').value.trim();
-    const email = document.getElementById('registerEmail').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
-    
-    console.log('📝 Données:', { name, email, passwordLength: password.length });
-    
-    // Validation
-    if (!name || !email || !password || !passwordConfirm) {
-        showError('Tous les champs sont requis');
+    if (!email || !password || !confirmPassword) {
+        showMessage('register', 'Veuillez remplir tous les champs', 'error');
         return;
     }
     
-    if (password !== passwordConfirm) {
-        showError('Les mots de passe ne correspondent pas');
+    if (password !== confirmPassword) {
+        showMessage('register', 'Les mots de passe ne correspondent pas', 'error');
         return;
     }
     
     if (password.length < 8) {
-        showError('Le mot de passe doit contenir au moins 8 caractères');
+        showMessage('register', 'Le mot de passe doit contenir au moins 8 caractères', 'error');
         return;
     }
-    
-    setButtonLoading('registerButton', true);
-    
-    try {
-        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-            UserPoolId: window.ENV.COGNITO.USER_POOL_ID,
-            ClientId: window.ENV.COGNITO.CLIENT_ID
-        });
-        
-        const attributeList = [
-            new AmazonCognitoIdentity.CognitoUserAttribute({
-                Name: 'email',
-                Value: email
-            }),
-            new AmazonCognitoIdentity.CognitoUserAttribute({
-                Name: 'name',
-                Value: name
-            })
-        ];
-        
-        const result = await new Promise((resolve, reject) => {
-            userPool.signUp(email, password, attributeList, null, (err, result) => {
-                if (err) {
-                    console.error('❌ Erreur signUp:', err);
-                    reject(err);
-                } else {
-                    console.log('✅ Inscription réussie!', result);
-                    resolve(result);
-                }
-            });
-        });
-        
-        // Stocker l'email pour la vérification
-        pendingVerificationEmail = email;
-        console.log('📧 Email stocké:', email);
-        
-        showSuccess(`
-            ✅ Compte créé avec succès !<br>
-            Un code de confirmation a été envoyé à <strong>${email}</strong>
-        `);
-        
-        // Masquer le formulaire d'inscription
-        document.getElementById('registerForm').classList.add('hidden');
-        
-        // Afficher le formulaire de confirmation
-        setTimeout(() => {
-            const confirmForm = document.getElementById('confirmForm');
-            if (confirmForm) {
-                confirmForm.classList.remove('hidden');
-                console.log('✅ Formulaire de confirmation affiché');
-                
-                const codeInput = document.getElementById('confirmCode');
-                if (codeInput) {
-                    codeInput.focus();
-                }
+
+    const attributeList = [
+        new AmazonCognitoIdentity.CognitoUserAttribute({
+            Name: 'email',
+            Value: email
+        })
+    ];
+
+    userPool.signUp(email, password, attributeList, null, (err, result) => {
+        if (err) {
+            console.error('❌ Erreur d\'inscription:', err);
+            let errorMessage = 'Erreur lors de l\'inscription';
+            
+            if (err.code === 'UsernameExistsException') {
+                errorMessage = 'Cet email est déjà utilisé';
+            } else if (err.code === 'InvalidPasswordException') {
+                errorMessage = 'Le mot de passe ne respecte pas les règles de sécurité';
+            } else if (err.code === 'InvalidParameterException') {
+                errorMessage = 'Email invalide';
+            } else {
+                errorMessage = err.message;
             }
-        }, 500);
-        
-    } catch (error) {
-        console.error('❌ Erreur inscription:', error);
-        
-        let errorMessage = 'Erreur lors de l\'inscription';
-        
-        if (error.code === 'UsernameExistsException') {
-            errorMessage = 'Cet email est déjà utilisé';
-        } else if (error.code === 'InvalidPasswordException') {
-            errorMessage = 'Mot de passe invalide. Il doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et caractères spéciaux.';
-        } else if (error.code === 'InvalidParameterException') {
-            errorMessage = 'Paramètres invalides. Vérifiez votre email et mot de passe.';
-        } else if (error.message) {
-            errorMessage = error.message;
+            
+            showMessage('register', errorMessage, 'error');
+            return;
         }
         
-        showError(errorMessage);
-    } finally {
-        setButtonLoading('registerButton', false);
-        console.log('🔵 === FIN handleRegister ===');
-    }
-};
-
-// ===== FONCTION DE CONFIRMATION =====
-window.handleConfirmation = async function(e) {
-    e.preventDefault();
-    console.log('🔵 === DÉBUT handleConfirmation ===');
-    hideError();
-    hideSuccess();
-    
-    const code = document.getElementById('confirmCode').value.trim();
-    
-    console.log('📝 Email:', pendingVerificationEmail);
-    console.log('📝 Code:', code);
-    
-    if (!pendingVerificationEmail) {
-        showError('Email manquant. Veuillez vous réinscrire.');
-        return;
-    }
-    
-    if (!code) {
-        showError('Veuillez entrer le code de vérification');
-        return;
-    }
-    
-    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-        showError('Le code doit contenir 6 chiffres');
-        return;
-    }
-    
-    setButtonLoading('confirmButton', true);
-    
-    try {
-        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-            UserPoolId: window.ENV.COGNITO.USER_POOL_ID,
-            ClientId: window.ENV.COGNITO.CLIENT_ID
-        });
+        console.log('✅ Inscription réussie:', result.user.getUsername());
+        showMessage('register', 'Inscription réussie ! Vérifiez votre email pour le code de confirmation.', 'success');
         
-        const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-            Username: pendingVerificationEmail,
-            Pool: userPool
-        });
-        
-        await new Promise((resolve, reject) => {
-            cognitoUser.confirmRegistration(code, true, (err, result) => {
-                if (err) {
-                    console.error('❌ Erreur confirmation:', err);
-                    reject(err);
-                } else {
-                    console.log('✅ Confirmation réussie:', result);
-                    resolve(result);
-                }
-            });
-        });
-        
-        showSuccess('✅ Compte confirmé avec succès ! Vous pouvez maintenant vous connecter.');
-        
-        // Masquer le formulaire de confirmation
-        document.getElementById('confirmForm').classList.add('hidden');
-        
-        // Afficher le formulaire de connexion
+        // Passer à l'écran de confirmation
         setTimeout(() => {
-            switchTab('login');
-            
-            // Pré-remplir l'email
-            const loginEmail = document.getElementById('loginEmail');
-            if (loginEmail) {
-                loginEmail.value = pendingVerificationEmail;
-            }
-            
-            // Focus sur le mot de passe
-            const loginPassword = document.getElementById('loginPassword');
-            if (loginPassword) {
-                loginPassword.focus();
-            }
-            
-            pendingVerificationEmail = null;
+            document.getElementById('register-section').style.display = 'none';
+            document.getElementById('confirm-section').style.display = 'block';
+            document.getElementById('confirm-email').value = email;
         }, 2000);
-        
-    } catch (error) {
-        console.error('❌ Erreur confirmation:', error);
-        
-        let errorMessage = 'Erreur lors de la confirmation';
-        
-        if (error.code === 'CodeMismatchException') {
-            errorMessage = 'Code incorrect. Veuillez réessayer.';
-        } else if (error.code === 'ExpiredCodeException') {
-            errorMessage = 'Code expiré. Demandez un nouveau code.';
-        } else if (error.code === 'NotAuthorizedException') {
-            errorMessage = 'Utilisateur déjà confirmé ou code invalide';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-        
-        showError(errorMessage);
-    } finally {
-        setButtonLoading('confirmButton', false);
-        console.log('🔵 === FIN handleConfirmation ===');
-    }
-};
+    });
+}
 
-// ===== FONCTION DE CONNEXION =====
+// ========================
+// 🔐 CONFIRMATION DE COMPTE
+// ========================
 
-function handleLogin(event) {
+async function handleConfirmation(event) {
     event.preventDefault();
-    hideError();
     
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
+    const email = document.getElementById('confirm-email')?.value.trim();
+    const code = document.getElementById('confirm-code')?.value.trim();
     
-    console.log('🔵 Tentative de connexion pour:', email);
+    console.log('✅ Tentative de confirmation pour:', email);
     
-    if (!email || !password) {
-        showError('Veuillez remplir tous les champs');
+    if (!email || !code) {
+        showMessage('confirm', 'Veuillez remplir tous les champs', 'error');
         return;
     }
-    
-    const authenticationData = {
-        Username: email,
-        Password: password
-    };
-    
-    const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
-    
+
     const userData = {
         Username: email,
         Pool: userPool
     };
-    
+
     const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-    
-    console.log('🔄 Envoi de la requête d\'authentification...');
-    
-    user.authenticateUser(authenticationDetails, {
-        onSuccess: function(session) {
-            console.log('✅ Connexion réussie !');
-        
-            // 1. Vérifier que l'utilisateur est bien récupérable
-            const cognitoUser = userPool.getCurrentUser();
-            if (!cognitoUser) {
-                showError('Erreur interne: utilisateur non trouvé après connexion');
-                return;
-            }
-        
-            // 2. Forcer la persistance de la session
-            cognitoUser.getSession((err, persistedSession) => {
-                if (err || !persistedSession || !persistedSession.isValid()) {
-                    console.error('❌ Échec de la persistance de session:', err);
-                    showError('Erreur de session. Veuillez réessayer.');
-                    return;
-                }
-        
-                console.log('✅ Session persistée avec succès:', {
-                    token: persistedSession.getIdToken().getJwtToken().substring(0, 10) + '...',
-                    expires: new Date(persistedSession.getIdToken().payload.exp * 1000).toLocaleString()
-                });
-        
-                // 3. Rediriger après un délai pour laisser le temps à localStorage de se mettre à jour
-                setTimeout(() => {
-                    window.location.href = CONFIG.AUTH.HOME_PAGE;
-                }, 1500); // 1.5 secondes de délai
-            });
-        },
-        
-        
-        
-        onFailure: (err) => {
-            console.error('❌ Erreur de connexion:', err);
+
+    cognitoUser.confirmRegistration(code, true, (err, result) => {
+        if (err) {
+            console.error('❌ Erreur de confirmation:', err);
+            let errorMessage = 'Code de confirmation invalide';
             
-            let errorMessage = 'Erreur de connexion';
-            
-            if (err.code === 'UserNotFoundException') {
-                errorMessage = 'Utilisateur non trouvé';
-            } else if (err.code === 'NotAuthorizedException') {
-                errorMessage = 'Email ou mot de passe incorrect';
-            } else if (err.code === 'UserNotConfirmedException') {
-                errorMessage = 'Compte non confirmé. Vérifiez vos emails.';
-            } else if (err.message) {
+            if (err.code === 'CodeMismatchException') {
+                errorMessage = 'Code incorrect';
+            } else if (err.code === 'ExpiredCodeException') {
+                errorMessage = 'Code expiré. Demandez un nouveau code.';
+            } else {
                 errorMessage = err.message;
             }
             
-            showError(errorMessage);
+            showMessage('confirm', errorMessage, 'error');
+            return;
         }
+        
+        console.log('✅ Confirmation réussie:', result);
+        showMessage('confirm', 'Compte confirmé ! Vous pouvez maintenant vous connecter.', 'success');
+        
+        setTimeout(() => {
+            document.getElementById('confirm-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('login-email').value = email;
+        }, 2000);
+    });
+}
+
+// ========================
+// 🔐 CONNEXION
+// ========================
+
+// ========================
+// 🔐 CONNEXION
+// ========================
+
+async function handleLogin(event) {
+    console.log('🔵 handleLogin appelé');
+    
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    const form = event.target;
+    
+    // Récupération des champs
+    let emailInput = document.getElementById('login-email');
+    let passwordInput = document.getElementById('login-password');
+    
+    // Si les IDs ne correspondent pas, chercher par type
+    if (!emailInput) {
+        emailInput = form.querySelector('input[type="email"]');
+    }
+    
+    if (!passwordInput) {
+        passwordInput = form.querySelector('input[type="password"]');
+    }
+    
+    if (!emailInput || !passwordInput) {
+        console.error('❌ Champs de formulaire introuvables');
+        showMessage('login', 'Erreur: champs de formulaire introuvables', 'error');
+        return false;
+    }
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    console.log('🔵 Tentative de connexion pour:', email);
+    
+    if (!email || !password) {
+        showMessage('login', 'Veuillez remplir tous les champs', 'error');
+        return false;
+    }
+
+    // ✅ VÉRIFICATION CRITIQUE : userPool doit exister
+    if (typeof AmazonCognitoIdentity === 'undefined') {
+        console.error('❌ SDK Amazon Cognito non chargé');
+        showMessage('login', 'Erreur: SDK Cognito non disponible', 'error');
+        return false;
+    }
+
+    if (!userPool) {
+        console.error('❌ UserPool non initialisé');
+        showMessage('login', 'Erreur de configuration (UserPool)', 'error');
+        return false;
+    }
+
+    console.log('✅ UserPool disponible:', userPool);
+
+    // ✅ Création des données d'authentification
+    const authenticationData = {
+        Username: email,
+        Password: password,
+    };
+
+    console.log('✅ AuthenticationData créé');
+
+    const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+    
+    console.log('✅ AuthenticationDetails créé:', authenticationDetails);
+
+    // ✅ Création de l'utilisateur Cognito
+    const userData = {
+        Username: email,
+        Pool: userPool
+    };
+
+    console.log('✅ UserData préparé:', userData);
+
+    let cognitoUser;
+    try {
+        cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+        console.log('✅ CognitoUser créé:', cognitoUser);
+    } catch (error) {
+        console.error('❌ Erreur création CognitoUser:', error);
+        showMessage('login', 'Erreur lors de la création de l\'utilisateur', 'error');
+        return false;
+    }
+    
+    if (!cognitoUser) {
+        console.error('❌ CognitoUser est null après création');
+        showMessage('login', 'Erreur: impossible de créer l\'utilisateur Cognito', 'error');
+        return false;
+    }
+
+    console.log('🔄 Envoi de la requête d\'authentification...');
+
+    return new Promise((resolve, reject) => {
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: (result) => {
+                console.log('✅ Connexion réussie');
+                
+                try {
+                    const accessToken = result.getAccessToken().getJwtToken();
+                    const idToken = result.getIdToken().getJwtToken();
+                    const refreshToken = result.getRefreshToken().getToken();
+                    
+                    localStorage.setItem('idToken', idToken);
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
+                    
+                    console.log('🎫 Tokens sauvegardés');
+                    console.log('↪️ Redirection vers:', CONFIG.AUTH.HOME_PAGE);
+                    
+                    showMessage('login', 'Connexion réussie ! Redirection...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = CONFIG.AUTH.HOME_PAGE;
+                    }, 1000);
+                    
+                    resolve(result);
+                } catch (tokenError) {
+                    console.error('❌ Erreur traitement tokens:', tokenError);
+                    showMessage('login', 'Erreur lors de la sauvegarde des tokens', 'error');
+                    reject(tokenError);
+                }
+            },
+
+            onFailure: (err) => {
+                console.error('❌ Erreur de connexion:', err);
+                console.error('❌ Code erreur:', err.code);
+                console.error('❌ Message erreur:', err.message);
+                
+                let errorMessage = 'Erreur de connexion';
+                
+                if (err.code === 'UserNotConfirmedException') {
+                    errorMessage = 'Veuillez confirmer votre email avant de vous connecter';
+                } else if (err.code === 'NotAuthorizedException') {
+                    errorMessage = 'Email ou mot de passe incorrect';
+                } else if (err.code === 'UserNotFoundException') {
+                    errorMessage = 'Utilisateur non trouvé';
+                } else if (err.code === 'TooManyRequestsException') {
+                    errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard';
+                } else {
+                    errorMessage = err.message || 'Erreur inconnue';
+                }
+                
+                showMessage('login', errorMessage, 'error');
+                reject(err);
+            },
+
+            newPasswordRequired: (userAttributes, requiredAttributes) => {
+                console.log('🔄 Nouveau mot de passe requis');
+                showMessage('login', 'Nouveau mot de passe requis', 'info');
+                // Gérer le changement de mot de passe si nécessaire
+            }
+        });
     });
 }
 
 
 
-// ===== FONCTION DE DÉCONNEXION =====
-window.handleLogout = function() {
-    console.log('🔵 Déconnexion...');
+// ========================
+// 🔐 DÉCONNEXION
+// ========================
+
+function handleLogout() {
+    console.log('👋 Déconnexion...');
+    
+    const cognitoUser = getCurrentUser();
+    
+    if (cognitoUser != null) {
+        cognitoUser.signOut();
+        console.log('✅ Déconnexion Cognito effectuée');
+    }
     
     localStorage.removeItem('idToken');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     
-    window.location.href = 'index.html';
-};
+    console.log('🗑️ Tokens supprimés');
+    
+    window.location.href = CONFIG.AUTH.LOGIN_PAGE;
+}
 
-// ===== FONCTION DE VÉRIFICATION DE SESSION =====
-window.checkAuth = function() {
-    console.log('🔵 Vérification de l\'authentification...');
-    
-    const idToken = localStorage.getItem('idToken');
-    
-    if (!idToken) {
-        console.log('❌ Pas de token, redirection vers login');
-        window.location.href = 'index.html';
-        return null;
-    }
-    
-    try {
-        // Décoder le JWT (simple vérification, pas de validation de signature)
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
-        const exp = payload.exp * 1000; // Convertir en millisecondes
-        
-        if (Date.now() >= exp) {
-            console.log('❌ Token expiré');
-            handleLogout();
-            return null;
-        }
-        
-        console.log('✅ Token valide:', payload);
-        return payload;
-    } catch (error) {
-        console.error('❌ Erreur décodage token:', error);
-        handleLogout();
-        return null;
-    }
-};
+// ========================
+// 📨 AFFICHAGE DES MESSAGES
+// ========================
 
-// ===== INITIALISATION =====
+function showMessage(formType, message, type = 'info') {
+    const messageDiv = document.getElementById(`${formType}-message`);
+    if (!messageDiv) return;
+    
+    messageDiv.textContent = message;
+    messageDiv.className = `message ${type}`;
+    messageDiv.style.display = 'block';
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// ========================
+// 🚀 INITIALISATION
+// ========================
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ === DOM READY ===');
     
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const confirmForm = document.getElementById('confirmForm');
-    const logoutButton = document.getElementById('logoutButton');
+    // Attacher les listeners
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const confirmForm = document.getElementById('confirm-form');
+    const logoutButton = document.getElementById('logout-button');
     
-    console.log('📋 Formulaires:', {
+    console.log('📋 Éléments trouvés:', {
         loginForm: !!loginForm,
         registerForm: !!registerForm,
         confirmForm: !!confirmForm,
@@ -499,26 +424,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+        // Supprimer les anciens listeners
+        const newLoginForm = loginForm.cloneNode(true);
+        loginForm.parentNode.replaceChild(newLoginForm, loginForm);
+        
+        // Attacher le nouveau listener
+        newLoginForm.addEventListener('submit', (e) => {
+            console.log('🎯 Formulaire LOGIN soumis');
+            handleLogin(e);
+        });
         console.log('🔗 Listener LOGIN attaché');
+    } else {
+        console.warn('⚠️ Formulaire login-form non trouvé');
     }
     
     if (registerForm) {
-        registerForm.addEventListener('submit', handleRegister);
+        registerForm.addEventListener('submit', (e) => {
+            console.log('🎯 Formulaire REGISTER soumis');
+            handleRegister(e);
+        });
         console.log('🔗 Listener REGISTER attaché');
     }
     
     if (confirmForm) {
-        confirmForm.addEventListener('submit', handleConfirmation);
+        confirmForm.addEventListener('submit', (e) => {
+            console.log('🎯 Formulaire CONFIRM soumis');
+            handleConfirmation(e);
+        });
         console.log('🔗 Listener CONFIRM attaché');
     }
     
     if (logoutButton) {
-        logoutButton.addEventListener('click', handleLogout);
+        logoutButton.addEventListener('click', (e) => {
+            console.log('🎯 Bouton LOGOUT cliqué');
+            handleLogout(e);
+        });
         console.log('🔗 Listener LOGOUT attaché');
     }
     
+    // Vérifier la session existante
+    checkExistingSession();
+    
     console.log('✅ === Initialisation terminée ===');
 });
+
 
 console.log('✅ auth.js chargé complètement');

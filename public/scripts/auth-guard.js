@@ -1,63 +1,69 @@
-// scripts/auth-guard.js
+// auth-guard.js
 console.log('🛡️ Chargement de auth-guard.js...');
 
-// Initialisation Cognito
-const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-    UserPoolId: CONFIG.COGNITO.USER_POOL_ID,
-    ClientId: CONFIG.COGNITO.CLIENT_ID,
-    Storage: window.localStorage
-});
+// ========================
+// 🔐 AUTH GUARD - Protection des pages
+// ========================
 
-// Vérification complète de l'authentification
-async function checkAuthentication() {
-    try {
-        const cognitoUser = userPool.getCurrentUser();
+function checkAuthentication() {
+    return new Promise((resolve) => {
+        console.log('🔍 Vérification de la session pour:', userPool?.getCurrentUser()?.getUsername());
+        
+        const cognitoUser = userPool?.getCurrentUser();
+        
         if (!cognitoUser) {
-            console.warn('⚠️ Aucun utilisateur connecté');
-            return false;
+            console.log('⚠️ Aucun utilisateur connecté');
+            resolve(false);
+            return;
         }
-
-        console.log('🔍 Vérification de la session pour:', cognitoUser.getUsername());
-
-        const session = await new Promise((resolve, reject) => {
-            cognitoUser.getSession((err, session) => {
-                if (err) {
-                    console.error('❌ Erreur de session:', err);
-                    reject(err);
-                    return;
-                }
-                resolve(session);
-            });
+        
+        cognitoUser.getSession((err, session) => {
+            if (err) {
+                console.error('❌ Erreur de session:', err);
+                resolve(false);
+                return;
+            }
+            
+            if (session && session.isValid()) {
+                console.log('✅ Session valide');
+                
+                // Sauvegarder les tokens
+                localStorage.setItem('idToken', session.getIdToken().getJwtToken());
+                localStorage.setItem('accessToken', session.getAccessToken().getJwtToken());
+                
+                resolve(true);
+            } else {
+                console.log('❌ Session invalide ou expirée');
+                resolve(false);
+            }
         });
-
-        if (!session || !session.isValid()) {
-            console.error('❌ Session invalide');
-            cognitoUser.signOut();
-            return false;
-        }
-
-        console.log('✅ Session valide jusqu\'à:', new Date(session.getIdToken().payload.exp * 1000));
-        return true;
-
-    } catch (error) {
-        console.error('❌ Erreur lors de la vérification:', error);
-        return false;
-    }
+    });
 }
 
-// Exécution après chargement complet de la page
-window.addEventListener('load', async () => {
-    console.log('🔍 Début de la vérification (après chargement complet)...');
+// Vérification au chargement de la page
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🔍 Début de la vérification (DOMContentLoaded)...');
+        const isAuthenticated = await checkAuthentication();
+        console.log('✅ Authentification vérifiée:', isAuthenticated);
+        
+        if (!isAuthenticated) {
+            console.log('🚫 Redirection vers la page de login...');
+            window.location.href = CONFIG.AUTH.LOGIN_PAGE;
+        }
+    });
+} else {
+    // DOM déjà chargé
+    (async () => {
+        console.log('🔍 Début de la vérification (après chargement complet)...');
+        const isAuthenticated = await checkAuthentication();
+        console.log('✅ Authentification vérifiée:', isAuthenticated);
+        
+        if (!isAuthenticated) {
+            console.log('🚫 Redirection vers la page de login...');
+            window.location.href = CONFIG.AUTH.LOGIN_PAGE;
+        }
+    })();
+}
 
-    // Attendre 1 seconde pour laisser Cognito s'initialiser
-    await new Promise(resolve => setTimeout(resolve, 10000));
-
-    const isAuthenticated = await checkAuthentication();
-
-    if (!isAuthenticated) {
-        console.log('🔀 Redirection vers le login...');
-        window.location.href = 'pages/login.html'; // Ajustez le chemin
-    } else {
-        console.log('✅ Accès autorisé');
-    }
-});
+console.log('✅ auth-guard.js chargé complètement');

@@ -439,3 +439,65 @@ body {
         background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
     }
 }
+/* ========================================
+   SECTION DÉCONNEXION
+   ======================================== */
+
+   .logout-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+}
+
+.logout-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    border-radius: 12px;
+    color: #ff3b30;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.logout-button:hover {
+    background: rgba(255, 59, 48, 0.2);
+    border-color: rgba(255, 59, 48, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+.logout-button .button-icon {
+    font-size: 1.2rem;
+}
+
+/* Animation au survol */
+.logout-button:hover .button-icon {
+    animation: doorSwing 0.6s ease;
+}
+
+@keyframes doorSwing {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logout-button {
+        width: 100%;
+        justify-content: center;
+        padding: 1rem;
+    }
+}

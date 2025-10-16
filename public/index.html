@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏠 Gestion Immobilière - Accueil</title>
     <link rel="stylesheet" href="css/home.css">
-    <script src="libs/amazon-cognito-identity.min.js"></script>
 </head>
 <body>
     <div class="hero-container">
         <!-- Background avec effet de particules (optionnel) -->
         <div class="hero-background"></div>
-        
+
         <!-- Contenu principal -->
         <div class="hero-content">
             <!-- Logo et titre -->
@@ -56,7 +55,6 @@
                     </div>
                 </div>
 
-                <!-- Bouton principal -->
                 <!-- Boutons d'action -->
                 <div class="cta-section">
                     <div class="buttons-row">
@@ -73,6 +71,14 @@
                     </div>
                     <p class="cta-hint">Choisissez une action pour commencer</p>
                 </div>
+
+                <!-- 🆕 Bouton de déconnexion -->
+                <div class="logout-section">
+                    <button id="logoutButton" class="logout-button">
+                        <span class="button-icon">🚪</span>
+                        <span class="button-text">Se déconnecter</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Footer -->
@@ -81,9 +87,24 @@
             </footer>
         </div>
     </div>
-    <script src="env-config.js"></script>
-    <script src="config.js"></script>
-    <script src="../scripts/auth.js"></script>
+
+    <!-- ========================================
+         SCRIPTS - ORDRE CRITIQUE
+         ======================================== -->
+    
+    <!-- 1️⃣ SDK Amazon Cognito -->
+    <script src="libs/amazon-cognito-identity.min.js"></script>
+    
+    <!-- 2️⃣ Configuration d'environnement -->
+    <script src="scripts/env-config.js"></script>
+    
+    <!-- 3️⃣ Configuration principale -->
+    <script src="scripts/config.js"></script>
+    
+    <!-- 4️⃣ Authentification -->
+    <script src="scripts/auth.js"></script>
+    
+    <!-- 5️⃣ Protection des pages -->
     <script src="scripts/auth-guard.js"></script>
 </body>
 </html>

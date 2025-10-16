@@ -200,10 +200,6 @@ async function handleConfirmation(event) {
 // 🔐 CONNEXION
 // ========================
 
-// ========================
-// 🔐 CONNEXION
-// ========================
-
 async function handleLogin(event) {
     console.log('🔵 handleLogin appelé');
     
@@ -365,24 +361,99 @@ async function handleLogin(event) {
 // 🔐 DÉCONNEXION
 // ========================
 
-function handleLogout() {
-    console.log('👋 Déconnexion...');
+function logout() {
+    console.log('🚪 Déconnexion en cours...');
     
-    const cognitoUser = getCurrentUser();
-    
-    if (cognitoUser != null) {
-        cognitoUser.signOut();
-        console.log('✅ Déconnexion Cognito effectuée');
+    try {
+        // 1. Déconnexion Cognito
+        const currentUser = userPool.getCurrentUser();
+        if (currentUser) {
+            currentUser.signOut();
+            console.log('✅ Utilisateur déconnecté de Cognito');
+        }
+        
+        // 2. Supprimer UNIQUEMENT les tokens de CETTE application
+        const keysToRemove = [];
+        
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes(CONFIG.COGNITO.USER_POOL_ID) || 
+                key.includes(CONFIG.COGNITO.CLIENT_ID) ||
+                key === 'idToken' ||
+                key === 'accessToken' ||
+                key === 'refreshToken' ||
+                key.startsWith('CognitoIdentityServiceProvider')) {
+                keysToRemove.push(key);
+            }
+        });
+        
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+            console.log('🗑️ Token supprimé:', key);
+        });
+        
+        // 3. Nettoyer sessionStorage
+        Object.keys(sessionStorage).forEach(key => {
+            if (key.includes(CONFIG.COGNITO.USER_POOL_ID) || 
+                key.includes(CONFIG.COGNITO.CLIENT_ID)) {
+                sessionStorage.removeItem(key);
+            }
+        });
+        
+        console.log(`✅ ${keysToRemove.length} éléments supprimés`);
+        
+        // 4. Rediriger vers login
+        const loginPage = CONFIG.AUTH.LOGOUT_REDIRECT || CONFIG.AUTH.LOGIN_PAGE;
+        console.log('🔗 Redirection vers:', loginPage);
+        
+        window.location.href = loginPage;
+        
+    } catch (error) {
+        console.error('❌ Erreur lors de la déconnexion:', error);
+        // Forcer la redirection même en cas d'erreur
+        window.location.href = CONFIG.AUTH.LOGIN_PAGE;
     }
-    
-    localStorage.removeItem('idToken');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    
-    console.log('🗑️ Tokens supprimés');
-    
-    window.location.href = CONFIG.AUTH.LOGIN_PAGE;
 }
+
+// Exposer la fonction globalement
+window.logout = logout;
+
+// ========================================
+// 📱 GESTION DU BOUTON DE DÉCONNEXION
+// ========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutButton = document.getElementById('logoutButton');
+    
+    if (logoutButton) {
+        console.log('🔘 Bouton de déconnexion trouvé');
+        
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Confirmation optionnelle
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                logout();
+            }
+        });
+    }
+});
+
+// ========================================
+// ⌨️ RACCOURCIS CLAVIER (optionnel)
+// ========================================
+
+// Ctrl+Alt+L = Déconnexion
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.altKey && e.key === 'l') {
+        e.preventDefault();
+        console.log('⌨️ Raccourci détecté : Déconnexion');
+        if (confirm('Déconnexion via raccourci clavier ?')) {
+            logout();
+        }
+    }
+});
+
+console.log('✅ Fonction de déconnexion chargée');
 
 // ========================
 // 📨 AFFICHAGE DES MESSAGES

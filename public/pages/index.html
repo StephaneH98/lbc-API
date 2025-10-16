@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏠 Gestion Immobilière - Accueil</title>
-    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="../css/home.css">
 </head>
 <body>
     <div class="hero-container">
@@ -93,18 +93,15 @@
          ======================================== -->
     
     <!-- 1️⃣ SDK Amazon Cognito -->
-    <script src="libs/amazon-cognito-identity.min.js"></script>
+    <script src="../libs/amazon-cognito-identity.min.js"></script>
     
     <!-- 2️⃣ Configuration d'environnement -->
-    <script src="env-config.js"></script>
+    <script src="../scripts/env-config.js"></script>
     
     <!-- 3️⃣ Configuration principale -->
-    <script src="config.js"></script>
+    <script src="../scripts/config.js"></script>
     
-    <!-- 4️⃣ Authentification -->
-    <!-- <script src="scripts/auth.js"></script> -->
-    
-    <!-- 5️⃣ Protection des pages -->
-    <script src="scripts/auth-guard.js"></script>
-</body>
+    <script src="../scripts/auth-cognito.js"></script>
+    <script src="../scripts/auth-guard.js"></script>
+    <script src="../scripts/auth-logout.js"></script>
 </html>

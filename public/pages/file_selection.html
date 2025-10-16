@@ -10,8 +10,25 @@
     <link rel="stylesheet" href="../css/file_selection.css">
     
     <!-- Scripts -->
-    <script src="../env-config.js" defer></script>
-    <script src="../config.js" defer></script>
+    <!-- 1️⃣ SDK Amazon Cognito -->
+    <script src="../libs/amazon-cognito-identity.min.js"></script>
+
+    <!-- 2️⃣ Configuration d'environnement -->
+    <script src="../scripts/env-config.js"></script>
+
+    <!-- 3️⃣ Configuration principale -->
+    <script src="../scripts/config.js"></script>
+
+    <!-- 4️⃣ Authentification -->
+    <script src="../scripts/auth.js"></script>
+
+    <!-- 5️⃣ Protection des pages -->
+    <script src="../scripts/auth-guard.js"></script>
+
+    <!-- 6️⃣ Composant header avec déconnexion -->
+    <script src="../scripts/header-component.js"></script>
+
+    <!-- 7️⃣ Script de la page -->
     <script src="../scripts/file_selection.js" defer></script>
 </head>
 <body>

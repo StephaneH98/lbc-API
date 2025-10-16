@@ -1,78 +1,194 @@
+// ========================================
+// 🛡️ AUTH-GUARD.JS
+// Vérification et protection des pages
+// - Vérifie si l'utilisateur a des clés de session
+// - Valide la session Cognito
+// - Redirige vers login.html si invalide
+// - Protège les pages nécessitant une authentification
+// ========================================
+
 console.log('🛡️ Chargement de auth-guard.js...');
 
-// ✅ Fonction de vérification d'authentification
-async function checkAuthentication(requiredForPage = null) {
-    console.log('🔍 Vérification de la session pour:', requiredForPage);
-    
+// ========================================
+// CONFIGURATION DES PAGES
+// ========================================
+
+// Pages qui NE nécessitent PAS d'authentification
+const PUBLIC_PAGES = [
+    'login.html',
+    'register.html',
+    'forgot-password.html'
+];
+
+// Pages qui nécessitent une authentification
+const PROTECTED_PAGES = [
+    'index.html',
+    'file_selection.html',
+    'recherche.html',
+    'annonces.html',
+    'dashboard.html'
+];
+
+// ========================================
+// VÉRIFICATION D'AUTHENTIFICATION
+// ========================================
+
+async function checkAuthentication(currentPath = null) {
+    console.log('🔍 Vérification de la session pour:', currentPath);
+
     return new Promise((resolve) => {
-        const currentUser = userPool.getCurrentUser();
-        
-        if (!currentUser) {
-            console.log('⚠️ Aucun utilisateur connecté');
+        // Vérifier que userPool existe
+        if (typeof userPool === 'undefined') {
+            console.warn('⚠️ userPool non défini - auth-cognito.js non chargé');
             resolve(false);
             return;
         }
-        
+
+        const currentUser = userPool.getCurrentUser();
+
+        if (!currentUser) {
+            console.log('⚠️ Aucun utilisateur connecté (getCurrentUser = null)');
+            console.log('📦 Clés localStorage:', Object.keys(localStorage).filter(k => k.includes('Cognito')));
+            resolve(false);
+            return;
+        }
+
+        console.log('👤 getCurrentUser() a retourné un utilisateur:', currentUser.getUsername());
+
+        // Vérification de la session
         currentUser.getSession((err, session) => {
-            if (err || !session.isValid()) {
-                console.log('❌ Session invalide ou expirée');
+            if (err) {
+                console.error('❌ Erreur lors de la récupération de la session:', err);
+
+                // Forcer la déconnexion en cas d'erreur
+                currentUser.signOut();
+
+                // Nettoyer localStorage
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('CognitoIdentityServiceProvider')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+
                 resolve(false);
                 return;
             }
-            
-            console.log('✅ Session valide');
+
+            if (!session || !session.isValid()) {
+                console.log('❌ Session invalide ou expirée');
+
+                // Forcer la déconnexion
+                currentUser.signOut();
+
+                // Nettoyer localStorage
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('CognitoIdentityServiceProvider')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+
+                resolve(false);
+                return;
+            }
+
+            console.log('✅ Session valide pour:', currentUser.getUsername());
+            const expiresInMinutes = Math.round((session.getIdToken().getExpiration() * 1000 - Date.now()) / 1000 / 60);
+            console.log('📅 Token expire dans:', expiresInMinutes, 'minutes');
             resolve(true);
         });
     });
 }
 
-// ✅ Déterminer le chemin de login selon la page actuelle
+// ========================================
+// GESTION DES REDIRECTIONS
+// ========================================
+
+function isPublicPage(path) {
+    return PUBLIC_PAGES.some(page => path.includes(page));
+}
+
+function isProtectedPage(path) {
+    return PROTECTED_PAGES.some(page => path.includes(page));
+}
+
 function getLoginPagePath() {
     const currentPath = window.location.pathname;
-    console.log('📍 Chemin actuel:', currentPath);
-    
-    // Si on est déjà sur la page de login, ne pas rediriger
-    if (currentPath.includes('login.html')) {
-        console.log('✅ Déjà sur la page de login');
-        return null;
-    }
-    
-    // Si on est dans /pages/
     if (currentPath.includes('/pages/')) {
-        console.log('📁 Dans /pages/, redirection vers: login.html');
-        return 'login.html'; // Même dossier
+        return 'login.html';
     }
-    
-    // Si on est à la racine
-    console.log('📁 À la racine, redirection vers: pages/login.html');
     return 'pages/login.html';
 }
 
-// ✅ Vérification au chargement de la page
+// ========================================
+// LOGIQUE PRINCIPALE
+// ========================================
+
+// ========================================
+// ATTENDRE QUE USERPOOL SOIT DISPONIBLE
+// ========================================
+
+function waitForUserPool(maxWait = 5000) {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
+        const checkInterval = setInterval(() => {
+            if (typeof userPool !== 'undefined' && userPool !== null) {
+                clearInterval(checkInterval);
+                console.log('✅ userPool disponible');
+                resolve(true);
+            } else if (Date.now() - startTime > maxWait) {
+                clearInterval(checkInterval);
+                console.warn('⚠️ Timeout: userPool non disponible après', maxWait, 'ms');
+                reject(false);
+            }
+        }, 50); // Vérifier toutes les 50ms
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🔍 Début de la vérification (DOMContentLoaded)...');
-    
-    const isAuthenticated = await checkAuthentication(window.location.pathname);
-    console.log('✅ Authentification vérifiée:', isAuthenticated);
-    
-    // ⚠️ Ne protéger QUE si on est PAS sur la page de login
+
     const currentPath = window.location.pathname;
-    const isLoginPage = currentPath.includes('login.html') || currentPath.includes('signup.html');
-    
-    if (!isLoginPage && !isAuthenticated) {
-        console.log('🚫 Redirection vers la page de login...');
-        const loginPath = getLoginPagePath();
-        
-        if (loginPath) {
-            window.location.replace(loginPath);
+    console.log('📍 Page actuelle:', currentPath);
+
+    // Pages login.html - Vérifier si on vient de se déconnecter
+    if (currentPath.includes('login.html')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('logout')) {
+            console.log('🚪 Page de login après déconnexion - pas de vérification nécessaire');
+            return;
         }
-    } else if (isLoginPage && isAuthenticated) {
-        // Si authentifié et sur login → rediriger vers home
-        console.log('✅ Déjà authentifié, redirection vers home...');
-        const homePath = currentPath.includes('/pages/') ? '../index.html' : 'index.html';
-        window.location.replace(homePath);
+
+        console.log('🔍 Page login - Accès autorisé');
+        return;
+    }
+
+    // Pages publiques (autres que login)
+    if (isPublicPage(currentPath)) {
+        console.log('✅ Page publique - Accès autorisé sans authentification');
+        return;
+    }
+
+    // Toutes les autres pages sont protégées par défaut
+    console.log('🔒 Page protégée - Vérification de l\'authentification...');
+
+    // ⚠️ ATTENDRE QUE USERPOOL SOIT DISPONIBLE
+    try {
+        await waitForUserPool();
+    } catch (err) {
+        console.error('❌ userPool non disponible - Redirection vers login');
+        window.location.replace(getLoginPagePath());
+        return;
+    }
+
+    const isAuthenticated = await checkAuthentication(currentPath);
+    console.log('✅ Authentification vérifiée:', isAuthenticated);
+
+    if (!isAuthenticated) {
+        console.log('🚫 Non authentifié - Redirection vers login...');
+        window.location.replace(getLoginPagePath());
     } else {
-        console.log('✅ Accès autorisé');
+        console.log('✅ Authentifié - Accès autorisé');
     }
 });
 

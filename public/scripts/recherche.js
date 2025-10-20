@@ -112,55 +112,53 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // FONCTION : CONSTRUIRE L'URL LEBONCOIN
     // ==========================================
-    
-    function buildLeboncoinUrl(formData) {
-        console.log('🔨 Construction URL avec:', formData);
-        
+
+    function buildLeboncoinUrl(formData, category, includePrice = true) {
+        console.log(`🔨 Construction URL pour catégorie ${category} (Prix: ${includePrice ? 'Oui' : 'Non'})`);
+
         const baseUrl = 'https://www.leboncoin.fr/recherche';
         const params = new URLSearchParams();
-        
+
         // Catégorie (obligatoire)
-        if (formData.category) {
-            params.append('category', formData.category);
-        }
-        
-        // Prix
-        if (formData.prixMin || formData.prixMax) {
+        params.append('category', category);
+
+        // Prix (uniquement si includePrice = true, donc pour la vente)
+        if (includePrice && (formData.prixMin || formData.prixMax)) {
             const prixMin = formData.prixMin || 'min';
             const prixMax = formData.prixMax || 'max';
             params.append('price', `${prixMin}-${prixMax}`);
         }
-        
+
         // Surface
         if (formData.surfaceMin || formData.surfaceMax) {
             const surfaceMin = formData.surfaceMin || 'min';
             const surfaceMax = formData.surfaceMax || 'max';
             params.append('square', `${surfaceMin}-${surfaceMax}`);
         }
-        
+
         // Pièces
         if (formData.piecesMin || formData.piecesMax) {
             const piecesMin = formData.piecesMin || 'min';
             const piecesMax = formData.piecesMax || 'max';
             params.append('rooms', `${piecesMin}-${piecesMax}`);
         }
-        
+
         // Chambres (bedrooms)
         if (formData.chambresMin || formData.chambresMax) {
             const chambresMin = formData.chambresMin || 'min';
             const chambresMax = formData.chambresMax || 'max';
             params.append('bedrooms', `${chambresMin}-${chambresMax}`);
         }
-        
+
         // Localisation simplifiée
         if (formData.ville || formData.codePostal) {
             const location = formData.ville || formData.codePostal;
             params.append('locations', location);
         }
-        
+
         const finalUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
         console.log('🔗 URL construite:', finalUrl);
-        
+
         return finalUrl;
     }
     
@@ -411,94 +409,175 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.classList.add('loading');
                 }
     
-                // ========== ÉTAPE 1: GÉNÉRATION ET SCRAPING ==========
-                console.log('\n📍 ÉTAPE 1/2: Récupération du HTML');
-                console.log('─'.repeat(80));
-    
-                if (button) {
-                    if (button.tagName === 'BUTTON') {
-                        button.textContent = '⏳ Récupération des données...';
-                    } else {
-                        button.value = '⏳ Récupération des données...';
-                    }
-                }
-    
-                // Récupérer les données
+                // ========== RÉCUPÉRATION DES DONNÉES ==========
                 const formData = getFormData();
-    
+
                 // Valider
                 const errors = validateForm(formData);
                 if (errors.length > 0) {
                     showStatus('Erreurs de validation', 'error', errors.join('<br>'));
                     return;
                 }
-    
-                // Construire l'URL
-                const generatedUrl = buildLeboncoinUrl(formData);
-                console.log('🔗 URL générée:', generatedUrl);
-    
-                const response = await sendToLambda(generatedUrl);
-                console.log('🚀 Réponse reçue:', response.s3Url);
-                if (!response) {
-                    throw new Error('Aucune donnée HTML reçue');
-                }
-    
-                console.log('✅ HTML récupéré avec succès');
-    
-                // ========== ÉTAPE 2: EXTRACTION DES ANNONCES ==========
-                console.log('\n🔍 ÉTAPE 2/2: Extraction des annonces');
+
+                // ========== ÉTAPE 1: GÉNÉRATION DES URLS ==========
+                console.log('\n📍 ÉTAPE 1/4: Génération des URLs');
                 console.log('─'.repeat(80));
-    
+
+                // URL pour VENTE (catégorie 9) - AVEC prix
+                const urlVente = buildLeboncoinUrl(formData, '9', true);
+                console.log('🏘️ URL VENTE (cat. 9):', urlVente);
+
+                // URL pour LOCATION (catégorie 10) - SANS prix
+                const urlLocation = buildLeboncoinUrl(formData, '10', false);
+                console.log('🏠 URL LOCATION (cat. 10):', urlLocation);
+
+                // ========== ÉTAPE 2: RÉCUPÉRATION DES PAGES HTML ==========
+                console.log('\n📍 ÉTAPE 2/4: Récupération des pages HTML');
+                console.log('─'.repeat(80));
+
                 if (button) {
                     if (button.tagName === 'BUTTON') {
-                        button.textContent = '⏳ Extraction des annonces...';
+                        button.textContent = '⏳ Récupération page VENTE...';
                     } else {
-                        button.value = '⏳ Extraction des annonces...';
+                        button.value = '⏳ Récupération page VENTE...';
                     }
                 }
-    
-                const extractionResult = await callExtractLambda(response.s3Url); // ⚠️ Ajout de 'await'
-    
-                if (!extractionResult) {
-                    throw new Error('Échec de l\'extraction des annonces');
+
+                console.log('🏘️ Récupération HTML VENTE...');
+                const responseVente = await sendToLambda(urlVente);
+                if (!responseVente) {
+                    throw new Error('Aucune donnée HTML reçue pour VENTE');
                 }
-    
-                if (!extractionResult.success) {
-                    throw new Error(extractionResult.message || 'Extraction échouée');
-                }
-    
-                // ========== AFFICHAGE DES RÉSULTATS ==========
-                console.log('\n🎨 Affichage des résultats');
-                console.log('─'.repeat(80));
-    
+                console.log('✅ HTML VENTE récupéré:', responseVente.s3Url);
+
                 if (button) {
                     if (button.tagName === 'BUTTON') {
-                        button.textContent = '⏳ Affichage...';
+                        button.textContent = '⏳ Récupération page LOCATION...';
                     } else {
-                        button.value = '⏳ Affichage...';
+                        button.value = '⏳ Récupération page LOCATION...';
                     }
                 }
-    
-                const announcements = extractionResult.announcements || [];
-    
-                if (announcements.length === 0) {
+
+                console.log('\n🏠 Récupération HTML LOCATION...');
+                const responseLocation = await sendToLambda(urlLocation);
+                if (!responseLocation) {
+                    throw new Error('Aucune donnée HTML reçue pour LOCATION');
+                }
+                console.log('✅ HTML LOCATION récupéré:', responseLocation.s3Url);
+
+                // ========== ÉTAPE 3: EXTRACTION DES ANNONCES ==========
+                console.log('\n📍 ÉTAPE 3/4: Extraction des annonces');
+                console.log('─'.repeat(80));
+
+                if (button) {
+                    if (button.tagName === 'BUTTON') {
+                        button.textContent = '⏳ Extraction annonces VENTE...';
+                    } else {
+                        button.value = '⏳ Extraction annonces VENTE...';
+                    }
+                }
+
+                console.log('🏘️ Extraction annonces VENTE...');
+                const extractionVente = await callExtractLambda(responseVente.s3Url);
+                if (!extractionVente || !extractionVente.success) {
+                    throw new Error('Échec de l\'extraction des annonces VENTE');
+                }
+                console.log('✅ Annonces VENTE extraites:', extractionVente.announcements?.length || 0);
+
+                if (button) {
+                    if (button.tagName === 'BUTTON') {
+                        button.textContent = '⏳ Extraction annonces LOCATION...';
+                    } else {
+                        button.value = '⏳ Extraction annonces LOCATION...';
+                    }
+                }
+
+                console.log('\n🏠 Extraction annonces LOCATION...');
+                const extractionLocation = await callExtractLambda(responseLocation.s3Url);
+                if (!extractionLocation || !extractionLocation.success) {
+                    throw new Error('Échec de l\'extraction des annonces LOCATION');
+                }
+                console.log('✅ Annonces LOCATION extraites:', extractionLocation.announcements?.length || 0);
+
+                // ========== ÉTAPE 4: AFFICHAGE DES RÉSULTATS ==========
+                console.log('\n📍 ÉTAPE 4/4: Préparation des résultats');
+                console.log('─'.repeat(80));
+
+                if (button) {
+                    if (button.tagName === 'BUTTON') {
+                        button.textContent = '⏳ Préparation de l\'affichage...';
+                    } else {
+                        button.value = '⏳ Préparation de l\'affichage...';
+                    }
+                }
+
+                const annoncesVente = extractionVente.announcements || [];
+                const annoncesLocation = extractionLocation.announcements || [];
+
+                // ========== AFFICHAGE EXTRAITS DANS LA CONSOLE ==========
+                console.log('\n═'.repeat(80));
+                console.log('🏘️ EXTRAIT JSON VENTE (Catégorie 9)');
+                console.log('═'.repeat(80));
+                console.log('📊 Total annonces VENTE:', annoncesVente.length);
+                if (annoncesVente.length > 0) {
+                    console.log('\n🔍 Aperçu (3 premières annonces):');
+                    annoncesVente.slice(0, 3).forEach((ad, idx) => {
+                        console.log(`\n${idx + 1}. ${ad.titre || 'Sans titre'}`);
+                        console.log(`   Prix: ${ad.prix || 'N/A'}`);
+                        console.log(`   Localisation: ${ad.localisation || 'N/A'}`);
+                        console.log(`   URL: ${ad.url || 'N/A'}`);
+                    });
+                }
+
+                console.log('\n═'.repeat(80));
+                console.log('🏠 EXTRAIT JSON LOCATION (Catégorie 10)');
+                console.log('═'.repeat(80));
+                console.log('📊 Total annonces LOCATION:', annoncesLocation.length);
+                if (annoncesLocation.length > 0) {
+                    console.log('\n🔍 Aperçu (3 premières annonces):');
+                    annoncesLocation.slice(0, 3).forEach((ad, idx) => {
+                        console.log(`\n${idx + 1}. ${ad.titre || 'Sans titre'}`);
+                        console.log(`   Prix: ${ad.prix || 'N/A'}`);
+                        console.log(`   Localisation: ${ad.localisation || 'N/A'}`);
+                        console.log(`   URL: ${ad.url || 'N/A'}`);
+                    });
+                }
+
+                // ========== COMBINER LES RÉSULTATS ==========
+                const allAnnouncements = [...annoncesVente, ...annoncesLocation];
+                const totalCount = allAnnouncements.length;
+
+                console.log('\n═'.repeat(80));
+                console.log('✨ PROCESSUS TERMINÉ AVEC SUCCÈS');
+                console.log('═'.repeat(80));
+                console.log(`📊 Statistiques globales:`);
+                console.log(`   • Total annonces VENTE: ${annoncesVente.length}`);
+                console.log(`   • Total annonces LOCATION: ${annoncesLocation.length}`);
+                console.log(`   • TOTAL COMBINÉ: ${totalCount}`);
+                console.log('═'.repeat(80));
+
+                if (totalCount === 0) {
                     console.warn('⚠️ Aucune annonce trouvée');
                     showWarning('Aucune annonce trouvée pour ces critères');
                 } else {
-                    displayAnnouncements(announcements);
-    
-                    // Stats finales
-                    console.log('\n═'.repeat(80));
-                    console.log('✨ PROCESSUS TERMINÉ AVEC SUCCÈS');
-                    console.log('═'.repeat(80));
-                    console.log(`📊 Statistiques:`);
-                    console.log(`   • Total annonces: ${extractionResult.stats?.total_ads || announcements.length}`);
-                    console.log(`   • Annonces valides: ${extractionResult.stats?.valid_ads || announcements.length}`);
-                    console.log(`   • Annonces ignorées: ${extractionResult.stats?.ignored_ads || 0}`);
-                    console.log(`   • Taux de complétion: ${extractionResult.stats?.completion_rate || 100}%`);
-                    console.log('═'.repeat(80));
-    
-                    showSuccess(`${announcements.length} annonce(s) trouvée(s) !`);
+                    // Sauvegarder les résultats séparément dans sessionStorage
+                    sessionStorage.setItem('searchResults', JSON.stringify(allAnnouncements));
+                    sessionStorage.setItem('searchResultsVente', JSON.stringify(annoncesVente));
+                    sessionStorage.setItem('searchResultsLocation', JSON.stringify(annoncesLocation));
+                    sessionStorage.setItem('searchStats', JSON.stringify({
+                        vente: extractionVente.stats,
+                        location: extractionLocation.stats,
+                        totalVente: annoncesVente.length,
+                        totalLocation: annoncesLocation.length,
+                        totalCombine: totalCount
+                    }));
+
+                    showSuccess(`${totalCount} annonce(s) trouvée(s) (${annoncesVente.length} vente, ${annoncesLocation.length} location) ! Redirection...`);
+
+                    // Rediriger vers annonces.html après 2 secondes
+                    setTimeout(() => {
+                        window.location.href = 'annonces.html?source=search';
+                    }, 2000);
                 }
     
             } catch (error) {
@@ -646,15 +725,15 @@ function showError(container, message) {
             ${message}
         `;
         document.body.appendChild(tempContainer);
-        
+
         // Auto-supprimer après 5 secondes
         setTimeout(() => {
             tempContainer.remove();
         }, 5000);
-        
+
         return;
     }
-    
+
     // Comportement normal si le container existe
     container.innerHTML = `
         <div class="error-message" style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 4px; border-left: 4px solid #f44336;">
@@ -662,154 +741,6 @@ function showError(container, message) {
         </div>
     `;
     container.style.display = 'block';
-}
-
-
-function displayAnnouncements(announcements) {
-    console.log(`🎨 Affichage de ${announcements.length} annonce(s) en tableau...`);
-
-    let container = document.getElementById('results');
-
-    // Créer le container s'il n'existe pas
-    if (!container) {
-        console.warn('⚠️ Container "results" introuvable, création automatique...');
-        container = document.createElement('div');
-        container.id = 'results';
-        container.className = 'results-container';
-        
-        const form = document.getElementById('searchForm');
-        if (form && form.parentElement) {
-            form.parentElement.appendChild(container);
-        } else {
-            document.body.appendChild(container);
-        }
-        console.log('✅ Container créé dynamiquement');
-    }
-
-    // Vider le container
-    container.innerHTML = '';
-
-    // Header avec stats
-    const header = document.createElement('div');
-    header.className = 'results-header';
-    header.innerHTML = `
-        <h2>📋 Résultats de la recherche</h2>
-        <p class="results-count">${announcements.length} annonce(s) trouvée(s)</p>
-    `;
-    container.appendChild(header);
-
-    // Wrapper pour le scroll horizontal sur mobile
-    const tableWrapper = document.createElement('div');
-    tableWrapper.className = 'table-wrapper';
-
-    // Création du tableau
-    const table = document.createElement('table');
-    table.className = 'announcements-table';
-
-    // En-tête du tableau
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th class="col-number">#</th>
-                <th class="col-title">Description</th>
-                <th class="col-price">Prix</th>
-                <th class="col-location">Localisation</th>
-                <th class="col-rooms">Pièces</th>
-                <th class="col-date">Âge</th>
-                <th class="col-action">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    `;
-
-    const tbody = table.querySelector('tbody');
-
-    // Remplir le tableau avec les annonces
-    announcements.forEach((ad, index) => {
-        const row = document.createElement('tr');
-        row.className = 'announcement-row';
-        row.style.animationDelay = `${index * 0.03}s`;
-
-        // Fonction helper pour formater l'âge
-        const formatAge = (date) => {
-            if (!date) return '<span class="no-data">N/A</span>';
-            
-            const adDate = new Date(date);
-            const now = new Date();
-            const diffTime = Math.abs(now - adDate);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 0) return '<span class="age-new">Aujourd\'hui</span>';
-            if (diffDays === 1) return '<span class="age-recent">Hier</span>';
-            if (diffDays < 7) return `<span class="age-recent">${diffDays}j</span>`;
-            if (diffDays < 30) return `<span class="age-medium">${Math.floor(diffDays / 7)} sem.</span>`;
-            return `<span class="age-old">${Math.floor(diffDays / 30)} mois</span>`;
-        };
-
-        // Fonction helper pour extraire le nombre de pièces
-        const extractRooms = (title, description) => {
-            const text = `${title || ''} ${description || ''}`.toLowerCase();
-            
-            // Chercher "X pièces", "X pieces", "TX", "FX"
-            const patterns = [
-                /(\d+)\s*pi[èe]ces?/i,
-                /t(\d+)/i,
-                /f(\d+)/i,
-                /(\d+)\s*p\b/i
-            ];
-            
-            for (const pattern of patterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    return `<span class="rooms-badge">${match[1]} pièce${match[1] > 1 ? 's' : ''}</span>`;
-                }
-            }
-            
-            return '<span class="no-data">N/A</span>';
-        };
-
-        row.innerHTML = `
-            <td class="col-number">
-                <span class="row-number">${index + 1}</span>
-            </td>
-            <td class="col-title">
-                <div class="title-cell">
-                    <strong>${ad.titre || 'Sans titre'}</strong>
-                    ${ad.description ? `<small>${ad.description.substring(0, 80)}${ad.description.length > 80 ? '...' : ''}</small>` : ''}
-                </div>
-            </td>
-            <td class="col-price">
-                <span class="price-value">${ad.prix || '<span class="no-data">Non spécifié</span>'}</span>
-            </td>
-            <td class="col-location">
-                ${ad.localisation ? `📍 ${ad.localisation}` : '<span class="no-data">N/A</span>'}
-            </td>
-            <td class="col-rooms">
-                ${extractRooms(ad.titre, ad.description)}
-            </td>
-            <td class="col-date">
-                ${formatAge(ad.date)}
-            </td>
-            <td class="col-action">
-                <a href="${ad.url || '#'}" target="_blank" rel="noopener noreferrer" class="btn-view">
-                    Voir →
-                </a>
-            </td>
-        `;
-
-        tbody.appendChild(row);
-    });
-
-    tableWrapper.appendChild(table);
-    container.appendChild(tableWrapper);
-
-    // Scroll vers les résultats
-    setTimeout(() => {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-
-    console.log('✅ Tableau affiché avec succès');
 }
 
 

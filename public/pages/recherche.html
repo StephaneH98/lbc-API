@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔍 Recherche Avancée - Annonces</title>
-    <link rel="stylesheet" href="../css/recherche.css">
+    <link rel="stylesheet" href="/css/recherche.css">
 </head>
 <body>
     <!-- Header -->
@@ -215,24 +215,23 @@
 
     <!-- Scripts -->
     <!-- 1️⃣ SDK Amazon Cognito -->
-    <script src="../libs/amazon-cognito-identity.min.js"></script>
+    <script src="/libs/amazon-cognito-identity.min.js"></script>
 
     <!-- 2️⃣ Configuration d'environnement -->
-    <script src="../scripts/env-config.js"></script>
+    <script src="/scripts/env-config.js"></script>
 
     <!-- 3️⃣ Configuration principale -->
-    <script src="../scripts/config.js"></script>
+    <script src="/scripts/config.js"></script>
 
     <!-- 4️⃣ Authentification -->
-    <script src="../scripts/auth.js"></script>
+    <script src="/scripts/auth-cognito.js"></script>
+    <script src="/scripts/auth-guard.js"></script>
+    <script src="/scripts/auth-logout.js"></script>
 
-    <!-- 5️⃣ Protection des pages -->
-    <script src="../scripts/auth-guard.js"></script>
+    <!-- 5️⃣ Composant header avec déconnexion -->
+    <script src="/scripts/header-component.js"></script>
 
-    <!-- 6️⃣ Composant header avec déconnexion -->
-    <script src="../scripts/header-component.js"></script>
-
-    <!-- 7️⃣ Script de la page -->
-    <script src="../scripts/recherche.js"></script>
+    <!-- 6️⃣ Script de la page -->
+    <script src="/scripts/recherche.js"></script>
 </body>
 </html>

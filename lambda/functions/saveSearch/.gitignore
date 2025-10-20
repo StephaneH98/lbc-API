@@ -27,3 +27,21 @@ Thumbs.db
 
 # Tests
 .pytest_cache/
+build_temp/
+
+# Dépendances Python installées localement
+# (seuls save_search.py et requirements.txt doivent être trackés)
+boto3/
+botocore/
+bin/
+certifi/
+charset_normalizer/
+dateutil/
+idna/
+jmespath/
+python_dateutil-*.dist-info/
+requests/
+s3transfer/
+six.py
+urllib3/
+*.dist-info/

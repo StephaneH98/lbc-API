@@ -1,0 +1,72 @@
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Lambda deployment package
+function.zip
+*.zip
+build_temp/
+
+# Dépendances Python installées localement
+# (seuls get_user_searches.py et requirements.txt doivent être trackés)
+boto3/
+botocore/
+bin/
+certifi/
+charset_normalizer/
+dateutil/
+idna/
+jmespath/
+python_dateutil-*.dist-info/
+requests/
+s3transfer/
+six.py
+urllib3/
+*.dist-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# AWS SAM
+.aws-sam/
+samconfig.toml
+
+# Environment variables (keep example)
+.env
+.env.local

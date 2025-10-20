@@ -29,6 +29,23 @@
 
         <div id="error-message" class="error-message" style="display: none;"></div>
 
+        <!-- Section statistiques prix moyen locations -->
+        <div id="stats-container" class="stats-container" style="display: none;">
+            <h2>📊 Statistiques - Prix moyen des locations</h2>
+            <div id="stats-content" class="stats-content">
+                <!-- Les statistiques seront insérées ici par JavaScript -->
+            </div>
+
+            <!-- Bouton pour enregistrer la recherche -->
+            <div class="save-search-section">
+                <button id="saveSearchBtn" class="btn-save-search">
+                    <span class="btn-icon">💾</span>
+                    <span class="btn-text">Enregistrer cette recherche</span>
+                </button>
+                <p class="save-search-hint">Sauvegardez vos résultats dans votre espace personnel</p>
+            </div>
+        </div>
+
         <!-- Container des annonces -->
         <div id="annonces-container" class="annonces-container" style="display: none;"></div>
     </div>
@@ -44,15 +61,14 @@
     <script src="../scripts/config.js"></script>
 
     <!-- 4️⃣ Authentification -->
-    <script src="../scripts/auth.js"></script>
-
-    <!-- 5️⃣ Protection des pages -->
+    <script src="../scripts/auth-cognito.js"></script>
     <script src="../scripts/auth-guard.js"></script>
+    <script src="../scripts/auth-logout.js"></script>
 
-    <!-- 6️⃣ Composant header avec déconnexion -->
+    <!-- 5️⃣ Composant header avec déconnexion -->
     <script src="../scripts/header-component.js"></script>
 
-    <!-- 7️⃣ Script de la page -->
+    <!-- 6️⃣ Script de la page -->
     <script src="../scripts/annonces.js"></script>
 </body>
 </html>

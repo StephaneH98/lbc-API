@@ -26,38 +26,83 @@
         console.log('═══════════════════════════════════════');
         console.log('🎬 === INITIALISATION PAGE ANNONCES ===');
         console.log('═══════════════════════════════════════');
-        
-        // ✅ MÉTHODE 1 : Récupérer depuis l'URL
+
+        // ✅ VÉRIFIER SI ON VIENT DE LA PAGE RECHERCHE
         const urlParams = new URLSearchParams(window.location.search);
+        const source = urlParams.get('source');
+
+        if (source === 'search') {
+            console.log('🔍 Source: Recherche');
+
+            // Récupérer les résultats depuis sessionStorage
+            const searchResults = sessionStorage.getItem('searchResults');
+            const searchStats = sessionStorage.getItem('searchStats');
+
+            if (searchResults) {
+                const announcements = JSON.parse(searchResults);
+                const stats = searchStats ? JSON.parse(searchStats) : null;
+
+                console.log('✅ Résultats de recherche trouvés:', announcements.length);
+
+                // Afficher le titre
+                const fileNameDisplay = document.getElementById('fileNameDisplay');
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = `🔍 Résultats de recherche (${announcements.length} annonce${announcements.length > 1 ? 's' : ''})`;
+                }
+
+                // Afficher les annonces directement
+                hideLoading();
+                currentAnnonces = announcements;
+                displayAnnonces(announcements);
+
+                // Nettoyer le sessionStorage (optionnel)
+                // sessionStorage.removeItem('searchResults');
+                // sessionStorage.removeItem('searchStats');
+
+                console.log('═══════════════════════════════════════');
+                return;
+            } else {
+                console.warn('⚠️ Aucun résultat de recherche trouvé dans sessionStorage');
+                showError('Aucun résultat de recherche. Redirection...');
+                setTimeout(() => {
+                    window.location.href = 'recherche.html';
+                }, 2000);
+                return;
+            }
+        }
+
+        // ✅ MODE NORMAL : Chargement depuis fichier
+        console.log('📂 Source: Fichier');
+
         let selectedFile = urlParams.get('file');
-        
+
         console.log('📂 Récupération du fichier:');
         console.log('   Depuis URL:', selectedFile);
-        
+
         // ✅ MÉTHODE 2 : Backup localStorage
         if (!selectedFile) {
             selectedFile = localStorage.getItem('selectedFile');
             console.log('   Depuis localStorage:', selectedFile);
         }
-        
+
         // ✅ MÉTHODE 3 : Re-stocker dans localStorage si trouvé dans URL
         if (selectedFile && !localStorage.getItem('selectedFile')) {
             localStorage.setItem('selectedFile', selectedFile);
             console.log('   ✅ Fichier re-stocké dans localStorage');
         }
-        
+
         console.log('\n📦 localStorage actuel:');
         console.log('   Nombre d\'items:', localStorage.length);
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             console.log(`   [${i}] ${key} = ${localStorage.getItem(key)}`);
         }
-        
+
         console.log('\n📄 Fichier final:', selectedFile);
         console.log('   Type:', typeof selectedFile);
         console.log('   Null?:', selectedFile === null);
         console.log('   Vide?:', selectedFile === '');
-        
+
         if (!selectedFile || selectedFile === 'null' || selectedFile === 'undefined') {
             console.error('❌ Aucun fichier valide trouvé');
             showError('Aucun fichier sélectionné. Redirection dans 3 secondes...');
@@ -66,16 +111,16 @@
             }, 3000);
             return;
         }
-        
+
         console.log('✅ Fichier validé:', selectedFile);
         console.log('═══════════════════════════════════════');
-        
+
         // Afficher le nom du fichier
         const fileNameDisplay = document.getElementById('fileNameDisplay');
         if (fileNameDisplay) {
             fileNameDisplay.textContent = `📄 Fichier : ${selectedFile}`;
         }
-        
+
         // Charger les annonces
         loadAnnonces(selectedFile);
     });
@@ -208,15 +253,322 @@
         }
     }
 
-   
+
+   /* ==========================================
+      ENREGISTREMENT DE LA RECHERCHE
+      ========================================== */
+
+   async function saveSearchResults() {
+       console.log('💾 Début de l\'enregistrement de la recherche...');
+
+       const saveBtn = document.getElementById('saveSearchBtn');
+       if (!saveBtn) return;
+
+       try {
+           // Désactiver le bouton
+           saveBtn.disabled = true;
+           saveBtn.classList.add('loading');
+           saveBtn.querySelector('.btn-text').textContent = 'Enregistrement...';
+
+           // Récupérer le current user depuis Cognito
+           const currentUser = window.userPool?.getCurrentUser();
+           if (!currentUser) {
+               throw new Error('Utilisateur non connecté');
+           }
+
+           // Récupérer l'email depuis les attributs utilisateur
+           const userEmail = await new Promise((resolve, reject) => {
+               currentUser.getSession((err, session) => {
+                   if (err) {
+                       reject(new Error('Session invalide'));
+                       return;
+                   }
+
+                   currentUser.getUserAttributes((err, attributes) => {
+                       if (err) {
+                           reject(new Error('Impossible de récupérer les attributs utilisateur'));
+                           return;
+                       }
+
+                       const emailAttribute = attributes.find(attr => attr.getName() === 'email');
+                       if (!emailAttribute) {
+                           reject(new Error('Email non trouvé'));
+                           return;
+                       }
+
+                       resolve(emailAttribute.getValue());
+                   });
+               });
+           });
+
+           console.log('👤 Email utilisateur:', userEmail);
+
+           // Récupérer les données depuis sessionStorage
+           const venteData = sessionStorage.getItem('searchResultsVente');
+           const locationData = sessionStorage.getItem('searchResultsLocation');
+           const statsData = sessionStorage.getItem('searchStats');
+
+           if (!venteData && !locationData) {
+               throw new Error('Aucune donnée de recherche à enregistrer');
+           }
+
+           // Préparer le payload
+           const payload = {
+               username: userEmail,
+               timestamp: new Date().toISOString(),
+               data: {
+                   vente: venteData ? JSON.parse(venteData) : [],
+                   location: locationData ? JSON.parse(locationData) : [],
+                   stats: statsData ? JSON.parse(statsData) : {}
+               }
+           };
+
+           console.log('📦 Payload préparé:', {
+               username: userEmail,
+               venteCount: payload.data.vente.length,
+               locationCount: payload.data.location.length
+           });
+
+           // Appeler la Lambda pour enregistrer
+           const lambdaUrl = CONFIG.getApiUrl('SAVE_SEARCH') || `${CONFIG.API_URL}/save-search`;
+           console.log('🚀 Appel Lambda:', lambdaUrl);
+
+           const response = await fetch(lambdaUrl, {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${localStorage.getItem('idToken')}`
+               },
+               body: JSON.stringify(payload)
+           });
+
+           if (!response.ok) {
+               const errorData = await response.json().catch(() => ({}));
+               throw new Error(errorData.message || `Erreur HTTP ${response.status}`);
+           }
+
+           const result = await response.json();
+           console.log('✅ Recherche enregistrée:', result);
+
+           // Animation de succès
+           saveBtn.classList.remove('loading');
+           saveBtn.classList.add('success');
+           saveBtn.querySelector('.btn-icon').textContent = '✅';
+           saveBtn.querySelector('.btn-text').textContent = 'Enregistré !';
+
+           // Notification
+           showNotification('Recherche enregistrée avec succès !', 'success');
+
+           // Réinitialiser le bouton après 3 secondes
+           setTimeout(() => {
+               saveBtn.classList.remove('success');
+               saveBtn.querySelector('.btn-icon').textContent = '💾';
+               saveBtn.querySelector('.btn-text').textContent = 'Enregistrer cette recherche';
+               saveBtn.disabled = false;
+           }, 3000);
+
+       } catch (error) {
+           console.error('❌ Erreur lors de l\'enregistrement:', error);
+
+           // Réactiver le bouton
+           saveBtn.disabled = false;
+           saveBtn.classList.remove('loading');
+           saveBtn.querySelector('.btn-text').textContent = 'Enregistrer cette recherche';
+
+           // Notification d'erreur
+           showNotification(`Erreur: ${error.message}`, 'error');
+       }
+   }
+
+   function showNotification(message, type = 'info') {
+       const notification = document.createElement('div');
+       notification.className = `notification notification-${type}`;
+       notification.style.cssText = `
+           position: fixed;
+           top: 20px;
+           right: 20px;
+           background: ${type === 'success' ? '#48bb78' : '#f56565'};
+           color: white;
+           padding: 1rem 1.5rem;
+           border-radius: 8px;
+           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+           z-index: 9999;
+           animation: slideIn 0.3s ease;
+           font-weight: 500;
+       `;
+       notification.textContent = message;
+
+       document.body.appendChild(notification);
+
+       // Supprimer après 5 secondes
+       setTimeout(() => {
+           notification.style.animation = 'slideOut 0.3s ease';
+           setTimeout(() => notification.remove(), 300);
+       }, 5000);
+   }
+
+   // Attacher l'événement au bouton
+   document.addEventListener('DOMContentLoaded', () => {
+       const saveBtn = document.getElementById('saveSearchBtn');
+       if (saveBtn) {
+           saveBtn.addEventListener('click', saveSearchResults);
+           console.log('✅ Listener ajouté au bouton d\'enregistrement');
+       }
+   });
+
+   /* ==========================================
+      CALCUL DES STATISTIQUES DE PRIX
+      ========================================== */
+
+   function calculateRentalStats(annonces) {
+       console.log('📊 Calcul des statistiques de location...');
+
+       // Récupérer uniquement les annonces de location depuis sessionStorage
+       const locationAnnonces = sessionStorage.getItem('searchResultsLocation');
+       let rentalData = [];
+
+       if (locationAnnonces) {
+           rentalData = JSON.parse(locationAnnonces);
+           console.log('📦 Annonces de location trouvées:', rentalData.length);
+       } else {
+           // Si pas de données de location séparées, filtrer les annonces actuelles
+           // (Heuristique: si le prix contient "€ / mois" ou est < 3000€)
+           rentalData = annonces.filter(ad => {
+               const prix = ad.prix || '';
+               return prix.toString().includes('/ mois') || prix.toString().includes('/mois') ||
+                      (parseFloat(prix.toString().replace(/[^\d]/g, '')) < 3000 && parseFloat(prix.toString().replace(/[^\d]/g, '')) > 0);
+           });
+           console.log('🔍 Locations détectées par heuristique:', rentalData.length);
+       }
+
+       if (rentalData.length === 0) {
+           console.log('⚠️ Aucune annonce de location trouvée');
+           return null;
+       }
+
+       // Fonction pour extraire le nombre de pièces
+       function extractRooms(title, description) {
+           const text = `${title || ''} ${description || ''}`.toLowerCase();
+           const patterns = [
+               /(\d+)\s*pi[èe]ces?/i,
+               /t(\d+)/i,
+               /f(\d+)/i,
+               /(\d+)\s*p\b/i
+           ];
+
+           for (const pattern of patterns) {
+               const match = text.match(pattern);
+               if (match) {
+                   return parseInt(match[1]);
+               }
+           }
+           return null;
+       }
+
+       // Fonction pour extraire le prix (nombre seulement)
+       function extractPrice(priceStr) {
+           if (!priceStr) return null;
+           const priceString = priceStr.toString();
+           const match = priceString.match(/(\d+[\s\d]*)/);
+           if (match) {
+               return parseFloat(match[1].replace(/\s/g, ''));
+           }
+           return null;
+       }
+
+       // Grouper par nombre de pièces
+       const groupedByRooms = {};
+
+       rentalData.forEach(ad => {
+           const rooms = extractRooms(ad.titre || ad.title, ad.description);
+           const price = extractPrice(ad.prix || ad.price);
+
+           if (rooms && price && price > 0 && price < 5000) { // Filtrer les prix aberrants
+               if (!groupedByRooms[rooms]) {
+                   groupedByRooms[rooms] = [];
+               }
+               groupedByRooms[rooms].push(price);
+           }
+       });
+
+       // Calculer les moyennes
+       const stats = {};
+       Object.keys(groupedByRooms).forEach(rooms => {
+           const prices = groupedByRooms[rooms];
+           const sum = prices.reduce((a, b) => a + b, 0);
+           const avg = sum / prices.length;
+           stats[rooms] = {
+               count: prices.length,
+               average: Math.round(avg),
+               min: Math.min(...prices),
+               max: Math.max(...prices)
+           };
+       });
+
+       console.log('📊 Statistiques calculées:', stats);
+       return stats;
+   }
+
+   function displayRentalStats(stats) {
+       const statsContainer = document.getElementById('stats-container');
+       const statsContent = document.getElementById('stats-content');
+
+       if (!stats || Object.keys(stats).length === 0) {
+           console.log('⚠️ Pas de statistiques à afficher');
+           if (statsContainer) statsContainer.style.display = 'none';
+           return;
+       }
+
+       console.log('🎨 Affichage des statistiques...');
+
+       // Trier par nombre de pièces
+       const sortedRooms = Object.keys(stats).sort((a, b) => parseInt(a) - parseInt(b));
+
+       let html = '<div class="stats-grid">';
+
+       sortedRooms.forEach(rooms => {
+           const stat = stats[rooms];
+           const icon = rooms === '1' ? '🏠' : rooms === '2' ? '🏡' : rooms === '3' ? '🏘️' : rooms === '4' ? '🏰' : '🏛️';
+           html += `
+               <div class="stat-card">
+                   <div class="stat-icon">${icon}</div>
+                   <div class="stat-title">${rooms} pièce${rooms > 1 ? 's' : ''}</div>
+                   <div class="stat-value">${stat.average} €</div>
+                   <div class="stat-subtitle">Prix moyen / mois</div>
+                   <div class="stat-details">
+                       <span>Min: ${stat.min} €</span>
+                       <span>Max: ${stat.max} €</span>
+                       <span>${stat.count} annonce${stat.count > 1 ? 's' : ''}</span>
+                   </div>
+               </div>
+           `;
+       });
+
+       html += '</div>';
+
+       if (statsContent) {
+           statsContent.innerHTML = html;
+       }
+
+       if (statsContainer) {
+           statsContainer.style.display = 'block';
+       }
+
+       console.log('✅ Statistiques affichées');
+   }
+
    /* ==========================================
       AFFICHAGE DES ANNONCES
       ========================================== */
-   
+
    function displayAnnonces(annonces) {
        console.log('🎨 === AFFICHAGE ANNONCES ===');
        console.log('   Nombre:', annonces.length);
-       
+
+       // Calculer et afficher les statistiques de location
+       const rentalStats = calculateRentalStats(annonces);
+       displayRentalStats(rentalStats);
+
        if (!annonces || annonces.length === 0) {
            showEmptyState();
            return;

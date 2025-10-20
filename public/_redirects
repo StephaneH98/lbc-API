@@ -6,6 +6,7 @@
 /annonces /pages/annonces.html 200
 /file_selection /pages/file_selection.html 200
 /login /pages/login.html 200
+/accueil /index.html 200
 
 # Fallback pour toutes les autres routes vers index.html si elle existe
-/* /pages/index.html 200
+/* /accueil 200

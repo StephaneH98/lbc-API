@@ -59,7 +59,7 @@ const CONFIG = {
         GET_PAGE: '/page',
         UPLOAD_FILE: '/upload_file',
         DELETE_FILE: '/delete_file',
-        SAVE_SEARCH: '/save-search'
+        SAVE_SEARCH: '/save-search',
     },
 
     // Constantes application
@@ -101,7 +101,30 @@ CONFIG.getAuthToken = function() {
 
 // ⭐ Fonction pour récupérer l'utilisateur courant
 CONFIG.getCurrentUser = function() {
-    return localStorage.getItem(this.AUTH.USER_KEY);
+    // Essayer d'abord de récupérer depuis localStorage
+    let userEmail = localStorage.getItem(this.AUTH.USER_KEY);
+
+    // Si pas trouvé, décoder depuis le token idToken
+    if (!userEmail) {
+        const idToken = this.getAuthToken();
+        if (idToken) {
+            try {
+                // Décoder le JWT (la partie payload est entre les deux points)
+                const payload = idToken.split('.')[1];
+                const decodedPayload = JSON.parse(atob(payload));
+                userEmail = decodedPayload.email;
+
+                // Stocker l'email pour les prochaines fois
+                if (userEmail) {
+                    localStorage.setItem(this.AUTH.USER_KEY, userEmail);
+                }
+            } catch (e) {
+                console.warn('⚠️ Impossible de décoder le token:', e);
+            }
+        }
+    }
+
+    return userEmail;
 };
 
 // ⭐ Fonction pour vérifier si l'utilisateur est authentifié

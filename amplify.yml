@@ -69,7 +69,7 @@ frontend:
         - ls -la
 
   artifacts:
-    baseDirectory: public
+    baseDirectory: public/pages
     files:
       - '**/*'
   cache:

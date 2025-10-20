@@ -258,10 +258,10 @@
       ENREGISTREMENT DE LA RECHERCHE
       ========================================== */
 
-   async function saveSearchResults() {
-       console.log('💾 Début de l\'enregistrement de la recherche...');
+   async function saveSearchResults(selectedOnly = false) {
+       console.log(`💾 Début de l'enregistrement ${selectedOnly ? 'de la sélection' : 'de toutes les annonces'}...`);
 
-       const saveBtn = document.getElementById('saveSearchBtn');
+       const saveBtn = selectedOnly ? document.getElementById('saveSelectedBtn') : document.getElementById('saveAllBtn');
        if (!saveBtn) return;
 
        try {
@@ -303,22 +303,50 @@
 
            console.log('👤 Email utilisateur:', userEmail);
 
-           // Récupérer les données depuis sessionStorage
-           const venteData = sessionStorage.getItem('searchResultsVente');
-           const locationData = sessionStorage.getItem('searchResultsLocation');
-           const statsData = sessionStorage.getItem('searchStats');
+           // Récupérer les données
+           let venteAnnonces = [];
+           let locationAnnonces = [];
 
-           if (!venteData && !locationData) {
-               throw new Error('Aucune donnée de recherche à enregistrer');
+           if (selectedOnly) {
+               // Mode sélection : récupérer uniquement les annonces cochées
+               const selectedAnnonces = getSelectedAnnonces();
+               if (selectedAnnonces.length === 0) {
+                   throw new Error('Aucune annonce sélectionnée');
+               }
+
+               // Déterminer le type depuis les annonces actuelles
+               const isLocation = currentAnnonces[0]?.hasOwnProperty('furnished') ||
+                                 currentAnnonces[0]?.hasOwnProperty('prix_m2');
+
+               if (isLocation) {
+                   locationAnnonces = selectedAnnonces;
+               } else {
+                   venteAnnonces = selectedAnnonces;
+               }
+
+               console.log(`📊 ${selectedAnnonces.length} annonces sélectionnées`);
+           } else {
+               // Mode tout : récupérer depuis sessionStorage
+               const venteData = sessionStorage.getItem('searchResultsVente');
+               const locationData = sessionStorage.getItem('searchResultsLocation');
+
+               if (!venteData && !locationData && currentAnnonces.length === 0) {
+                   throw new Error('Aucune donnée de recherche à enregistrer');
+               }
+
+               venteAnnonces = venteData ? JSON.parse(venteData) : (currentAnnonces[0]?.hasOwnProperty('furnished') ? [] : currentAnnonces);
+               locationAnnonces = locationData ? JSON.parse(locationData) : (currentAnnonces[0]?.hasOwnProperty('furnished') ? currentAnnonces : []);
            }
+
+           const statsData = sessionStorage.getItem('searchStats');
 
            // Préparer le payload
            const payload = {
                username: userEmail,
                timestamp: new Date().toISOString(),
                data: {
-                   vente: venteData ? JSON.parse(venteData) : [],
-                   location: locationData ? JSON.parse(locationData) : [],
+                   vente: venteAnnonces,
+                   location: locationAnnonces,
                    stats: statsData ? JSON.parse(statsData) : {}
                }
            };
@@ -409,11 +437,24 @@
 
    // Attacher l'événement au bouton
    document.addEventListener('DOMContentLoaded', () => {
-       const saveBtn = document.getElementById('saveSearchBtn');
-       if (saveBtn) {
-           saveBtn.addEventListener('click', saveSearchResults);
-           console.log('✅ Listener ajouté au bouton d\'enregistrement');
+
+       // Bouton "Enregistrer tout"
+       const saveAllBtn = document.getElementById('saveAllBtn');
+       if (saveAllBtn) {
+           saveAllBtn.addEventListener('click', () => saveSearchResults(false));
+           console.log('✅ Listener ajouté au bouton "Enregistrer tout"');
        }
+
+       // Bouton "Enregistrer la sélection"
+       const saveSelectedBtn = document.getElementById('saveSelectedBtn');
+       if (saveSelectedBtn) {
+           saveSelectedBtn.addEventListener('click', () => saveSearchResults(true));
+           console.log('✅ Listener ajouté au bouton "Enregistrer la sélection"');
+       }
+
+
+
+
    });
 
    /* ==========================================
@@ -591,6 +632,9 @@
                <table class="annonces-table">
                    <thead>
                        <tr>
+                           <th class="checkbox-col">
+                               <input type="checkbox" id="selectAll" title="Tout sélectionner/désélectionner">
+                           </th>
                            <th data-sort="id" class="sortable">
                                🆔 ID <span class="sort-icon">⇅</span>
                            </th>
@@ -642,7 +686,10 @@
            const ageInfo = calculateAnnonceAge(annonce);
            
            html += `
-               <tr>
+               <tr data-index="${index}">
+                   <td class="checkbox-col">
+                       <input type="checkbox" class="row-checkbox" data-index="${index}">
+                   </td>
                    <td class="id">${id}</td>
                    <td class="localisation">${localisation}</td>
                    <td class="pieces">${pieces}</td>
@@ -697,6 +744,9 @@
                console.error('❌ window.initializeFilters n\'existe toujours pas');
            }
        }, 100);
+
+       // Ajouter les événements pour les checkboxes
+       initializeCheckboxes();
    }
    
    /* ==========================================
@@ -809,7 +859,10 @@
            const ageInfo = calculateAnnonceAge(annonce);
            
            html += `
-               <tr>
+               <tr data-index="${index}">
+                   <td class="checkbox-col">
+                       <input type="checkbox" class="row-checkbox" data-index="${index}">
+                   </td>
                    <td class="id">${id}</td>
                    <td class="localisation">${localisation}</td>
                    <td class="pieces">${pieces}</td>
@@ -987,3 +1040,93 @@
        return div.innerHTML;
    }
    
+   /* ==========================================
+      GESTION DES CHECKBOXES ET SÉLECTION
+      ========================================== */
+
+   function initializeCheckboxes() {
+       console.log('✅ Initialisation des checkboxes');
+
+       // Checkbox "Tout sélectionner"
+       const selectAllCheckbox = document.getElementById('selectAll');
+       if (selectAllCheckbox) {
+           selectAllCheckbox.addEventListener('change', function() {
+               const checkboxes = document.querySelectorAll('.row-checkbox');
+               checkboxes.forEach(cb => {
+                   cb.checked = this.checked;
+               });
+               updateSelectionCount();
+           });
+       }
+
+       // Checkboxes individuelles
+       const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+       rowCheckboxes.forEach(checkbox => {
+           checkbox.addEventListener('change', updateSelectionCount);
+       });
+
+       updateSelectionCount();
+   }
+
+   function updateSelectionCount() {
+       const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+       const count = selectedCheckboxes.length;
+       const totalCheckboxes = document.querySelectorAll('.row-checkbox').length;
+
+       // Mettre à jour le compteur sur le bouton
+       const selectionCountSpan = document.querySelector('.selection-count');
+       if (selectionCountSpan) {
+           selectionCountSpan.textContent = `(${count})`;
+       }
+
+       // Désactiver le bouton "Enregistrer la sélection" si aucune sélection
+       const saveSelectedBtn = document.getElementById('saveSelectedBtn');
+       if (saveSelectedBtn) {
+           if (count === 0) {
+               saveSelectedBtn.disabled = true;
+               saveSelectedBtn.style.opacity = '0.5';
+               saveSelectedBtn.style.cursor = 'not-allowed';
+           } else {
+               saveSelectedBtn.disabled = false;
+               saveSelectedBtn.style.opacity = '1';
+               saveSelectedBtn.style.cursor = 'pointer';
+           }
+       }
+
+       // Mettre à jour la checkbox "Tout sélectionner"
+       const selectAllCheckbox = document.getElementById('selectAll');
+       if (selectAllCheckbox) {
+           selectAllCheckbox.checked = count === totalCheckboxes && count > 0;
+           selectAllCheckbox.indeterminate = count > 0 && count < totalCheckboxes;
+       }
+
+       console.log(`📊 Sélection: ${count}/${totalCheckboxes} annonces`);
+   }
+
+   function getSelectedAnnonces() {
+       const selectedIndices = [];
+       const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+       checkboxes.forEach(cb => {
+           const index = parseInt(cb.getAttribute('data-index'));
+           selectedIndices.push(index);
+       });
+
+       return currentAnnonces.filter((_, index) => selectedIndices.includes(index));
+   }
+
+   // Attacher les événements aux boutons de sauvegarde
+   document.addEventListener('DOMContentLoaded', () => {
+       // Bouton "Enregistrer tout"
+       const saveAllBtn = document.getElementById('saveAllBtn');
+       if (saveAllBtn) {
+           saveAllBtn.addEventListener('click', () => saveSearchResults(false));
+           console.log('✅ Listener ajouté au bouton "Enregistrer tout"');
+       }
+
+       // Bouton "Enregistrer la sélection"
+       const saveSelectedBtn = document.getElementById('saveSelectedBtn');
+       if (saveSelectedBtn) {
+           saveSelectedBtn.addEventListener('click', () => saveSearchResults(true));
+           console.log('✅ Listener ajouté au bouton "Enregistrer la sélection"');
+       }
+   });

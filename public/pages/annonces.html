@@ -36,13 +36,20 @@
                 <!-- Les statistiques seront insérées ici par JavaScript -->
             </div>
 
-            <!-- Bouton pour enregistrer la recherche -->
+            <!-- Boutons pour enregistrer la recherche -->
             <div class="save-search-section">
-                <button id="saveSearchBtn" class="btn-save-search">
-                    <span class="btn-icon">💾</span>
-                    <span class="btn-text">Enregistrer cette recherche</span>
-                </button>
-                <p class="save-search-hint">Sauvegardez vos résultats dans votre espace personnel</p>
+                <div class="save-buttons-wrapper">
+                    <button id="saveAllBtn" class="btn-save-search">
+                        <span class="btn-icon">💾</span>
+                        <span class="btn-text">Enregistrer tout</span>
+                    </button>
+                    <button id="saveSelectedBtn" class="btn-save-search btn-save-selected">
+                        <span class="btn-icon">✅</span>
+                        <span class="btn-text">Enregistrer la sélection</span>
+                        <span class="selection-count">(0)</span>
+                    </button>
+                </div>
+                <p class="save-search-hint">Sauvegardez toutes les annonces ou seulement celles que vous avez sélectionnées</p>
             </div>
         </div>
 

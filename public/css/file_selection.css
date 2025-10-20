@@ -941,3 +941,83 @@ button#displayFileBtn {
         justify-content: center;
     }
 }
+/* ==========================================
+   FIX: Même largeur pour actions-bar et files-grid
+   ========================================== */
+.main-content .container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 2rem !important;
+}
+
+/* S'assurer que la grid et la barre d'actions ont la même largeur */
+.actions-bar,
+.files-grid {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Grid alignée */
+.files-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
+    gap: 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+    .main-content .container {
+        padding: 0 1rem !important;
+    }
+    
+    .files-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ==========================================
+   FIX FINAL: Force la même largeur exacte
+   ========================================== */
+#files-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* S'assurer que actions-bar et files-container ont exactement la même largeur */
+.actions-bar,
+#files-container {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Pour la grid à l'intérieur */
+#files-container.files-grid {
+    display: grid !important;
+}
+
+/* ==========================================
+   FIX: Bouton et compteur sur la même ligne
+   ========================================== */
+.actions-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 1rem !important;
+}
+
+/* Sur mobile, garder en colonne */
+@media (max-width: 768px) {
+    .actions-bar {
+        flex-direction: column !important;
+    }
+    
+    .refresh-btn,
+    .files-count {
+        width: 100% !important;
+    }
+}

@@ -152,74 +152,99 @@
    
    async function loadFiles() {
        console.log('🚀 === DÉBUT loadFiles() ===');
-       
+
        try {
            showLoader();
            hideError();
            hideEmptyState();
-           
-           // Utiliser CONFIG.getApiUrl (défini dans config.js)
-           const url = CONFIG.getApiUrl('GET_ALL_FILES');
+
+           // Récupérer l'utilisateur connecté
+           console.log('🔍 DEBUG - localStorage:');
+           console.log('   idToken:', localStorage.getItem('idToken') ? 'Présent ✅' : 'Absent ❌');
+           console.log('   userEmail:', localStorage.getItem('userEmail'));
+           console.log('   accessToken:', localStorage.getItem('accessToken') ? 'Présent ✅' : 'Absent ❌');
+
+           const userEmail = CONFIG.getCurrentUser();
+           console.log('👤 Utilisateur connecté:', userEmail);
+
+           if (!userEmail) {
+               console.error('❌ userEmail est null ou undefined');
+               console.error('   Contenu complet du localStorage:', JSON.stringify(localStorage));
+               throw new Error('Utilisateur non authentifié. Veuillez vous connecter.');
+           }
+
+           // Utiliser CONFIG.getApiUrl pour récupérer les recherches de l'utilisateur
+           const url = CONFIG.getApiUrl('GET_USER_SEARCHES') + '?username=' + encodeURIComponent(userEmail);
            console.log('🔗 URL API:', url);
-           
+
+           // Récupérer le token d'authentification
+           const authToken = CONFIG.getAuthToken();
+
            console.log('📍 Envoi de la requête fetch...');
            const response = await fetch(url, {
                method: 'GET',
                headers: {
                    'Accept': 'application/json',
-                   'Content-Type': 'application/json'
+                   'Content-Type': 'application/json',
+                   'Authorization': authToken ? `Bearer ${authToken}` : ''
                }
            });
-           
+
            console.log('📍 Réponse reçue:');
            console.log('   Status:', response.status);
            console.log('   StatusText:', response.statusText);
            console.log('   OK:', response.ok);
-           
+
            if (!response.ok) {
                const errorText = await response.text();
                console.error('   Corps de l\'erreur:', errorText);
                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
            }
-           
+
            console.log('📍 Parsing JSON...');
            const data = await response.json();
            console.log('   Données brutes:', data);
            console.log('   Type:', typeof data);
-           
+
+           // Vérifier le succès de la réponse
+           if (!data.success) {
+               console.error('❌ Réponse en échec:', data.message);
+               throw new Error(data.message || 'Erreur lors de la récupération des fichiers');
+           }
+
            // Vérifier la structure de la réponse
            if (!data.files) {
                console.error('❌ Propriété "files" manquante');
                console.log('   Structure reçue:', JSON.stringify(data, null, 2));
                throw new Error('Format de réponse invalide: propriété "files" manquante');
            }
-           
+
            if (!Array.isArray(data.files)) {
                console.error('❌ "files" n\'est pas un tableau');
                console.log('   Type de files:', typeof data.files);
                throw new Error('Format de réponse invalide: "files" doit être un tableau');
            }
-           
+
            console.log('✅ Nombre de fichiers:', data.files.length);
-           
+
            if (data.files.length === 0) {
-               console.log('📭 Aucun fichier trouvé');
+               console.log('📭 Aucun fichier trouvé pour cet utilisateur');
                showEmptyState();
                return;
            }
-           
+
            console.log('📍 Affichage des fichiers...');
            displayFiles(data.files);
-           
+
            console.log('✅ === FIN loadFiles() - SUCCÈS ===');
-           
+
        } catch (error) {
            console.error('❌ === FIN loadFiles() - ERREUR ===');
            console.error('   Type:', error.constructor.name);
            console.error('   Message:', error.message);
            console.error('   Stack:', error.stack);
-           
-           showError(`${CONFIG.MESSAGES.ERROR_NETWORK}: ${error.message}`);
+
+           showError(`Erreur lors du chargement: ${error.message}`);
        } finally {
            hideLoader();
        }
@@ -278,10 +303,10 @@
                         <span class="meta-value">${formatFileSize(fileSize)}</span>
                     </div>
                     <div class="meta-item">
-                        <span class="meta-label">🕒 Modifié</span>
+                        <span class="meta-label">🕒 Enregistré</span>
                         <span class="meta-value">${formatDate(lastModified)}</span>
                     </div>
-                    ${adsCount !== null ? `
+                    ${adsCount !== null && adsCount > 0 ? `
                     <div class="meta-item">
                         <span class="meta-label">📢 Annonces</span>
                         <span class="meta-value">${formatNumber(adsCount)}</span>

@@ -1,78 +1,83 @@
-# ============================================
-# Node.js
-# ============================================
-*/node_modules/
+# ==========================================
+# Lambda Functions - Global .gitignore
+# ==========================================
 
+# Packages de déploiement
+*.zip
+function.zip
+
+# Dossiers de build temporaires
+build_temp/
+build/
+dist/
+
+# Dépendances Python
+# Ces bibliothèques doivent être installées dans build_temp/, pas dans le repo
+boto3/
+botocore/
+beautifulsoup4/
+bs4/
+soupsieve/
+certifi/
+charset_normalizer/
+dateutil/
+idna/
+jmespath/
+python_dateutil-*.dist-info/
+requests/
+s3transfer/
+six.py
+urllib3/
+*.dist-info/
+*.egg-info/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Node.js
+node_modules/
+package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
-yarn.lock
 
-# ============================================
-# AWS Lambda - Fichiers générés
-# ============================================
-*.zip
-*.tar.gz
-
-# Dossiers de build temporaires
-**/chromium-layer/
-**/layer-build/
-**/build/
-**/dist/
-
-# ============================================
-# AWS - Fichiers de configuration sensibles
-# ============================================
-.aws/
-*.pem
-*.key
-credentials
-config
-
-# Variables d'environnement
-.env
-.env.local
-.env.*.local
-
-# ============================================
-# Logs et réponses Lambda
-# ============================================
-*.log
-response.json
-test-response.json
-**/logs/
-
-# ============================================
-# Fichiers temporaires système
-# ============================================
-.DS_Store
-Thumbs.db
+# IDE
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-.idea/
-.vscode/
-*.sublime-*
 
-# ============================================
-# Fichiers de déploiement temporaires
-# ============================================
-/tmp/
-**/tmp/
-trust-policy.json
-/chromium-layer.zip
-/lambda-code.zip
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
 
-# ============================================
-# Documentation générée
-# ============================================
-coverage/
-.nyc_output/
+# Logs
+*.log
+logs/
 
-# ============================================
-# Cache
-# ============================================
-.cache/
-.parcel-cache/
-.eslintcache
+# AWS SAM
+.aws-sam/
+samconfig.toml
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
+.env
+.env.local
+.env.*.local

@@ -273,3 +273,78 @@ Pour toute question :
 ---
 
 **Dernière mise à jour:** Octobre 2025
+
+---
+
+### 4. 📂 Get User Searches (`getUserSearches/`)
+**Runtime:** Python 3.11  
+**Rôle:** Récupérer les recherches sauvegardées d'un utilisateur
+
+**Fonctionnalités:**
+- Liste tous les fichiers de recherche d'un utilisateur
+- Métadonnées enrichies (taille, date, nombre d'annonces)
+- Tri par date de modification
+- Support de l'authentification Cognito
+
+**Endpoint:** `GET /user-searches?username={email}`
+
+[Documentation complète →](functions/getUserSearches/README.md)
+
+---
+
+## 🚀 Déploiement
+
+### ⚠️ IMPORTANT - Gestion des dépendances
+
+**NE JAMAIS** installer les dépendances directement dans les dossiers des fonctions !
+
+Les dépendances Python (boto3, beautifulsoup4, etc.) ne doivent PAS être versionnées dans Git.
+
+### Méthode recommandée : Scripts de déploiement
+
+Chaque fonction Python dispose d'un script `deploy.sh` qui :
+- ✅ Crée un dossier temporaire `build_temp/`
+- ✅ Installe les dépendances dedans
+- ✅ Crée le fichier `function.zip`
+- ✅ Nettoie automatiquement
+- ✅ Ne pollue PAS votre dépôt Git
+
+#### Déployer une fonction spécifique
+
+```bash
+# Exemple pour getUserSearches
+cd lambda/functions/getUserSearches
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### Déployer toutes les fonctions
+
+```bash
+cd lambda
+chmod +x deploy-all.sh
+./deploy-all.sh
+```
+
+### Fichiers à versionner dans Git
+
+Pour chaque fonction Lambda, **SEULEMENT** ces fichiers doivent être trackés :
+
+**Python (saveSearch, getUserSearches, extractAds):**
+- ✅ `*.py` (code source)
+- ✅ `requirements.txt` (liste des dépendances)
+- ✅ `README.md` (documentation)
+- ✅ `.gitignore` (règles d'exclusion)
+- ✅ `deploy.sh` (script de déploiement)
+- ❌ `function.zip` (package)
+- ❌ `build_temp/` (dossier temporaire)
+- ❌ `boto3/`, `botocore/`, etc. (dépendances)
+
+**Node.js (page):**
+- ✅ `*.js` (code source)
+- ✅ `package.json` (dépendances)
+- ✅ `README.md` (documentation)
+- ✅ `.gitignore` (règles d'exclusion)
+- ❌ `node_modules/` (dépendances)
+- ❌ `function.zip` (package)
+

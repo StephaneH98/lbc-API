@@ -58,7 +58,8 @@ const CONFIG = {
         GET_FILE_DATA: '/file/{filename}',
         GET_PAGE: '/page',
         UPLOAD_FILE: '/upload_file',
-        DELETE_FILE: '/delete_file'
+        DELETE_FILE: '/delete_file',
+        SAVE_SEARCH: '/save-search'
     },
 
     // Constantes application

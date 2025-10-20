@@ -46,8 +46,80 @@
             </div>
         </div>
 
-        <!-- Container des annonces -->
+        <!-- Container des annonces (le bouton filtre et les filtres seront insérés ici par JS) -->
         <div id="annonces-container" class="annonces-container" style="display: none;"></div>
+
+        <!-- Section de filtres (sera déplacée après le header par JS) -->
+        <div id="filters-container" class="filters-container" style="display: none;">
+            <div class="filters-header">
+                <h3>🔍 Filtrer les annonces</h3>
+            </div>
+
+            <div class="filters-grid">
+                <!-- Filtre Prix minimum -->
+                <div class="filter-group">
+                    <label>💰 Prix minimum</label>
+                    <input type="number" id="filterPrixMin" placeholder="Ex: 50000" step="10000" min="0">
+                    <small>Laissez vide pour ignorer</small>
+                </div>
+
+                <!-- Filtre Prix maximum -->
+                <div class="filter-group">
+                    <label>💰 Prix maximum</label>
+                    <input type="number" id="filterPrixMax" placeholder="Ex: 200000" step="10000" min="0">
+                    <small>Laissez vide pour ignorer</small>
+                </div>
+
+                <!-- Filtre Pièces -->
+                <div class="filter-group">
+                    <label>🏠 Nombre de pièces</label>
+                    <select id="filterPieces">
+                        <option value="">Toutes</option>
+                        <option value="1">1 pièce</option>
+                        <option value="2">2 pièces</option>
+                        <option value="3">3 pièces</option>
+                        <option value="4">4 pièces</option>
+                        <option value="5">5 pièces et +</option>
+                    </select>
+                </div>
+
+                <!-- Filtre Surface minimum -->
+                <div class="filter-group">
+                    <label>📏 Surface minimum (m²)</label>
+                    <input type="number" id="filterSurfaceMin" placeholder="Ex: 50" step="5" min="0">
+                    <small>Laissez vide pour ignorer</small>
+                </div>
+
+                <!-- Filtre Surface maximum -->
+                <div class="filter-group">
+                    <label>📏 Surface maximum (m²)</label>
+                    <input type="number" id="filterSurfaceMax" placeholder="Ex: 200" step="5" min="0">
+                    <small>Laissez vide pour ignorer</small>
+                </div>
+
+                <!-- Filtre Localisation -->
+                <div class="filter-group">
+                    <label>📍 Ville</label>
+                    <input type="text" id="filterLocalisation" placeholder="Ex: Paris, Lyon...">
+                    <small>Recherche partielle</small>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="filter-actions-wrapper">
+                <button id="resetFiltersBtn" class="btn-reset-all-filters">
+                    🔄 Réinitialiser tous les filtres
+                </button>
+                <button id="applyFiltersBtn" class="btn-apply-filters">
+                    ✨ Appliquer les filtres
+                </button>
+            </div>
+
+            <!-- Compteur de résultats -->
+            <div id="filterResults" class="filter-results" style="display: none;">
+                <span id="filterCount">0</span> annonce(s) correspondent à vos critères
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -70,5 +142,8 @@
 
     <!-- 6️⃣ Script de la page -->
     <script src="../scripts/annonces.js"></script>
+
+    <!-- 7️⃣ Script des filtres -->
+    <script src="../scripts/annonces-filters.js"></script>
 </body>
 </html>

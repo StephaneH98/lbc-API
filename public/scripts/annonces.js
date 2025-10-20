@@ -581,7 +581,12 @@
        let html = `
            <div class="results-header">
                <h3>📊 ${annonces.length} annonce(s) ${isLocation ? 'de location' : 'de vente'}</h3>
+               <button id="toggleFiltersBtn" class="btn-toggle-filters">
+                   <span class="btn-icon">🔍</span>
+                   <span class="btn-text">Filtrer</span>
+               </button>
            </div>
+           <div id="filters-wrapper"></div>
            <div class="table-responsive">
                <table class="annonces-table">
                    <thead>
@@ -664,9 +669,17 @@
        
        annoncesContainer.innerHTML = html;
        annoncesContainer.style.display = 'block';
-       
+
        console.log('   ✅ Tableau généré');
-       
+
+       // Vérifier que le bouton existe
+       const toggleBtn = document.getElementById('toggleFiltersBtn');
+       console.log('🔍 DEBUG: Bouton toggleFiltersBtn trouvé?', !!toggleBtn);
+       if (toggleBtn) {
+           console.log('🔍 DEBUG: Style du bouton:', window.getComputedStyle(toggleBtn).display);
+           console.log('🔍 DEBUG: Classes du bouton:', toggleBtn.className);
+       }
+
        // Ajouter les événements de tri
        document.querySelectorAll('.sortable').forEach(th => {
            th.addEventListener('click', function() {
@@ -674,6 +687,16 @@
                sortAnnonces(column);
            });
        });
+
+       // Initialiser les filtres avec un délai pour s'assurer que le script est chargé
+       setTimeout(() => {
+           if (typeof window.initializeFilters === 'function') {
+               console.log('🔍 DEBUG: Appel de initializeFilters()');
+               window.initializeFilters();
+           } else {
+               console.error('❌ window.initializeFilters n\'existe toujours pas');
+           }
+       }, 100);
    }
    
    /* ==========================================

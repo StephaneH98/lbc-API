@@ -12,5 +12,5 @@ COGNITO: {
 // URLs de redirection
 AUTH: {
     LOGIN_PAGE: 'pages/login.html',
-    HOME_PAGE: 'index.html'
+    HOME_PAGE: '/index.html'
 }};

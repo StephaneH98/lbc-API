@@ -159,21 +159,36 @@
         console.log('🔄 CHARGEMENT DES ANNONCES');
         console.log('   Fichier:', filename);
         console.log('═══════════════════════════════════════');
-        
+
         showLoading();
         hideError();
-        
+
         try {
-            const urlTemplate = CONFIG.getApiUrl('GET_FILE_DATA');
-            const apiUrl = urlTemplate.replace('{filename}', encodeURIComponent(filename));
-            
+            // Récupérer l'utilisateur connecté
+            const userEmail = CONFIG.getCurrentUser();
+            if (!userEmail) {
+                throw new Error('Utilisateur non authentifié');
+            }
+
+            // Utiliser GET_USER_SEARCHES avec les paramètres username et filename
+            const apiUrl = CONFIG.getApiUrl('GET_USER_SEARCHES') +
+                '?username=' + encodeURIComponent(userEmail) +
+                '&filename=' + encodeURIComponent(filename);
+
             console.log('🌐 Appel API:');
             console.log('   URL:', apiUrl);
-            
+            console.log('   User:', userEmail);
+            console.log('   Filename:', filename);
+
+            // Récupérer le token d'authentification
+            const authToken = CONFIG.getAuthToken();
+
             const response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': authToken ? `Bearer ${authToken}` : ''
                 }
             });
             
@@ -193,33 +208,63 @@
             
             // ✅ EXTRACTION INTELLIGENTE DES ANNONCES
             let annonces = [];
-            
-            // Cas 1 : data.content (votre cas actuel)
-            if (data.content && Array.isArray(data.content)) {
+
+            // Cas 1 : Réponse de la Lambda getUserSearches avec filename
+            if (data.success && data.data) {
+                // data.data contient le contenu du fichier JSON
+                const fileContent = data.data;
+
+                // Chercher les annonces dans le contenu du fichier
+                if (Array.isArray(fileContent.content)) {
+                    annonces = fileContent.content;
+                    console.log('✅ Annonces trouvées dans data.data.content');
+                } else if (Array.isArray(fileContent.annonces)) {
+                    annonces = fileContent.annonces;
+                    console.log('✅ Annonces trouvées dans data.data.annonces');
+                } else if (Array.isArray(fileContent.ads)) {
+                    annonces = fileContent.ads;
+                    console.log('✅ Annonces trouvées dans data.data.ads');
+                } else if (fileContent.data && (fileContent.data.vente || fileContent.data.location)) {
+                    // Format avec data.vente et data.location
+                    const vente = Array.isArray(fileContent.data.vente) ? fileContent.data.vente : [];
+                    const location = Array.isArray(fileContent.data.location) ? fileContent.data.location : [];
+                    annonces = [...vente, ...location];
+                    console.log('✅ Annonces trouvées dans data.data.data (vente + location)');
+                    console.log(`   Vente: ${vente.length}, Location: ${location.length}`);
+                } else if (Array.isArray(fileContent)) {
+                    annonces = fileContent;
+                    console.log('✅ data.data est directement un tableau');
+                } else {
+                    console.error('❌ Impossible de trouver les annonces dans data.data:', fileContent);
+                    throw new Error('Format de fichier invalide - annonces introuvables');
+                }
+            }
+            // Cas 2 : data.content (ancien format)
+            else if (data.content && Array.isArray(data.content)) {
                 annonces = data.content;
                 console.log('✅ Annonces trouvées dans data.content');
             }
-            // Cas 2 : data.annonces
+            // Cas 3 : data.annonces
             else if (data.annonces && Array.isArray(data.annonces)) {
                 annonces = data.annonces;
                 console.log('✅ Annonces trouvées dans data.annonces');
             }
-            // Cas 3 : data.data
+            // Cas 4 : data.data (tableau direct)
             else if (data.data && Array.isArray(data.data)) {
                 annonces = data.data;
-                console.log('✅ Annonces trouvées dans data.data');
+                console.log('✅ Annonces trouvées dans data.data (tableau)');
             }
-            // Cas 4 : data.body
+            // Cas 5 : data.body
             else if (data.body && Array.isArray(data.body)) {
                 annonces = data.body;
                 console.log('✅ Annonces trouvées dans data.body');
             }
-            // Cas 5 : data est directement un tableau
+            // Cas 6 : data est directement un tableau
             else if (Array.isArray(data)) {
                 annonces = data;
                 console.log('✅ data est directement un tableau');
             }
-            // Cas 6 : Aucun format reconnu
+            // Cas 7 : Aucun format reconnu
             else {
                 console.error('❌ Structure de données non reconnue:', data);
                 throw new Error('Format de données invalide');

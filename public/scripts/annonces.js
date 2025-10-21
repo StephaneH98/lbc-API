@@ -11,8 +11,10 @@
    /* ==========================================
       VARIABLES GLOBALES
       ========================================== */
-   
+
    let currentAnnonces = [];
+   let allVenteAnnonces = [];      // Toutes les annonces de vente chargées
+   let allLocationAnnonces = [];   // Toutes les annonces de location chargées
    let currentSort = {
        column: null,
        direction: 'asc'
@@ -226,8 +228,19 @@
                     console.log('✅ Annonces trouvées dans data.data.ads');
                 } else if (fileContent.data && (fileContent.data.vente || fileContent.data.location)) {
                     // Format avec data.vente et data.location
-                    const vente = Array.isArray(fileContent.data.vente) ? fileContent.data.vente : [];
-                    const location = Array.isArray(fileContent.data.location) ? fileContent.data.location : [];
+                    const vente = (Array.isArray(fileContent.data.vente) ? fileContent.data.vente : []).map(annonce => ({
+                        ...annonce,
+                        type: 'vente'
+                    }));
+                    const location = (Array.isArray(fileContent.data.location) ? fileContent.data.location : []).map(annonce => ({
+                        ...annonce,
+                        type: 'location'
+                    }));
+
+                    // Stocker séparément pour la sauvegarde ultérieure
+                    allVenteAnnonces = vente;
+                    allLocationAnnonces = location;
+
                     annonces = [...vente, ...location];
                     console.log('✅ Annonces trouvées dans data.data.data (vente + location)');
                     console.log(`   Vente: ${vente.length}, Location: ${location.length}`);
@@ -353,34 +366,56 @@
            let locationAnnonces = [];
 
            if (selectedOnly) {
-               // Mode sélection : récupérer uniquement les annonces cochées
+               // Mode sélection :
+               // - Vente : uniquement les annonces de vente sélectionnées
+               // - Location : TOUTES les annonces de location (pas seulement celles sélectionnées)
+
                const selectedAnnonces = getSelectedAnnonces();
                if (selectedAnnonces.length === 0) {
                    throw new Error('Aucune annonce sélectionnée');
                }
 
-               // Déterminer le type depuis les annonces actuelles
-               const isLocation = currentAnnonces[0]?.hasOwnProperty('furnished') ||
-                                 currentAnnonces[0]?.hasOwnProperty('prix_m2');
+               // Extraire uniquement les annonces de VENTE sélectionnées
+               venteAnnonces = selectedAnnonces.filter(annonce => {
+                   return annonce.type === 'vente';
+               });
 
-               if (isLocation) {
-                   locationAnnonces = selectedAnnonces;
+               // Récupérer TOUTES les annonces de location
+               if (allLocationAnnonces.length > 0) {
+                   // Depuis les variables globales si disponibles
+                   locationAnnonces = allLocationAnnonces;
+                   console.log('📍 Utilisation de allLocationAnnonces');
                } else {
-                   venteAnnonces = selectedAnnonces;
+                   // Sinon extraire depuis currentAnnonces en utilisant le champ 'type'
+                   locationAnnonces = currentAnnonces.filter(annonce => {
+                       return annonce.type === 'location';
+                   });
+                   console.log('📍 Extraction depuis currentAnnonces:', locationAnnonces.length, 'annonces de location');
                }
 
-               console.log(`📊 ${selectedAnnonces.length} annonces sélectionnées`);
+               console.log(`📊 Sélection: ${venteAnnonces.length} annonces de vente sélectionnées + ${locationAnnonces.length} annonces de location (toutes)`);
            } else {
-               // Mode tout : récupérer depuis sessionStorage
-               const venteData = sessionStorage.getItem('searchResultsVente');
-               const locationData = sessionStorage.getItem('searchResultsLocation');
-
-               if (!venteData && !locationData && currentAnnonces.length === 0) {
-                   throw new Error('Aucune donnée de recherche à enregistrer');
+               // Mode tout : récupérer TOUTES les annonces vente et location
+               if (allVenteAnnonces.length > 0 || allLocationAnnonces.length > 0) {
+                   // Utiliser les variables globales si disponibles
+                   venteAnnonces = allVenteAnnonces;
+                   locationAnnonces = allLocationAnnonces;
+               } else {
+                   // Sinon séparer depuis currentAnnonces en utilisant le champ 'type'
+                   currentAnnonces.forEach(annonce => {
+                       if (annonce.type === 'location') {
+                           locationAnnonces.push(annonce);
+                       } else if (annonce.type === 'vente') {
+                           venteAnnonces.push(annonce);
+                       }
+                   });
                }
 
-               venteAnnonces = venteData ? JSON.parse(venteData) : (currentAnnonces[0]?.hasOwnProperty('furnished') ? [] : currentAnnonces);
-               locationAnnonces = locationData ? JSON.parse(locationData) : (currentAnnonces[0]?.hasOwnProperty('furnished') ? currentAnnonces : []);
+               if (venteAnnonces.length === 0 && locationAnnonces.length === 0) {
+                   throw new Error('Aucune annonce à enregistrer');
+               }
+
+               console.log(`📊 Toutes les annonces: ${venteAnnonces.length} vente, ${locationAnnonces.length} location`);
            }
 
            const statsData = sessionStorage.getItem('searchStats');
@@ -1158,20 +1193,3 @@
 
        return currentAnnonces.filter((_, index) => selectedIndices.includes(index));
    }
-
-   // Attacher les événements aux boutons de sauvegarde
-   document.addEventListener('DOMContentLoaded', () => {
-       // Bouton "Enregistrer tout"
-       const saveAllBtn = document.getElementById('saveAllBtn');
-       if (saveAllBtn) {
-           saveAllBtn.addEventListener('click', () => saveSearchResults(false));
-           console.log('✅ Listener ajouté au bouton "Enregistrer tout"');
-       }
-
-       // Bouton "Enregistrer la sélection"
-       const saveSelectedBtn = document.getElementById('saveSelectedBtn');
-       if (saveSelectedBtn) {
-           saveSelectedBtn.addEventListener('click', () => saveSearchResults(true));
-           console.log('✅ Listener ajouté au bouton "Enregistrer la sélection"');
-       }
-   });

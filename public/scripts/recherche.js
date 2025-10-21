@@ -511,8 +511,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                const annoncesVente = extractionVente.announcements || [];
-                const annoncesLocation = extractionLocation.announcements || [];
+                const annoncesVente = (extractionVente.announcements || []).map(annonce => ({
+                    ...annonce,
+                    type: 'vente'
+                }));
+                const annoncesLocation = (extractionLocation.announcements || []).map(annonce => ({
+                    ...annonce,
+                    type: 'location'
+                }));
 
                 // ========== AFFICHAGE EXTRAITS DANS LA CONSOLE ==========
                 console.log('\n═'.repeat(80));

@@ -22,8 +22,8 @@ echo -e "${BLUE}📁 Répertoire de travail: ${SCRIPT_DIR}${NC}"
 
 # Utiliser un dossier temporaire local pour éviter les problèmes de partage réseau
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-    # Windows - utiliser le dossier temp local
-    BUILD_DIR="${TEMP}/lambda_build_${FUNCTION_NAME}"
+    # Windows - utiliser le dossier temp local C:\Users\...\AppData\Local\Temp
+    BUILD_DIR="/tmp/lambda_build_${FUNCTION_NAME}"
 else
     # Linux/Mac - utiliser /tmp
     BUILD_DIR="/tmp/lambda_build_${FUNCTION_NAME}"

@@ -282,7 +282,7 @@
     
     // Créer les cartes HTML
     container.innerHTML = files.map((file, index) => {
-        const filename = file.name || 'fichier_inconnu.json';
+        const filename = file.filename || file.name || 'fichier_inconnu.json';
         const fileSize = file.size || 0;
         const lastModified = file.last_modified || '';
         const adsCount = file.ads_count || null;

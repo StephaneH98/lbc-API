@@ -1,0 +1,33 @@
+# Package Lambda
+function.zip
+
+# Dossiers de build temporaires
+build/
+package/
+lambda_build/
+lambda_build_*/
+/tmp/lambda_build_*/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+.Python
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

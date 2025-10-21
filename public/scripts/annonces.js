@@ -12,9 +12,11 @@
       VARIABLES GLOBALES
       ========================================== */
 
-   let currentAnnonces = [];
-   let allVenteAnnonces = [];      // Toutes les annonces de vente chargées
-   let allLocationAnnonces = [];   // Toutes les annonces de location chargées
+   let currentAnnonces = [];           // Toutes les annonces combinées (vente + location)
+   let currentVenteAnnonces = [];      // Annonces de vente actuellement affichées
+   let currentLocationAnnonces = [];   // Annonces de location actuellement affichées
+   let allVenteAnnonces = [];          // Toutes les annonces de vente chargées (pour sauvegarde)
+   let allLocationAnnonces = [];       // Toutes les annonces de location chargées (pour sauvegarde)
    let currentSort = {
        column: null,
        direction: 'asc'
@@ -46,16 +48,25 @@
 
                 console.log('✅ Résultats de recherche trouvés:', announcements.length);
 
+                // Séparer les annonces par type
+                currentVenteAnnonces = announcements.filter(a => a.type === 'vente');
+                currentLocationAnnonces = announcements.filter(a => a.type === 'location');
+                currentAnnonces = announcements;
+                allVenteAnnonces = currentVenteAnnonces;
+                allLocationAnnonces = currentLocationAnnonces;
+
                 // Afficher le titre
                 const fileNameDisplay = document.getElementById('fileNameDisplay');
                 if (fileNameDisplay) {
-                    fileNameDisplay.textContent = `🔍 Résultats de recherche (${announcements.length} annonce${announcements.length > 1 ? 's' : ''})`;
+                    fileNameDisplay.textContent = `🔍 Résultats de recherche (${currentVenteAnnonces.length} vente${currentVenteAnnonces.length > 1 ? 's' : ''})`;
                 }
 
-                // Afficher les annonces directement
+                console.log(`📊 Nouvelle recherche: ${currentVenteAnnonces.length} vente, ${currentLocationAnnonces.length} location`);
+                console.log(`   Affichage du tableau: ${currentVenteAnnonces.length} annonces de VENTE uniquement`);
+
+                // Afficher UNIQUEMENT les annonces de vente
                 hideLoading();
-                currentAnnonces = announcements;
-                displayAnnonces(announcements);
+                displayAnnonces(currentVenteAnnonces);
 
                 // Nettoyer le sessionStorage (optionnel)
                 // sessionStorage.removeItem('searchResults');
@@ -237,13 +248,21 @@
                         type: 'location'
                     }));
 
-                    // Stocker séparément pour la sauvegarde ultérieure
+                    // Stocker séparément les annonces
+                    currentVenteAnnonces = vente;
+                    currentLocationAnnonces = location;
                     allVenteAnnonces = vente;
                     allLocationAnnonces = location;
 
-                    annonces = [...vente, ...location];
-                    console.log('✅ Annonces trouvées dans data.data.data (vente + location)');
+                    // Combiner toutes les annonces pour currentAnnonces (utilisé pour sélection/filtre global)
+                    currentAnnonces = [...vente, ...location];
+
+                    // Afficher UNIQUEMENT les annonces de VENTE dans le tableau
+                    annonces = vente;
+
+                    console.log('✅ Annonces chargées depuis data.data.data');
                     console.log(`   Vente: ${vente.length}, Location: ${location.length}`);
+                    console.log(`   📊 Affichage du tableau: ${vente.length} annonces de VENTE uniquement`);
                 } else if (Array.isArray(fileContent)) {
                     annonces = fileContent;
                     console.log('✅ data.data est directement un tableau');

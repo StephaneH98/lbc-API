@@ -60,6 +60,7 @@ const CONFIG = {
         UPLOAD_FILE: '/upload_file',
         DELETE_FILE: '/delete_file',
         SAVE_SEARCH: '/save-search',
+        GET_USER_SEARCHES: '/user-searches',
     },
 
     // Constantes application

@@ -319,9 +319,9 @@
                         <span class="btn-icon">👁️</span>
                         <span class="btn-text">Ouvrir</span>
                     </button>
-                    <button class="file-btn btn-download" onclick="downloadFile('${escapeHtml(filename)}')">
-                        <span class="btn-icon">⬇️</span>
-                        <span class="btn-text">Télécharger</span>
+                    <button class="file-btn btn-delete" onclick="deleteFile('${escapeHtml(filename)}')">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">Supprimer</span>
                     </button>
                 </div>
             </div>
@@ -339,15 +339,66 @@
     }, 200);
 }
 
-// Fonction de téléchargement
-function downloadFile(filename) {
-    console.log('📥 Téléchargement:', filename);
-    const link = document.createElement('a');
-    link.href = `${CONFIG.dataPath}/${filename}`;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+// Fonction de suppression avec confirmation
+async function deleteFile(filename) {
+    console.log('🗑️ Demande de suppression:', filename);
+
+    // Demander confirmation à l'utilisateur
+    const confirmDelete = confirm(
+        `⚠️ Êtes-vous sûr de vouloir supprimer ce fichier ?\n\n` +
+        `📄 Fichier : ${filename}\n\n` +
+        `Cette action est irréversible.`
+    );
+
+    if (!confirmDelete) {
+        console.log('   ❌ Suppression annulée par l\'utilisateur');
+        return;
+    }
+
+    try {
+        console.log('   🔄 Suppression en cours...');
+
+        // Récupérer le token et username
+        const token = localStorage.getItem('idToken');
+        const username = CONFIG.getCurrentUser();
+
+        if (!token || !username) {
+            console.error('❌ Token:', token ? 'Présent' : 'Absent');
+            console.error('❌ Username:', username);
+            throw new Error('Non authentifié');
+        }
+
+        // Appel API pour supprimer le fichier
+        const response = await fetch(`${CONFIG.API_BASE_URL}${CONFIG.ENDPOINTS.DELETE_FILE}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                username: username,
+                filename: filename
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Erreur lors de la suppression');
+        }
+
+        console.log('   ✅ Fichier supprimé avec succès');
+
+        // Afficher un message de succès
+        alert(`✅ ${CONFIG.MESSAGES.SUCCESS_DELETE}\n\n📄 ${filename}`);
+
+        // Recharger la liste des fichiers
+        await loadFiles();
+
+    } catch (error) {
+        console.error('   ❌ Erreur suppression:', error);
+        alert(`❌ Erreur lors de la suppression du fichier :\n\n${error.message}`);
+    }
 }
 
 // Fonction d'échappement HTML

@@ -3,12 +3,12 @@
    ========================================== */
    :root {
     /* Couleurs principales */
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
+    --primary-color: #FFD700;
+    --secondary-color: #FFA500;
     --success-color: #48bb78;
     --danger-color: #f56565;
     --warning-color: #ed8936;
-    --info-color: #4299e1;
+    --info-color: #FFD700;
     
     /* Couleurs de texte */
     --text-primary: #2d3748;

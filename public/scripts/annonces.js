@@ -51,7 +51,11 @@
 
                 // Séparer les annonces par type
                 currentVenteAnnonces = announcements.filter(a => a.type === 'vente');
-                currentLocationAnnonces = announcements.filter(a => a.type === 'location');
+                currentLocationAnnonces = announcements.filter(a =>
+                    a.type === 'location' ||
+                    a.type === 'location_meublee' ||
+                    a.type === 'location_non_meublee'
+                );
                 currentAnnonces = announcements;
                 allVenteAnnonces = currentVenteAnnonces;
                 allLocationAnnonces = currentLocationAnnonces;
@@ -249,7 +253,8 @@
                     }));
                     const location = (Array.isArray(fileContent.data.location) ? fileContent.data.location : []).map(annonce => ({
                         ...annonce,
-                        type: 'location'
+                        // Préserver le type existant (location_meublee, location_non_meublee) ou définir 'location' par défaut
+                        type: annonce.type || 'location'
                     }));
 
                     // Stocker séparément les annonces
@@ -410,8 +415,11 @@
                    console.log('📍 Utilisation de allLocationAnnonces');
                } else {
                    // Sinon extraire depuis currentAnnonces en utilisant le champ 'type'
+                   // Inclure 'location', 'location_meublee' et 'location_non_meublee'
                    locationAnnonces = currentAnnonces.filter(annonce => {
-                       return annonce.type === 'location';
+                       return annonce.type === 'location' ||
+                              annonce.type === 'location_meublee' ||
+                              annonce.type === 'location_non_meublee';
                    });
                    console.log('📍 Extraction depuis currentAnnonces:', locationAnnonces.length, 'annonces de location');
                }
@@ -426,7 +434,9 @@
                } else {
                    // Sinon séparer depuis currentAnnonces en utilisant le champ 'type'
                    currentAnnonces.forEach(annonce => {
-                       if (annonce.type === 'location') {
+                       if (annonce.type === 'location' ||
+                           annonce.type === 'location_meublee' ||
+                           annonce.type === 'location_non_meublee') {
                            locationAnnonces.push(annonce);
                        } else if (annonce.type === 'vente') {
                            venteAnnonces.push(annonce);

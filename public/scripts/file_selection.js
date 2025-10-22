@@ -369,11 +369,13 @@ async function deleteFile(filename) {
         }
 
         // Appel API pour supprimer le fichier
-        const response = await fetch(`${CONFIG.API_BASE_URL}${CONFIG.ENDPOINTS.DELETE_FILE}`, {
-            method: 'POST',
+        const apiUrl = CONFIG.getApiUrl('DELETE_FILE');
+        console.log('   🌐 URL API:', apiUrl);
+
+        const response = await fetch(apiUrl, {
+            method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 username: username,

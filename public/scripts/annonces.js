@@ -649,40 +649,113 @@
        return stats;
    }
 
-   function displayRentalStats(stats) {
+   function displaySalesPriceCharts(annonces) {
        const statsContainer = document.getElementById('stats-container');
        const statsContent = document.getElementById('stats-content');
 
-       if (!stats || Object.keys(stats).length === 0) {
-           console.log('⚠️ Pas de statistiques à afficher');
+       if (!annonces || annonces.length === 0) {
+           console.log('⚠️ Pas d\'annonces à afficher');
            if (statsContainer) statsContainer.style.display = 'none';
            return;
        }
 
-       console.log('🎨 Affichage des statistiques...');
+       console.log('🎨 Affichage des graphiques de prix...');
 
-       // Trier par nombre de pièces
-       const sortedRooms = Object.keys(stats).sort((a, b) => parseInt(a) - parseInt(b));
+       // Extraire les prix et calculer le prix au m²
+       const prices = [];
+       const pricesPerM2 = [];
 
-       let html = '<div class="stats-grid">';
+       annonces.forEach((ad, index) => {
+           const price = parseFloat((ad.prix || ad.price || '').toString().replace(/[^\d]/g, ''));
 
-       sortedRooms.forEach(rooms => {
-           const stat = stats[rooms];
-           const icon = rooms === '1' ? '🏠' : rooms === '2' ? '🏡' : rooms === '3' ? '🏘️' : rooms === '4' ? '🏰' : '🏛️';
+           if (price && price > 0) {
+               prices.push(price);
+
+               // Utiliser le prix_m2 directement s'il existe, sinon le calculer
+               let pricePerM2 = parseFloat((ad.prix_m2 || '').toString().replace(/[^\d]/g, ''));
+
+               if (!pricePerM2 || pricePerM2 === 0) {
+                   // Essayer de calculer avec surface_m2
+                   const surface = parseFloat((ad.surface_m2 || ad.surface || '').toString().replace(/[^\d]/g, ''));
+                   if (surface && surface > 0) {
+                       pricePerM2 = Math.round(price / surface);
+                   }
+               }
+
+               if (pricePerM2 && pricePerM2 > 0) {
+                   pricesPerM2.push(pricePerM2);
+               }
+           }
+       });
+
+       console.log('📊 Prix extraits:', prices.length);
+       console.log('📏 Prix au m² calculés:', pricesPerM2.length);
+
+       if (prices.length === 0) {
+           if (statsContainer) statsContainer.style.display = 'none';
+           return;
+       }
+
+       const minPrice = Math.min(...prices);
+       const maxPrice = Math.max(...prices);
+       const avgPrice = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+
+       const minPriceM2 = pricesPerM2.length > 0 ? Math.min(...pricesPerM2) : 0;
+       const maxPriceM2 = pricesPerM2.length > 0 ? Math.max(...pricesPerM2) : 0;
+       const avgPriceM2 = pricesPerM2.length > 0 ? Math.round(pricesPerM2.reduce((a, b) => a + b, 0) / pricesPerM2.length) : 0;
+
+       // Stocker les valeurs min/max pour les calculs de position
+       window.priceChartData = {
+           minPrice: minPrice,
+           maxPrice: maxPrice,
+           minPriceM2: minPriceM2,
+           maxPriceM2: maxPriceM2
+       };
+
+       // Version compacte avec titres à gauche
+       let html = '<div class="price-charts-compact">';
+
+       // Graphique Prix de vente
+       html += `
+           <div class="chart-row-horizontal">
+               <div class="chart-title-left">💰 Prix de vente :</div>
+               <div class="price-range-bar" id="price-chart-bar">
+                   <div class="range-gradient"></div>
+                   <div class="hover-indicator" id="price-hover-indicator" style="display: none;"></div>
+                   <div class="range-marker range-marker-min" style="left: 0%">
+                       <div class="marker-value">${formatPrice(minPrice)}</div>
+                   </div>
+                   <div class="range-marker range-marker-avg" style="left: 50%">
+                       <div class="marker-value">${formatPrice(avgPrice)}</div>
+                   </div>
+                   <div class="range-marker range-marker-max" style="right: 0%">
+                       <div class="marker-value">${formatPrice(maxPrice)}</div>
+                   </div>
+               </div>
+           </div>
+       `;
+
+       // Graphique Prix au m² (si disponible)
+       if (pricesPerM2.length > 0) {
            html += `
-               <div class="stat-card">
-                   <div class="stat-icon">${icon}</div>
-                   <div class="stat-title">${rooms} pièce${rooms > 1 ? 's' : ''}</div>
-                   <div class="stat-value">${stat.average} €</div>
-                   <div class="stat-subtitle">Prix moyen / mois</div>
-                   <div class="stat-details">
-                       <span>Min: ${stat.min} €</span>
-                       <span>Max: ${stat.max} €</span>
-                       <span>${stat.count} annonce${stat.count > 1 ? 's' : ''}</span>
+               <div class="chart-row-horizontal">
+                   <div class="chart-title-left">📏 Prix au m² :</div>
+                   <div class="price-range-bar" id="pricem2-chart-bar">
+                       <div class="range-gradient"></div>
+                       <div class="hover-indicator" id="pricem2-hover-indicator" style="display: none;"></div>
+                       <div class="range-marker range-marker-min" style="left: 0%">
+                           <div class="marker-value">${minPriceM2} €/m²</div>
+                       </div>
+                       <div class="range-marker range-marker-avg" style="left: 50%">
+                           <div class="marker-value">${avgPriceM2} €/m²</div>
+                       </div>
+                       <div class="range-marker range-marker-max" style="right: 0%">
+                           <div class="marker-value">${maxPriceM2} €/m²</div>
+                       </div>
                    </div>
                </div>
            `;
-       });
+       }
 
        html += '</div>';
 
@@ -694,7 +767,39 @@
            statsContainer.style.display = 'block';
        }
 
-       console.log('✅ Statistiques affichées');
+       // Initialiser le comportement sticky
+       initStickyBehavior();
+
+       console.log('✅ Graphiques affichés');
+   }
+
+   function initStickyBehavior() {
+       const statsContainer = document.getElementById('stats-container');
+
+       if (!statsContainer) {
+           console.log('❌ stats-container introuvable');
+           return;
+       }
+
+       // Éviter de créer plusieurs listeners
+       if (window.stickyScrollInitialized) return;
+       window.stickyScrollInitialized = true;
+
+       console.log('✅ Initialisation du comportement sticky');
+
+       // Rendre les stats sticky immédiatement (toujours sous la nav)
+       statsContainer.classList.add('stats-sticky');
+
+       // Plus de changement de taille au scroll - les graphiques gardent toujours la même taille
+   }
+
+   function formatPrice(price) {
+       return new Intl.NumberFormat('fr-FR', {
+           style: 'currency',
+           currency: 'EUR',
+           minimumFractionDigits: 0,
+           maximumFractionDigits: 0
+       }).format(price);
    }
 
    /* ==========================================
@@ -705,9 +810,8 @@
        console.log('🎨 === AFFICHAGE ANNONCES ===');
        console.log('   Nombre:', annonces.length);
 
-       // Calculer et afficher les statistiques de location
-       const rentalStats = calculateRentalStats(annonces);
-       displayRentalStats(rentalStats);
+       // Afficher les graphiques de prix pour les annonces de vente
+       displaySalesPriceCharts(annonces);
 
        if (!annonces || annonces.length === 0) {
            showEmptyState();
@@ -767,25 +871,26 @@
            const localisation = escapeHtml(annonce.localisation || annonce.location || 'Non spécifié');
            const description = escapeHtml(annonce.description || 'Aucune description');
            const url = annonce.url || annonce.link || annonce.lien || '#';
-           
+
            const prix = annonce.prix || annonce.price || 0;
            const prixFormate = formatPrice(prix);
-           
+
            const surface = annonce.surface_m2 || annonce.surface || null;
            const surfaceDisplay = surface ? `${surface} m²` : 'N/A';
-           
+
            const pieces = annonce.pieces || annonce.rooms || annonce.nb_pieces || 'N/A';
-           
+
+           let prixM2 = 0;
            let prixM2Display = 'N/A';
            if (prix && surface && surface > 0) {
-               const prixM2 = Math.round(prix / surface);
+               prixM2 = Math.round(prix / surface);
                prixM2Display = formatPrice(prixM2) + '/m²';
            }
-           
+
            const ageInfo = calculateAnnonceAge(annonce);
-           
+
            html += `
-               <tr data-index="${index}">
+               <tr data-index="${index}" data-price="${prix}" data-pricem2="${prixM2}" class="annonce-row">
                    <td class="checkbox-col">
                        <input type="checkbox" class="row-checkbox" data-index="${index}">
                    </td>
@@ -803,7 +908,7 @@
                </tr>
            `;
        });
-       
+
        html += `
                    </tbody>
                </table>
@@ -812,7 +917,7 @@
                <p>💡 Cliquez sur une colonne pour trier • Survolez l'âge pour voir la date exacte</p>
            </div>
        `;
-       
+
        annoncesContainer.innerHTML = html;
        annoncesContainer.style.display = 'block';
 
@@ -846,8 +951,57 @@
 
        // Ajouter les événements pour les checkboxes
        initializeCheckboxes();
+
+       // Ajouter les événements de survol pour les indicateurs sur les graphiques
+       initializeChartHoverIndicators();
    }
-   
+
+   /* ==========================================
+      INDICATEURS DE SURVOL SUR LES GRAPHIQUES
+      ========================================== */
+
+   function initializeChartHoverIndicators() {
+       const rows = document.querySelectorAll('.annonce-row');
+       const priceIndicator = document.getElementById('price-hover-indicator');
+       const priceM2Indicator = document.getElementById('pricem2-hover-indicator');
+
+       if (!priceIndicator) return;
+
+       rows.forEach(row => {
+           row.addEventListener('mouseenter', function() {
+               const price = parseFloat(this.getAttribute('data-price'));
+               const priceM2 = parseFloat(this.getAttribute('data-pricem2'));
+
+               if (!window.priceChartData) return;
+
+               const { minPrice, maxPrice, minPriceM2, maxPriceM2 } = window.priceChartData;
+
+               // Calculer la position pour le prix de vente
+               if (price && price > 0 && minPrice && maxPrice) {
+                   const percentage = ((price - minPrice) / (maxPrice - minPrice)) * 100;
+                   priceIndicator.style.left = `${percentage}%`;
+                   priceIndicator.style.display = 'block';
+                   priceIndicator.setAttribute('data-value', formatPrice(price));
+               }
+
+               // Calculer la position pour le prix au m²
+               if (priceM2Indicator && priceM2 && priceM2 > 0 && minPriceM2 && maxPriceM2) {
+                   const percentage = ((priceM2 - minPriceM2) / (maxPriceM2 - minPriceM2)) * 100;
+                   priceM2Indicator.style.left = `${percentage}%`;
+                   priceM2Indicator.style.display = 'block';
+                   priceM2Indicator.setAttribute('data-value', `${priceM2} €/m²`);
+               }
+           });
+
+           row.addEventListener('mouseleave', function() {
+               priceIndicator.style.display = 'none';
+               if (priceM2Indicator) {
+                   priceM2Indicator.style.display = 'none';
+               }
+           });
+       });
+   }
+
    /* ==========================================
       TRI DES ANNONCES
       ========================================== */

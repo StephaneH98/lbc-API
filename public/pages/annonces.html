@@ -11,18 +11,6 @@
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div>
-                    <h1>🏠 Annonces Immobilières</h1>
-                    <p class="subtitle" id="fileNameDisplay">Chargement...</p>
-                </div>
-                <a href="file_selection.html" class="btn btn-secondary">
-                    ← Retour à la sélection
-                </a>
-            </div>
-        </header>
-
         <!-- Messages -->
         <div id="loading" class="loading-message">
             <div class="spinner"></div>
@@ -31,32 +19,31 @@
 
         <div id="error-message" class="error-message" style="display: none;"></div>
 
-        <!-- Section statistiques prix moyen locations -->
+        <!-- Section graphiques de prix -->
         <div id="stats-container" class="stats-container" style="display: none;">
-            <h2>📊 Statistiques - Prix moyen des locations</h2>
             <div id="stats-content" class="stats-content">
-                <!-- Les statistiques seront insérées ici par JavaScript -->
-            </div>
-
-            <!-- Boutons pour enregistrer la recherche -->
-            <div class="save-search-section">
-                <div class="save-buttons-wrapper">
-                    <button id="saveAllBtn" class="btn-save-search">
-                        <span class="btn-icon">💾</span>
-                        <span class="btn-text">Enregistrer tout</span>
-                    </button>
-                    <button id="saveSelectedBtn" class="btn-save-search btn-save-selected">
-                        <span class="btn-icon">✅</span>
-                        <span class="btn-text">Enregistrer la sélection</span>
-                        <span class="selection-count">(0)</span>
-                    </button>
-                </div>
-                <p class="save-search-hint">Sauvegardez toutes les annonces ou seulement celles que vous avez sélectionnées</p>
+                <!-- Les graphiques seront insérés ici par JavaScript -->
             </div>
         </div>
 
         <!-- Container des annonces (le bouton filtre et les filtres seront insérés ici par JS) -->
         <div id="annonces-container" class="annonces-container" style="display: none;"></div>
+
+        <!-- Boutons pour enregistrer la recherche -->
+        <div class="save-search-section">
+            <div class="save-buttons-wrapper">
+                <button id="saveAllBtn" class="btn-save-search">
+                    <span class="btn-icon">💾</span>
+                    <span class="btn-text">Enregistrer tout</span>
+                </button>
+                <button id="saveSelectedBtn" class="btn-save-search btn-save-selected">
+                    <span class="btn-icon">✅</span>
+                    <span class="btn-text">Enregistrer la sélection</span>
+                    <span class="selection-count">(0)</span>
+                </button>
+            </div>
+            <p class="save-search-hint">Sauvegardez toutes les annonces ou seulement celles que vous avez sélectionnées</p>
+        </div>
 
         <!-- Section de filtres (sera déplacée après le header par JS) -->
         <div id="filters-container" class="filters-container" style="display: none;">

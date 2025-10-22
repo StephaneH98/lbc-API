@@ -1070,3 +1070,286 @@
         gap: 0.75rem;
     }
 }
+
+/* ==========================================
+   GRAPHIQUES DE PRIX (VERSION COMPACTE HORIZONTALE)
+   ========================================== */
+.price-charts-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.chart-row-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.chart-title-left {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 150px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.price-range-bar {
+    position: relative;
+    height: 40px;
+    flex: 1;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.range-gradient {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    right: 20px;
+    height: 12px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg,
+        #4ade80 0%,     /* Vert (pas cher) */
+        #fbbf24 33%,    /* Jaune */
+        #fb923c 66%,    /* Orange */
+        #ef4444 100%    /* Rouge (cher) */
+    );
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.range-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+}
+
+.range-marker-min {
+    left: 20px !important;
+    transform: translate(0, -50%) !important;
+}
+
+.range-marker-max {
+    right: 20px !important;
+    left: auto !important;
+    transform: translate(0, -50%) !important;
+}
+
+.range-marker-avg {
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.marker-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+.range-marker-min .marker-value {
+    border-left: 3px solid #4ade80;
+}
+
+.range-marker-avg .marker-value {
+    border-left: 3px solid #fbbf24;
+}
+
+.range-marker-max .marker-value {
+    border-left: 3px solid #ef4444;
+}
+
+/* Indicateur de survol sur les graphiques */
+.hover-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px;
+    height: 25px;
+    background: #333;
+    z-index: 15;
+    transition: left 0.15s ease;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.hover-indicator::before {
+    content: attr(data-value);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hover-indicator::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #333;
+}
+
+.chart-stats {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.chart-stats span {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* ==========================================
+   COMPORTEMENT STICKY DES GRAPHIQUES
+   ========================================== */
+
+/* Masquer le header lors du scroll */
+.header-hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+/* Stats sticky en dessous de la navigation (toujours) */
+.stats-sticky {
+    position: fixed;
+    top: 70px; /* Hauteur de la navigation + marge */
+    left: 0;
+    right: 0;
+    z-index: 998;
+    margin: 0 !important;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    padding: 1rem 2rem;
+}
+
+/* Ajouter de l'espace pour que le contenu ne soit pas caché */
+.stats-sticky ~ #annonces-container {
+    margin-top: 140px; /* Hauteur approximative des graphiques sticky */
+    transition: margin-top 0.3s ease;
+}
+
+/* Version compacte des graphiques après scroll */
+.stats-compact {
+    padding: 0.6rem 2rem !important;
+}
+
+.stats-compact ~ #annonces-container {
+    margin-top: 100px !important; /* Hauteur réduite en mode compact */
+}
+
+.stats-compact .price-charts-compact {
+    gap: 0.5rem;
+}
+
+.stats-compact .chart-row-horizontal {
+    gap: 1rem;
+}
+
+.stats-compact .chart-title-left {
+    font-size: 0.85rem;
+    min-width: 130px;
+}
+
+.stats-compact .price-range-bar {
+    height: 30px;
+    padding: 0 15px;
+}
+
+.stats-compact .range-gradient {
+    height: 10px;
+    left: 15px;
+    right: 15px;
+}
+
+.stats-compact .marker-value {
+    font-size: 0.75rem;
+    padding: 3px 6px;
+}
+
+.stats-compact .range-marker-min {
+    left: 15px !important;
+}
+
+.stats-compact .range-marker-max {
+    right: 15px !important;
+}
+
+/* Responsive pour les graphiques */
+@media (max-width: 900px) {
+    .price-charts-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .price-chart-card {
+        padding: 1.5rem;
+    }
+
+    .chart-title {
+        font-size: 1.1rem;
+    }
+
+    .price-range-bar {
+        padding: 0 20px;
+    }
+
+    .range-gradient {
+        left: 20px;
+        right: 20px;
+    }
+
+    .range-marker-min {
+        left: 20px !important;
+    }
+
+    .range-marker-max {
+        right: 20px !important;
+    }
+
+    .marker-value {
+        font-size: 0.9rem;
+        padding: 4px 8px;
+    }
+
+    .chart-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+}

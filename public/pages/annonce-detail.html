@@ -4,20 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Détail de l'annonce</title>
+
+    <!-- CSS -->
     <link rel="stylesheet" href="../css/theme-global.css">
     <link rel="stylesheet" href="../css/navigation.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/annonce-detail.css">
+
+    <!-- Scripts -->
+    <!-- SDK Amazon Cognito -->
+    <script src="../libs/amazon-cognito-identity.min.js"></script>
+
+    <!-- Configuration -->
+    <script src="../scripts/env-config.js"></script>
+    <script src="../scripts/config.js"></script>
+
+    <!-- Authentification -->
+    <script src="../scripts/auth-cognito.js"></script>
+    <script src="../scripts/auth-logout.js"></script>
+
+    <!-- Menu de navigation -->
+    <script src="../scripts/navigation.js"></script>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="app-nav">
-        <div class="nav-container">
-            <div class="nav-header">
-                <h1 class="nav-title">🏠 LBC Immobilier</h1>
-            </div>
-        </div>
-    </nav>
+    <!-- La navigation sera injectée ici automatiquement par navigation.js -->
 
     <div class="detail-container">
         <!-- Message de chargement -->
@@ -99,6 +109,202 @@
                 </div>
             </div>
 
+            <!-- Calculateur de prêt immobilier -->
+            <div class="loan-calculator-section">
+                <h2 class="section-title">💰 Calculateur de prêt immobilier</h2>
+                <div class="loan-calculator">
+                    <!-- Estimation des travaux -->
+                    <div class="works-estimation-section">
+                        <h3 class="works-title">🔨 Estimation des travaux</h3>
+
+                        <!-- Mode de saisie -->
+                        <div class="works-mode-selector">
+                            <button class="mode-btn active" data-mode="global">
+                                💶 Montant global
+                            </button>
+                            <button class="mode-btn" data-mode="detailed">
+                                📋 Par catégorie
+                            </button>
+                        </div>
+
+                        <!-- Mode montant global -->
+                        <div id="works-global-mode" class="works-mode-content active">
+                            <div class="works-input-container">
+                                <label for="loan-works-amount">
+                                    <span class="param-icon">💶</span>
+                                    Montant total des travaux
+                                </label>
+                                <div class="param-input-group">
+                                    <input type="number" id="loan-works-amount" min="0" step="1000" value="0" placeholder="0">
+                                    <span class="param-unit">€</span>
+                                </div>
+                            </div>
+                            <div class="works-presets">
+                                <button class="preset-btn" data-amount="0">Aucun travaux</button>
+                                <button class="preset-btn" data-amount="10000">10 000 €</button>
+                                <button class="preset-btn" data-amount="25000">25 000 €</button>
+                                <button class="preset-btn" data-amount="50000">50 000 €</button>
+                                <button class="preset-btn" data-amount="75000">75 000 €</button>
+                                <button class="preset-btn" data-amount="100000">100 000 €</button>
+                            </div>
+                        </div>
+
+                        <!-- Mode détaillé par catégorie -->
+                        <div id="works-detailed-mode" class="works-mode-content">
+                            <!-- Formulaire d'ajout -->
+                            <div class="works-add-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="work-type-select">Type de travaux</label>
+                                        <select id="work-type-select" class="work-type-select">
+                                            <option value="">-- Sélectionner --</option>
+                                            <option value="peinture" data-icon="🎨">🎨 Peinture</option>
+                                            <option value="electricite" data-icon="⚡">⚡ Électricité</option>
+                                            <option value="plomberie" data-icon="🚰">🚰 Plomberie</option>
+                                            <option value="menuiserie" data-icon="🏠">🏠 Menuiserie</option>
+                                            <option value="chauffage" data-icon="🔥">🔥 Chauffage</option>
+                                            <option value="salle-de-bain" data-icon="🛁">🛁 Salle de bain</option>
+                                            <option value="cuisine" data-icon="🍳">🍳 Cuisine</option>
+                                            <option value="gros-oeuvre" data-icon="🏗️">🏗️ Gros œuvre</option>
+                                            <option value="isolation" data-icon="🌡️">🌡️ Isolation</option>
+                                            <option value="fenetres" data-icon="🪟">🪟 Fenêtres</option>
+                                            <option value="toiture" data-icon="🏡">🏡 Toiture</option>
+                                            <option value="autres" data-icon="🔧">🔧 Autres travaux</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="work-amount-input">Montant</label>
+                                        <div class="param-input-group">
+                                            <input type="number" id="work-amount-input" min="0" step="100" placeholder="0">
+                                            <span class="param-unit">€</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <button id="add-work-btn" class="add-work-btn" title="Ajouter">
+                                            ➕ Ajouter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tableau des travaux -->
+                            <div class="works-table-container">
+                                <table class="works-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 60px;"></th>
+                                            <th>Type de travaux</th>
+                                            <th style="width: 150px;">Montant</th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="works-table-body">
+                                        <!-- Les lignes seront ajoutées dynamiquement -->
+                                        <tr class="empty-state">
+                                            <td colspan="4" style="text-align: center; color: #999; padding: 2rem;">
+                                                Aucun travaux ajouté. Utilisez le formulaire ci-dessus pour ajouter des travaux.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="works-detailed-summary">
+                                <span class="summary-label-detailed">Total des travaux :</span>
+                                <span id="works-detailed-total" class="summary-value-detailed">0 €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Résumé des coûts -->
+                    <div class="loan-summary">
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Prix du bien :</span>
+                            <span id="loan-property-price" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Frais de notaire (8%) :</span>
+                            <span id="loan-notary-fees" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Travaux à prévoir :</span>
+                            <span id="loan-works-cost" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item total">
+                            <span class="summary-label">Coût total :</span>
+                            <span id="loan-total-cost" class="summary-value">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres du prêt -->
+                    <div class="loan-parameters">
+                        <div class="loan-param">
+                            <label for="loan-duration">
+                                <span class="param-icon">📅</span>
+                                Durée du prêt
+                            </label>
+                            <div class="param-input-group">
+                                <input type="number" id="loan-duration" min="1" max="30" value="25" step="1">
+                                <span class="param-unit">ans</span>
+                            </div>
+                        </div>
+
+                        <div class="loan-param">
+                            <label for="loan-rate">
+                                <span class="param-icon">📈</span>
+                                Taux d'intérêt
+                            </label>
+                            <div class="param-input-group">
+                                <input type="number" id="loan-rate" min="0" max="10" value="3.5" step="0.1">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+
+                        <div class="loan-param">
+                            <label for="loan-notary-percent">
+                                <span class="param-icon">📋</span>
+                                Frais de notaire
+                            </label>
+                            <div class="param-input-group">
+                                <input type="number" id="loan-notary-percent" min="0" max="15" value="8" step="0.5">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Résultats -->
+                    <div class="loan-results">
+                        <div class="loan-result-main">
+                            <div class="result-label">Mensualité</div>
+                            <div id="loan-monthly-payment" class="result-value-main">-</div>
+                        </div>
+
+                        <div class="loan-result-details">
+                            <div class="loan-result-item">
+                                <span class="result-label-small">Coût total du crédit :</span>
+                                <span id="loan-total-interest" class="result-value-small">-</span>
+                            </div>
+                            <div class="loan-result-item">
+                                <span class="result-label-small">Montant total à rembourser :</span>
+                                <span id="loan-total-repayment" class="result-value-small">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bouton d'enregistrement -->
+                    <div class="save-button-container">
+                        <button id="save-loan-data-btn" class="save-btn">
+                            💾 Enregistrer les données
+                        </button>
+                        <span id="save-status" class="save-status"></span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Actions -->
             <div class="annonce-actions">
                 <a id="annonce-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
@@ -108,8 +314,7 @@
         </div>
     </div>
 
-    <script src="../scripts/env-config.js"></script>
-    <script src="../scripts/config.js"></script>
+    <!-- Script de la page -->
     <script src="../scripts/annonce-detail.js"></script>
 </body>
 </html>

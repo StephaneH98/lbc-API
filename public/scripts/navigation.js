@@ -82,8 +82,23 @@
 
         if (navToggle) {
             navToggle.addEventListener('click', () => {
+                const isOpening = !navMenu.classList.contains('active');
+
                 navMenu.classList.toggle('active');
                 navToggle.classList.toggle('active');
+
+                // Ajouter/retirer classe au body pour pousser le contenu
+                if (isOpening) {
+                    document.body.classList.add('nav-menu-open');
+
+                    // Calculer et définir la hauteur du menu pour le CSS
+                    setTimeout(() => {
+                        const menuHeight = navMenu.offsetHeight;
+                        document.documentElement.style.setProperty('--nav-menu-height', `${menuHeight}px`);
+                    }, 50);
+                } else {
+                    document.body.classList.remove('nav-menu-open');
+                }
             });
         }
 

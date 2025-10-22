@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // FONCTION : CONSTRUIRE L'URL LEBONCOIN
     // ==========================================
 
-    function buildLeboncoinUrl(formData, category, includePrice = true) {
-        console.log(`🔨 Construction URL pour catégorie ${category} (Prix: ${includePrice ? 'Oui' : 'Non'})`);
+    function buildLeboncoinUrl(formData, category, includePrice = true, furnished = null) {
+        console.log(`🔨 Construction URL pour catégorie ${category} (Prix: ${includePrice ? 'Oui' : 'Non'}, Meublé: ${furnished})`);
 
         const baseUrl = 'https://www.leboncoin.fr/recherche';
         const params = new URLSearchParams();
@@ -154,6 +154,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (formData.ville || formData.codePostal) {
             const location = formData.ville || formData.codePostal;
             params.append('locations', location);
+        }
+
+        // Meublé/Non meublé (uniquement pour location)
+        if (furnished !== null) {
+            params.append('furnished', furnished);
         }
 
         const finalUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
@@ -420,19 +425,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // ========== ÉTAPE 1: GÉNÉRATION DES URLS ==========
-                console.log('\n📍 ÉTAPE 1/4: Génération des URLs');
+                console.log('\n📍 ÉTAPE 1/5: Génération des URLs');
                 console.log('─'.repeat(80));
 
                 // URL pour VENTE (catégorie 9) - AVEC prix
                 const urlVente = buildLeboncoinUrl(formData, '9', true);
                 console.log('🏘️ URL VENTE (cat. 9):', urlVente);
 
-                // URL pour LOCATION (catégorie 10) - SANS prix
-                const urlLocation = buildLeboncoinUrl(formData, '10', false);
-                console.log('🏠 URL LOCATION (cat. 10):', urlLocation);
+                // URL pour LOCATION MEUBLÉE (catégorie 10) - SANS prix - furnished=1
+                const urlLocationMeublee = buildLeboncoinUrl(formData, '10', false, '1');
+                console.log('🏠 URL LOCATION MEUBLÉE (cat. 10, furnished=1):', urlLocationMeublee);
+
+                // URL pour LOCATION NON MEUBLÉE (catégorie 10) - SANS prix - furnished=2
+                const urlLocationNonMeublee = buildLeboncoinUrl(formData, '10', false, '2');
+                console.log('🏚️ URL LOCATION NON MEUBLÉE (cat. 10, furnished=2):', urlLocationNonMeublee);
 
                 // ========== ÉTAPE 2: RÉCUPÉRATION DES PAGES HTML ==========
-                console.log('\n📍 ÉTAPE 2/4: Récupération des pages HTML');
+                console.log('\n📍 ÉTAPE 2/5: Récupération des pages HTML');
                 console.log('─'.repeat(80));
 
                 if (button) {
@@ -452,21 +461,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (button) {
                     if (button.tagName === 'BUTTON') {
-                        button.textContent = '⏳ Récupération page LOCATION...';
+                        button.textContent = '⏳ Récupération page LOCATION MEUBLÉE...';
                     } else {
-                        button.value = '⏳ Récupération page LOCATION...';
+                        button.value = '⏳ Récupération page LOCATION MEUBLÉE...';
                     }
                 }
 
-                console.log('\n🏠 Récupération HTML LOCATION...');
-                const responseLocation = await sendToLambda(urlLocation);
-                if (!responseLocation) {
-                    throw new Error('Aucune donnée HTML reçue pour LOCATION');
+                console.log('\n🏠 Récupération HTML LOCATION MEUBLÉE...');
+                const responseLocationMeublee = await sendToLambda(urlLocationMeublee);
+                if (!responseLocationMeublee) {
+                    throw new Error('Aucune donnée HTML reçue pour LOCATION MEUBLÉE');
                 }
-                console.log('✅ HTML LOCATION récupéré:', responseLocation.s3Url);
+                console.log('✅ HTML LOCATION MEUBLÉE récupéré:', responseLocationMeublee.s3Url);
+
+                if (button) {
+                    if (button.tagName === 'BUTTON') {
+                        button.textContent = '⏳ Récupération page LOCATION NON MEUBLÉE...';
+                    } else {
+                        button.value = '⏳ Récupération page LOCATION NON MEUBLÉE...';
+                    }
+                }
+
+                console.log('\n🏚️ Récupération HTML LOCATION NON MEUBLÉE...');
+                const responseLocationNonMeublee = await sendToLambda(urlLocationNonMeublee);
+                if (!responseLocationNonMeublee) {
+                    throw new Error('Aucune donnée HTML reçue pour LOCATION NON MEUBLÉE');
+                }
+                console.log('✅ HTML LOCATION NON MEUBLÉE récupéré:', responseLocationNonMeublee.s3Url);
 
                 // ========== ÉTAPE 3: EXTRACTION DES ANNONCES ==========
-                console.log('\n📍 ÉTAPE 3/4: Extraction des annonces');
+                console.log('\n📍 ÉTAPE 3/5: Extraction des annonces');
                 console.log('─'.repeat(80));
 
                 if (button) {
@@ -486,21 +510,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (button) {
                     if (button.tagName === 'BUTTON') {
-                        button.textContent = '⏳ Extraction annonces LOCATION...';
+                        button.textContent = '⏳ Extraction annonces LOCATION MEUBLÉE...';
                     } else {
-                        button.value = '⏳ Extraction annonces LOCATION...';
+                        button.value = '⏳ Extraction annonces LOCATION MEUBLÉE...';
                     }
                 }
 
-                console.log('\n🏠 Extraction annonces LOCATION...');
-                const extractionLocation = await callExtractLambda(responseLocation.s3Url);
-                if (!extractionLocation || !extractionLocation.success) {
-                    throw new Error('Échec de l\'extraction des annonces LOCATION');
+                console.log('\n🏠 Extraction annonces LOCATION MEUBLÉE...');
+                const extractionLocationMeublee = await callExtractLambda(responseLocationMeublee.s3Url);
+                if (!extractionLocationMeublee || !extractionLocationMeublee.success) {
+                    throw new Error('Échec de l\'extraction des annonces LOCATION MEUBLÉE');
                 }
-                console.log('✅ Annonces LOCATION extraites:', extractionLocation.announcements?.length || 0);
+                console.log('✅ Annonces LOCATION MEUBLÉE extraites:', extractionLocationMeublee.announcements?.length || 0);
 
-                // ========== ÉTAPE 4: AFFICHAGE DES RÉSULTATS ==========
-                console.log('\n📍 ÉTAPE 4/4: Préparation des résultats');
+                if (button) {
+                    if (button.tagName === 'BUTTON') {
+                        button.textContent = '⏳ Extraction annonces LOCATION NON MEUBLÉE...';
+                    } else {
+                        button.value = '⏳ Extraction annonces LOCATION NON MEUBLÉE...';
+                    }
+                }
+
+                console.log('\n🏚️ Extraction annonces LOCATION NON MEUBLÉE...');
+                const extractionLocationNonMeublee = await callExtractLambda(responseLocationNonMeublee.s3Url);
+                if (!extractionLocationNonMeublee || !extractionLocationNonMeublee.success) {
+                    throw new Error('Échec de l\'extraction des annonces LOCATION NON MEUBLÉE');
+                }
+                console.log('✅ Annonces LOCATION NON MEUBLÉE extraites:', extractionLocationNonMeublee.announcements?.length || 0);
+
+                // ========== ÉTAPE 4: PRÉPARATION DES RÉSULTATS ==========
+                console.log('\n📍 ÉTAPE 4/5: Préparation des résultats');
                 console.log('─'.repeat(80));
 
                 if (button) {
@@ -515,10 +554,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     ...annonce,
                     type: 'vente'
                 }));
-                const annoncesLocation = (extractionLocation.announcements || []).map(annonce => ({
+                const annoncesLocationMeublee = (extractionLocationMeublee.announcements || []).map(annonce => ({
                     ...annonce,
-                    type: 'location'
+                    type: 'location_meublee'
                 }));
+                const annoncesLocationNonMeublee = (extractionLocationNonMeublee.announcements || []).map(annonce => ({
+                    ...annonce,
+                    type: 'location_non_meublee'
+                }));
+
+                // Combiner toutes les annonces de location
+                const annoncesLocation = [...annoncesLocationMeublee, ...annoncesLocationNonMeublee];
 
                 // ========== AFFICHAGE EXTRAITS DANS LA CONSOLE ==========
                 console.log('\n═'.repeat(80));
@@ -536,12 +582,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 console.log('\n═'.repeat(80));
-                console.log('🏠 EXTRAIT JSON LOCATION (Catégorie 10)');
+                console.log('🏠 EXTRAIT JSON LOCATION MEUBLÉE (Catégorie 10, furnished=1)');
                 console.log('═'.repeat(80));
-                console.log('📊 Total annonces LOCATION:', annoncesLocation.length);
-                if (annoncesLocation.length > 0) {
+                console.log('📊 Total annonces LOCATION MEUBLÉE:', annoncesLocationMeublee.length);
+                if (annoncesLocationMeublee.length > 0) {
                     console.log('\n🔍 Aperçu (3 premières annonces):');
-                    annoncesLocation.slice(0, 3).forEach((ad, idx) => {
+                    annoncesLocationMeublee.slice(0, 3).forEach((ad, idx) => {
+                        console.log(`\n${idx + 1}. ${ad.titre || 'Sans titre'}`);
+                        console.log(`   Prix: ${ad.prix || 'N/A'}`);
+                        console.log(`   Localisation: ${ad.localisation || 'N/A'}`);
+                        console.log(`   URL: ${ad.url || 'N/A'}`);
+                    });
+                }
+
+                console.log('\n═'.repeat(80));
+                console.log('🏚️ EXTRAIT JSON LOCATION NON MEUBLÉE (Catégorie 10, furnished=2)');
+                console.log('═'.repeat(80));
+                console.log('📊 Total annonces LOCATION NON MEUBLÉE:', annoncesLocationNonMeublee.length);
+                if (annoncesLocationNonMeublee.length > 0) {
+                    console.log('\n🔍 Aperçu (3 premières annonces):');
+                    annoncesLocationNonMeublee.slice(0, 3).forEach((ad, idx) => {
                         console.log(`\n${idx + 1}. ${ad.titre || 'Sans titre'}`);
                         console.log(`   Prix: ${ad.prix || 'N/A'}`);
                         console.log(`   Localisation: ${ad.localisation || 'N/A'}`);
@@ -558,7 +618,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('═'.repeat(80));
                 console.log(`📊 Statistiques globales:`);
                 console.log(`   • Total annonces VENTE: ${annoncesVente.length}`);
-                console.log(`   • Total annonces LOCATION: ${annoncesLocation.length}`);
+                console.log(`   • Total annonces LOCATION MEUBLÉE: ${annoncesLocationMeublee.length}`);
+                console.log(`   • Total annonces LOCATION NON MEUBLÉE: ${annoncesLocationNonMeublee.length}`);
+                console.log(`   • Total annonces LOCATION (combiné): ${annoncesLocation.length}`);
                 console.log(`   • TOTAL COMBINÉ: ${totalCount}`);
                 console.log('═'.repeat(80));
 
@@ -570,15 +632,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     sessionStorage.setItem('searchResults', JSON.stringify(allAnnouncements));
                     sessionStorage.setItem('searchResultsVente', JSON.stringify(annoncesVente));
                     sessionStorage.setItem('searchResultsLocation', JSON.stringify(annoncesLocation));
+                    sessionStorage.setItem('searchResultsLocationMeublee', JSON.stringify(annoncesLocationMeublee));
+                    sessionStorage.setItem('searchResultsLocationNonMeublee', JSON.stringify(annoncesLocationNonMeublee));
                     sessionStorage.setItem('searchStats', JSON.stringify({
                         vente: extractionVente.stats,
-                        location: extractionLocation.stats,
+                        locationMeublee: extractionLocationMeublee.stats,
+                        locationNonMeublee: extractionLocationNonMeublee.stats,
                         totalVente: annoncesVente.length,
+                        totalLocationMeublee: annoncesLocationMeublee.length,
+                        totalLocationNonMeublee: annoncesLocationNonMeublee.length,
                         totalLocation: annoncesLocation.length,
                         totalCombine: totalCount
                     }));
 
-                    showSuccess(`${totalCount} annonce(s) trouvée(s) (${annoncesVente.length} vente, ${annoncesLocation.length} location) ! Redirection...`);
+                    showSuccess(`${totalCount} annonce(s) trouvée(s) (${annoncesVente.length} vente, ${annoncesLocationMeublee.length} meublées, ${annoncesLocationNonMeublee.length} non meublées) ! Redirection...`);
 
                     // Rediriger vers annonces.html après 2 secondes
                     setTimeout(() => {

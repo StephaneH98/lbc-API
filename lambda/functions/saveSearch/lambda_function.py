@@ -145,8 +145,12 @@ def validate_payload(payload):
     Returns:
         tuple: (is_valid, error_message)
     """
-    # Vérifier les champs requis
-    required_fields = ['username', 'timestamp', 'data']
+    # Vérifier les champs requis (timestamp est optionnel si filename est fourni)
+    if 'filename' in payload:
+        required_fields = ['username', 'data']
+    else:
+        required_fields = ['username', 'timestamp', 'data']
+
     for field in required_fields:
         if field not in payload:
             return False, f"Champ requis manquant: {field}"
@@ -241,7 +245,6 @@ def lambda_handler(event, context):
 
         # Extraire les informations
         username = payload['username']
-        timestamp = payload['timestamp']
         data = payload['data']
 
         # Statistiques pour les logs
@@ -253,8 +256,15 @@ def lambda_handler(event, context):
         print(f"📊 Annonces LOCATION: {location_count}")
 
         # Générer le nom de fichier
-        filename = sanitize_filename(timestamp)
-        print(f"📄 Nom de fichier: {filename}")
+        # Si un filename est fourni, l'utiliser, sinon utiliser le timestamp
+        if 'filename' in payload and payload['filename']:
+            filename = payload['filename']
+            print(f"📄 Mise à jour du fichier existant: {filename}")
+            timestamp = payload.get('timestamp', datetime.utcnow().isoformat() + 'Z')
+        else:
+            timestamp = payload['timestamp']
+            filename = sanitize_filename(timestamp)
+            print(f"📄 Création du nouveau fichier: {filename}")
 
         # Préparer les données à sauvegarder
         save_data = {

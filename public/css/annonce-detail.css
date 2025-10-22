@@ -1,0 +1,427 @@
+/* ==========================================
+   PAGE DÉTAIL D'UNE ANNONCE
+   ========================================== */
+
+.detail-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.annonce-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   BOUTON RETOUR
+   ========================================== */
+
+.back-button-container {
+    margin-bottom: 2rem;
+}
+
+.btn-back {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+/* ==========================================
+   EN-TÊTE DE L'ANNONCE
+   ========================================== */
+
+.annonce-header {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.annonce-title-section {
+    flex: 1;
+}
+
+.annonce-title {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.annonce-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.badge-new {
+    background: #4ade80;
+    color: white;
+}
+
+.badge-old {
+    background: #ef4444;
+    color: white;
+}
+
+.annonce-price-section {
+    text-align: right;
+}
+
+.annonce-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0.5rem;
+}
+
+.annonce-price-m2 {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+/* ==========================================
+   INFORMATIONS PRINCIPALES
+   ========================================== */
+
+.annonce-main-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.info-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+}
+
+.info-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+}
+
+/* ==========================================
+   DESCRIPTION
+   ========================================== */
+
+.annonce-description-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #FFD700;
+}
+
+.annonce-description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #444;
+    white-space: pre-wrap;
+}
+
+/* ==========================================
+   POSITIONNEMENT PRIX
+   ========================================== */
+
+.annonce-price-position {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.price-position-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.position-chart-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.position-chart-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    min-width: 150px;
+}
+
+.position-bar-container {
+    flex: 1;
+    position: relative;
+    height: 60px;
+}
+
+.position-gradient {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 20px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg,
+        #4ade80 0%,
+        #fbbf24 33%,
+        #fb923c 66%,
+        #ef4444 100%
+    );
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.position-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.position-marker-current {
+    width: 4px;
+    height: 40px;
+    background: #333;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.position-marker-current::before {
+    content: attr(data-value);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.position-marker-current::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #333;
+}
+
+.position-range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.position-comparison {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+}
+
+/* ==========================================
+   ACTIONS
+   ========================================== */
+
+.annonce-actions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.btn-large {
+    font-size: 1.2rem;
+    padding: 1.2rem 3rem;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(255, 215, 0, 0.5);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .detail-container {
+        padding: 0 1rem;
+    }
+
+    .annonce-header {
+        flex-direction: column;
+        padding: 1.5rem;
+    }
+
+    .annonce-title {
+        font-size: 1.5rem;
+    }
+
+    .annonce-price {
+        font-size: 2rem;
+    }
+
+    .annonce-main-info {
+        grid-template-columns: 1fr;
+    }
+
+    .position-chart-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .position-chart-label {
+        min-width: auto;
+    }
+
+    .position-bar-container {
+        width: 100%;
+    }
+
+    .btn-large {
+        font-size: 1rem;
+        padding: 1rem 2rem;
+    }
+}
+
+/* ==========================================
+   MESSAGES
+   ========================================== */
+
+.loading-message {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #FFD700;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem auto;
+    max-width: 600px;
+    text-align: center;
+}

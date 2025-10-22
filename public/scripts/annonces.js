@@ -17,6 +17,7 @@
    let currentLocationAnnonces = [];   // Annonces de location actuellement affichées
    let allVenteAnnonces = [];          // Toutes les annonces de vente chargées (pour sauvegarde)
    let allLocationAnnonces = [];       // Toutes les annonces de location chargées (pour sauvegarde)
+   let currentFileName = '';           // Nom du fichier actuellement chargé
    let currentSort = {
        column: null,
        direction: 'asc'
@@ -127,6 +128,9 @@
 
         console.log('✅ Fichier validé:', selectedFile);
         console.log('═══════════════════════════════════════');
+
+        // Stocker le nom du fichier dans la variable globale
+        currentFileName = selectedFile;
 
         // Afficher le nom du fichier
         const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -903,7 +907,7 @@
                    <td class="age ${ageInfo.class}" title="${ageInfo.tooltip}">${ageInfo.display}</td>
                    <td class="description">${description}</td>
                    <td class="url">
-                       <a href="${url}" target="_blank" rel="noopener noreferrer">🔗 Voir</a>
+                       <a href="annonce-detail.html?file=${encodeURIComponent(currentFileName)}&id=${encodeURIComponent(id)}">👁️ Voir</a>
                    </td>
                </tr>
            `;
@@ -1125,7 +1129,7 @@
                    <td class="age ${ageInfo.class}" title="${ageInfo.tooltip}">${ageInfo.display}</td>
                    <td class="description">${description}</td>
                    <td class="url">
-                       <a href="${url}" target="_blank" rel="noopener noreferrer">🔗 Voir</a>
+                       <a href="annonce-detail.html?file=${encodeURIComponent(currentFileName)}&id=${encodeURIComponent(id)}">👁️ Voir</a>
                    </td>
                </tr>
            `;

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail de l'annonce</title>
+    <link rel="stylesheet" href="../css/theme-global.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/annonce-detail.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="app-nav">
+        <div class="nav-container">
+            <div class="nav-header">
+                <h1 class="nav-title">🏠 LBC Immobilier</h1>
+            </div>
+        </div>
+    </nav>
+
+    <div class="detail-container">
+        <!-- Message de chargement -->
+        <div id="loading" class="loading-message">
+            <div class="spinner"></div>
+            <p>Chargement de l'annonce...</p>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <!-- Contenu de l'annonce -->
+        <div id="annonce-content" class="annonce-content" style="display: none;">
+            <!-- Bouton retour -->
+            <div class="back-button-container">
+                <button id="backBtn" class="btn-back">
+                    ← Retour aux annonces
+                </button>
+            </div>
+
+            <!-- En-tête de l'annonce -->
+            <div class="annonce-header">
+                <div class="annonce-title-section">
+                    <h1 id="annonce-title" class="annonce-title"></h1>
+                    <div id="annonce-badges" class="annonce-badges"></div>
+                </div>
+                <div class="annonce-price-section">
+                    <div id="annonce-price" class="annonce-price"></div>
+                    <div id="annonce-price-m2" class="annonce-price-m2"></div>
+                </div>
+            </div>
+
+            <!-- Informations principales -->
+            <div class="annonce-main-info">
+                <div class="info-card">
+                    <div class="info-icon">📍</div>
+                    <div class="info-content">
+                        <div class="info-label">Localisation</div>
+                        <div id="annonce-localisation" class="info-value"></div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">📐</div>
+                    <div class="info-content">
+                        <div class="info-label">Surface</div>
+                        <div id="annonce-surface" class="info-value"></div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">🚪</div>
+                    <div class="info-content">
+                        <div class="info-label">Pièces</div>
+                        <div id="annonce-pieces" class="info-value"></div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">📅</div>
+                    <div class="info-content">
+                        <div class="info-label">Date de publication</div>
+                        <div id="annonce-date" class="info-value"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="annonce-description-section">
+                <h2 class="section-title">📝 Description</h2>
+                <div id="annonce-description" class="annonce-description"></div>
+            </div>
+
+            <!-- Positionnement sur les graphiques de prix -->
+            <div class="annonce-price-position">
+                <h2 class="section-title">📊 Positionnement prix</h2>
+                <div id="price-position-charts" class="price-position-charts">
+                    <!-- Les graphiques seront insérés ici par JavaScript -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="annonce-actions">
+                <a id="annonce-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
+                    🔗 Voir l'annonce sur Le Bon Coin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/env-config.js"></script>
+    <script src="../scripts/config.js"></script>
+    <script src="../scripts/annonce-detail.js"></script>
+</body>
+</html>

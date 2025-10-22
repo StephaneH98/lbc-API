@@ -1256,6 +1256,11 @@
     padding: 1rem 2rem;
 }
 
+/* Ajuster la position quand le menu burger est ouvert */
+body.nav-menu-open .stats-sticky {
+    top: calc(75px + var(--nav-menu-height, 400px));
+}
+
 /* Ajouter de l'espace pour que le contenu ne soit pas caché */
 .stats-sticky ~ #annonces-container {
     margin-top: 140px; /* Hauteur approximative des graphiques sticky */

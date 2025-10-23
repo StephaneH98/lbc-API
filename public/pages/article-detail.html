@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Article - Guide Immobilier</title>
+
+    <!-- SEO Meta Tags (seront mis à jour dynamiquement) -->
+    <meta name="description" content="" id="meta-description">
+    <meta name="keywords" content="" id="meta-keywords">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/header.css">
+    <style>
+        /* Styles spécifiques à la page de détail */
+        .article-detail-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 15px 0;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #d4940a;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            margin: 0 8px;
+        }
+
+        /* En-tête de l'article */
+        .article-header {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .article-categories-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .article-category-badge {
+            background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .article-title-main {
+            font-size: 2.5em;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .article-excerpt-main {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .article-meta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .article-author-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .article-author-avatar-main {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+
+        .article-author-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-author-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .article-author-role {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .article-reading-info {
+            display: flex;
+            gap: 20px;
+            color: #999;
+            font-size: 0.95em;
+        }
+
+        .article-reading-info div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Image principale */
+        .article-featured-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Contenu de l'article */
+        .article-content-main {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .article-content-main h2,
+        .article-content-main h3,
+        .article-content-main h4 {
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .article-content-main h2 {
+            font-size: 1.8em;
+            border-left: 5px solid #f8b400;
+            padding-left: 15px;
+        }
+
+        .article-content-main h3 {
+            font-size: 1.5em;
+        }
+
+        .article-content-main h4 {
+            font-size: 1.2em;
+        }
+
+        .article-content-main p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .article-content-main ul,
+        .article-content-main ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        .article-content-main li {
+            margin-bottom: 10px;
+        }
+
+        .article-content-main table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .article-content-main table th,
+        .article-content-main table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .article-content-main table th {
+            background: #f8b400;
+            color: white;
+            font-weight: bold;
+        }
+
+        .article-content-main table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .article-content-main .alert {
+            background: #fff5e1;
+            border-left: 4px solid #f8b400;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        /* FAQ Section */
+        .article-faq {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .article-faq h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .faq-item {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        .faq-question {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #d4940a;
+            margin-bottom: 10px;
+        }
+
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Articles liés */
+        .related-articles {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .related-articles h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .related-articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .related-article-card {
+            padding: 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .related-article-card:hover {
+            border-color: #f8b400;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .related-article-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        /* État de chargement */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #f8b400;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .article-header,
+            .article-content-main,
+            .article-faq,
+            .related-articles {
+                padding: 20px;
+            }
+
+            .article-title-main {
+                font-size: 1.8em;
+            }
+
+            .article-excerpt-main {
+                font-size: 1em;
+            }
+
+            .article-meta-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Conteneur principal -->
+    <div class="article-detail-container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb" id="breadcrumb" style="display: none;">
+            <a href="articles.html">📚 Articles</a>
+            <span>›</span>
+            <span id="breadcrumb-title">Chargement...</span>
+        </div>
+
+        <!-- État de chargement -->
+        <div class="loading" id="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Chargement de l'article...</p>
+        </div>
+
+        <!-- Contenu de l'article -->
+        <div id="article-content" style="display: none;">
+            <!-- En-tête -->
+            <div class="article-header">
+                <div class="article-categories-header" id="article-categories"></div>
+                <h1 class="article-title-main" id="article-title"></h1>
+                <p class="article-excerpt-main" id="article-excerpt"></p>
+                <div class="article-meta-header">
+                    <div class="article-author-info" id="article-author"></div>
+                    <div class="article-reading-info" id="article-reading-info"></div>
+                </div>
+            </div>
+
+            <!-- Image principale -->
+            <img id="article-featured-image" class="article-featured-image" style="display: none;">
+
+            <!-- Contenu principal -->
+            <div class="article-content-main" id="article-main-content"></div>
+
+            <!-- FAQ -->
+            <div class="article-faq" id="article-faq" style="display: none;">
+                <h2>❓ Questions Fréquentes</h2>
+                <div id="faq-content"></div>
+            </div>
+
+            <!-- Articles liés -->
+            <div class="related-articles" id="related-articles" style="display: none;">
+                <h2>📖 Articles Liés</h2>
+                <div class="related-articles-grid" id="related-articles-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../scripts/env-config.js"></script>
+    <script src="../scripts/config.js"></script>
+    <script src="../scripts/header.js"></script>
+    <script src="../scripts/article-detail.js"></script>
+</body>
+</html>

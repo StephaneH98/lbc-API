@@ -1,0 +1,71 @@
+============================================
+ÉVÉNEMENTS DE TEST - Lambda getArticles
+============================================
+
+📋 UTILISATION DANS LA CONSOLE AWS :
+1. Ouvrir AWS Lambda Console
+2. Sélectionner la fonction "getArticles"
+3. Aller dans l'onglet "Test"
+4. Créer un nouvel événement de test
+5. Copier-coller l'un des JSON ci-dessous
+6. Cliquer sur "Test"
+
+============================================
+
+TEST 1 : LIST - Récupérer tous les articles
+Nom : test-list-all
+
+{
+  "queryStringParameters": null
+}
+
+============================================
+
+TEST 2 : GET - Article "Investir sans apport"
+Nom : test-investir-sans-apport
+
+{
+  "queryStringParameters": {
+    "filename": "investir sans apport.json"
+  }
+}
+
+============================================
+
+TEST 3 : GET - Article "Meublé vs Nu"
+Nom : test-meuble-vs-nu
+
+{
+  "queryStringParameters": {
+    "filename": "meuble vs nu.json"
+  }
+}
+
+============================================
+
+TEST 4 : GET - Article "Cash-flow positif"
+Nom : test-cashflow
+
+{
+  "queryStringParameters": {
+    "filename": "cashflow positif.json"
+  }
+}
+
+============================================
+
+TEST 5 : ERREUR - Fichier inexistant
+Nom : test-error
+
+{
+  "queryStringParameters": {
+    "filename": "article-inexistant.json"
+  }
+}
+
+============================================
+
+💡 ASTUCE : Commencez par le TEST 1 pour vérifier
+que tous les articles sont bien listés !
+
+============================================

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articles Immobiliers - Guide et Conseils</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/header.css">
+    <style>
+        /* Styles spécifiques à la page articles */
+        .articles-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .articles-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .articles-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .articles-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        /* Filtres de catégories */
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .category-filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #f8b400;
+            background: white;
+            color: #d4940a;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .category-filter-btn:hover {
+            background: #fff5e1;
+            transform: translateY(-2px);
+        }
+
+        .category-filter-btn.active {
+            background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+            color: white;
+            border-color: #d4940a;
+        }
+
+        /* Statistiques */
+        .articles-stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #d4940a;
+        }
+
+        .stat-card .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Grille d'articles */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .article-card.featured {
+            border: 3px solid #f8b400;
+            grid-column: span 2;
+        }
+
+        .article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+        }
+
+        .article-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .article-category-tag {
+            background: #fff5e1;
+            color: #d4940a;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .article-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .article-excerpt {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .article-author-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f8b400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .article-reading-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* État de chargement */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #f8b400;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Message vide */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .article-card.featured {
+                grid-column: span 1;
+            }
+
+            .articles-header h1 {
+                font-size: 1.8em;
+            }
+
+            .category-filters {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Conteneur principal -->
+    <div class="articles-container">
+        <!-- En-tête -->
+        <div class="articles-header">
+            <h1>📚 Articles & Guides Immobiliers</h1>
+            <p>Découvrez nos conseils d'experts pour réussir vos investissements</p>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="articles-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-articles">0</div>
+                <div class="stat-label">Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-categories">0</div>
+                <div class="stat-label">Catégories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="filtered-count">0</div>
+                <div class="stat-label">Affichés</div>
+            </div>
+        </div>
+
+        <!-- Filtres de catégories -->
+        <div class="category-filters" id="category-filters">
+            <!-- Les boutons de catégories seront générés dynamiquement -->
+        </div>
+
+        <!-- État de chargement -->
+        <div class="loading" id="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Chargement des articles...</p>
+        </div>
+
+        <!-- Grille d'articles -->
+        <div class="articles-grid" id="articles-grid" style="display: none;">
+            <!-- Les articles seront générés dynamiquement -->
+        </div>
+
+        <!-- État vide -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <h3>Aucun article trouvé</h3>
+            <p>Essayez de modifier vos filtres ou revenez plus tard.</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../scripts/env-config.js"></script>
+    <script src="../scripts/config.js"></script>
+    <script src="../scripts/header.js"></script>
+    <script src="../scripts/articles.js"></script>
+</body>
+</html>

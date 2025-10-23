@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Articles Immobiliers - Guide et Conseils</title>
+    <title>📚 Guides & Articles - Immobilier</title>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="../styles/global.css">
-    <link rel="stylesheet" href="../styles/header.css">
+    <link rel="stylesheet" href="../css/theme-global.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/style.css">
     <style>
         /* Styles spécifiques à la page articles */
         .articles-container {
@@ -269,9 +270,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div id="header-container"></div>
-
     <!-- Conteneur principal -->
     <div class="articles-container">
         <!-- En-tête -->
@@ -320,9 +318,24 @@
     </div>
 
     <!-- Scripts -->
+    <!-- 1️⃣ SDK Amazon Cognito -->
+    <script src="../libs/amazon-cognito-identity.min.js"></script>
+
+    <!-- 2️⃣ Configuration d'environnement -->
     <script src="../scripts/env-config.js"></script>
+
+    <!-- 3️⃣ Configuration principale -->
     <script src="../scripts/config.js"></script>
-    <script src="../scripts/header.js"></script>
+
+    <!-- 4️⃣ Authentification -->
+    <script src="../scripts/auth-cognito.js"></script>
+    <script src="../scripts/auth-guard.js"></script>
+    <script src="../scripts/auth-logout.js"></script>
+
+    <!-- Menu de navigation -->
+    <script src="../scripts/navigation.js"></script>
+
+    <!-- Script de la page -->
     <script src="../scripts/articles.js"></script>
 </body>
 </html>

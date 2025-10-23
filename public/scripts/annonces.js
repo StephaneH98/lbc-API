@@ -565,8 +565,22 @@
            console.log('✅ Listener ajouté au bouton "Enregistrer la sélection"');
        }
 
-
-
+       // Bouton "Comparer"
+       const compareBtn = document.getElementById('compareBtn');
+       if (compareBtn) {
+           compareBtn.addEventListener('click', () => {
+               const selectedAnnonces = getSelectedAnnonces();
+               if (selectedAnnonces.length >= 2 && selectedAnnonces.length <= 5) {
+                   // Stocker les annonces sélectionnées dans sessionStorage
+                   sessionStorage.setItem('comparaisonAnnonces', JSON.stringify(selectedAnnonces));
+                   // Stocker aussi le nom du fichier actuel pour les liens
+                   sessionStorage.setItem('comparaisonFileName', currentFileName);
+                   // Rediriger vers la page de comparaison
+                   window.location.href = 'comparaison.html';
+               }
+           });
+           console.log('✅ Listener ajouté au bouton "Comparer"');
+       }
 
    });
 
@@ -1438,6 +1452,36 @@
                saveSelectedBtn.disabled = false;
                saveSelectedBtn.style.opacity = '1';
                saveSelectedBtn.style.cursor = 'pointer';
+           }
+       }
+
+       // Gérer le bouton "Comparer"
+       const compareBtn = document.getElementById('compareBtn');
+       const compareCountSpan = document.querySelector('.compare-count');
+       if (compareBtn) {
+           if (count >= 2 && count <= 5) {
+               // Afficher le bouton si 2 à 5 annonces sélectionnées
+               compareBtn.style.display = 'flex';
+               compareBtn.disabled = false;
+               compareBtn.style.opacity = '1';
+               compareBtn.style.cursor = 'pointer';
+               if (compareCountSpan) {
+                   compareCountSpan.textContent = `(${count})`;
+               }
+           } else {
+               // Cacher ou désactiver si moins de 2 ou plus de 5
+               if (count > 5) {
+                   compareBtn.style.display = 'flex';
+                   compareBtn.disabled = true;
+                   compareBtn.style.opacity = '0.5';
+                   compareBtn.style.cursor = 'not-allowed';
+                   compareBtn.title = 'Maximum 5 annonces pour la comparaison';
+                   if (compareCountSpan) {
+                       compareCountSpan.textContent = `(${count} - Max 5)`;
+                   }
+               } else {
+                   compareBtn.style.display = 'none';
+               }
            }
        }
 

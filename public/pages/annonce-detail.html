@@ -109,14 +109,11 @@
                 </div>
             </div>
 
-            <!-- Calculateur de prêt immobilier -->
-            <div class="loan-calculator-section">
-                <h2 class="section-title">💰 Calculateur de prêt immobilier</h2>
-                <div class="loan-calculator">
-                    <!-- Estimation des travaux -->
+            <!-- Section 1: Estimation des travaux -->
+            <div class="works-section">
+                <h2 class="section-title">🔨 Estimation des travaux</h2>
+                <div class="section-content">
                     <div class="works-estimation-section">
-                        <h3 class="works-title">🔨 Estimation des travaux</h3>
-
                         <!-- Mode de saisie -->
                         <div class="works-mode-selector">
                             <button class="mode-btn active" data-mode="global">
@@ -219,7 +216,88 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
+            <!-- Section 2: Coût de l'ameublement -->
+            <div class="furniture-section">
+                <h2 class="section-title">🛋️ Coût de l'ameublement</h2>
+                <div class="section-content">
+                    <div class="furniture-quality-section">
+                        <p class="furniture-description">
+                            Si vous souhaitez louer en meublé, sélectionnez le niveau de qualité des meubles :
+                        </p>
+
+                        <div class="furniture-quality-selector">
+                            <label class="furniture-option">
+                                <input type="radio" name="furniture-quality" value="0" checked>
+                                <div class="furniture-card">
+                                    <div class="furniture-icon">🚫</div>
+                                    <div class="furniture-name">Aucun</div>
+                                    <div class="furniture-price">0 €/m²</div>
+                                    <div class="furniture-desc">Location non meublée</div>
+                                </div>
+                            </label>
+
+                            <label class="furniture-option">
+                                <input type="radio" name="furniture-quality" value="250">
+                                <div class="furniture-card">
+                                    <div class="furniture-icon">💺</div>
+                                    <div class="furniture-name">Économique</div>
+                                    <div class="furniture-price">150-350 €/m²</div>
+                                    <div class="furniture-desc">Entrée de gamme</div>
+                                </div>
+                            </label>
+
+                            <label class="furniture-option">
+                                <input type="radio" name="furniture-quality" value="525">
+                                <div class="furniture-card">
+                                    <div class="furniture-icon">🛋️</div>
+                                    <div class="furniture-name">Moyen</div>
+                                    <div class="furniture-price">350-700 €/m²</div>
+                                    <div class="furniture-desc">Qualité standard</div>
+                                </div>
+                            </label>
+
+                            <label class="furniture-option">
+                                <input type="radio" name="furniture-quality" value="1100">
+                                <div class="furniture-card">
+                                    <div class="furniture-icon">✨</div>
+                                    <div class="furniture-name">Haut de gamme</div>
+                                    <div class="furniture-price">700-1 500 €/m²</div>
+                                    <div class="furniture-desc">Premium</div>
+                                </div>
+                            </label>
+
+                            <label class="furniture-option">
+                                <input type="radio" name="furniture-quality" value="2250">
+                                <div class="furniture-card">
+                                    <div class="furniture-icon">👑</div>
+                                    <div class="furniture-name">Luxe</div>
+                                    <div class="furniture-price">1 500-3 000 €/m²</div>
+                                    <div class="furniture-desc">Sur-mesure/artisanal</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="furniture-cost-summary">
+                            <div class="furniture-summary-item">
+                                <span class="summary-label">Surface du bien :</span>
+                                <span id="furniture-surface" class="summary-value">-</span>
+                            </div>
+                            <div class="furniture-summary-item">
+                                <span class="summary-label">Coût d'ameublement :</span>
+                                <span id="furniture-total-cost" class="summary-value">0 €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Calculateur de prêt immobilier -->
+            <div class="loan-calculator-section">
+                <h2 class="section-title">💰 Calculateur de prêt immobilier</h2>
+                <div class="section-content">
                     <!-- Résumé des coûts -->
                     <div class="loan-summary">
                         <div class="loan-summary-item">
@@ -233,6 +311,10 @@
                         <div class="loan-summary-item">
                             <span class="summary-label">Travaux à prévoir :</span>
                             <span id="loan-works-cost" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Ameublement :</span>
+                            <span id="loan-furniture-cost" class="summary-value">0 €</span>
                         </div>
                         <div class="loan-summary-item total">
                             <span class="summary-label">Coût total :</span>
@@ -265,13 +347,13 @@
                         </div>
 
                         <div class="loan-param">
-                            <label for="loan-notary-percent">
-                                <span class="param-icon">📋</span>
-                                Frais de notaire
+                            <label for="loan-apport">
+                                <span class="param-icon">💵</span>
+                                Apport personnel
                             </label>
                             <div class="param-input-group">
-                                <input type="number" id="loan-notary-percent" min="0" max="15" value="8" step="0.5">
-                                <span class="param-unit">%</span>
+                                <input type="number" id="loan-apport" min="0" max="999999" value="0" step="1000">
+                                <span class="param-unit">€</span>
                             </div>
                         </div>
                     </div>
@@ -301,6 +383,89 @@
                             💾 Enregistrer les données
                         </button>
                         <span id="save-status" class="save-status"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rentabilité locative -->
+            <div class="rental-profitability-section">
+                <h2 class="section-title">📊 Rentabilité locative</h2>
+
+                <!-- Tableau des loyers -->
+                <div class="rental-stats-container">
+                    <h3 class="rental-subtitle">💰 Statistiques de loyers dans la zone</h3>
+                    <table class="rental-stats-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Minimum</th>
+                                <th>Moyen</th>
+                                <th>Maximum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="rental-row-meuble">
+                                <td><strong>🛋️ Meublé</strong></td>
+                                <td id="rental-meuble-min">-</td>
+                                <td id="rental-meuble-avg">-</td>
+                                <td id="rental-meuble-max">-</td>
+                            </tr>
+                            <tr class="rental-row-non-meuble">
+                                <td><strong>🏠 Non meublé</strong></td>
+                                <td id="rental-non-meuble-min">-</td>
+                                <td id="rental-non-meuble-avg">-</td>
+                                <td id="rental-non-meuble-max">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="rental-stats-note">
+                        <em>Statistiques basées sur les annonces de location disponibles dans la même zone géographique.</em>
+                    </p>
+                </div>
+
+                <!-- Calcul de rentabilité -->
+                <div class="profitability-calculator">
+                    <h3 class="rental-subtitle">📈 Calcul de la rentabilité</h3>
+
+                    <div class="profitability-selector">
+                        <label for="rental-type-select">Type de location :</label>
+                        <select id="rental-type-select" class="rental-type-select">
+                            <option value="non-meuble-min">Non meublé - Loyer minimum</option>
+                            <option value="non-meuble-avg" selected>Non meublé - Loyer moyen</option>
+                            <option value="non-meuble-max">Non meublé - Loyer maximum</option>
+                            <option value="meuble-min">Meublé - Loyer minimum</option>
+                            <option value="meuble-avg">Meublé - Loyer moyen</option>
+                            <option value="meuble-max">Meublé - Loyer maximum</option>
+                        </select>
+                    </div>
+
+                    <div class="profitability-results">
+                        <div class="profitability-item">
+                            <span class="profitability-label">Loyer mensuel sélectionné :</span>
+                            <span id="selected-rent" class="profitability-value">-</span>
+                        </div>
+                        <div class="profitability-item">
+                            <span class="profitability-label">Revenus annuels (loyers) :</span>
+                            <span id="annual-rent-income" class="profitability-value">-</span>
+                        </div>
+                        <div class="profitability-item">
+                            <span class="profitability-label">Charges annuelles (taxe foncière, copro, etc.) :</span>
+                            <input type="number" id="annual-charges" min="0" step="100" value="1500" class="charges-input">
+                            <span class="charges-unit">€/an</span>
+                        </div>
+                        <div class="profitability-item highlight">
+                            <span class="profitability-label">Rendement brut :</span>
+                            <span id="gross-yield" class="profitability-value-big">-</span>
+                        </div>
+                        <div class="profitability-item highlight">
+                            <span class="profitability-label">Cash-flow mensuel :</span>
+                            <span id="monthly-cashflow" class="profitability-value-big">-</span>
+                        </div>
+                    </div>
+
+                    <div class="profitability-explanation">
+                        <p><strong>Rendement brut</strong> = (Revenus annuels × 100) / Coût total d'acquisition</p>
+                        <p><strong>Cash-flow mensuel</strong> = Loyer - Mensualité du prêt - (Charges annuelles / 12)</p>
                     </div>
                 </div>
             </div>

@@ -24,6 +24,25 @@
 }
 
 /* ==========================================
+   SECTIONS COMMUNES
+   ========================================== */
+
+.works-section,
+.furniture-section,
+.loan-calculator-section,
+.rental-profitability-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+}
+
+.section-content {
+    margin-top: 1rem;
+}
+
+/* ==========================================
    BOUTON RETOUR
    ========================================== */
 
@@ -928,4 +947,360 @@
     margin: 2rem auto;
     max-width: 600px;
     text-align: center;
+}
+
+/* ==========================================
+   RENTABILITÉ LOCATIVE
+   ========================================== */
+
+.rental-subtitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rental-stats-container {
+    margin-bottom: 2rem;
+}
+
+.rental-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.rental-stats-table thead {
+    background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+    color: white;
+}
+
+.rental-stats-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.rental-stats-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s;
+}
+
+.rental-stats-table tbody tr:hover {
+    background-color: #fff9e6;
+}
+
+.rental-stats-table td {
+    padding: 1rem;
+    color: #2c3e50;
+}
+
+.rental-stats-note {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Sélecteur de qualité d'ameublement */
+.furniture-quality-section {
+    margin-bottom: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.furniture-description {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.furniture-quality-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.furniture-option {
+    cursor: pointer;
+}
+
+.furniture-option input[type="radio"] {
+    display: none;
+}
+
+.furniture-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.furniture-option:hover .furniture-card {
+    border-color: #f8b400;
+    box-shadow: 0 4px 12px rgba(248, 180, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.furniture-option input[type="radio"]:checked + .furniture-card {
+    border-color: #f8b400;
+    background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+    box-shadow: 0 4px 12px rgba(248, 180, 0, 0.3);
+}
+
+.furniture-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.furniture-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.furniture-price {
+    font-weight: 600;
+    color: #f8b400;
+    margin-bottom: 0.5rem;
+}
+
+.furniture-desc {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+/* Résumé coût ameublement */
+.furniture-cost-summary {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #f8b400;
+}
+
+.furniture-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.furniture-summary-item:last-child {
+    border-bottom: none;
+}
+
+.furniture-summary-item.highlight {
+    background: white;
+    margin: 0.5rem -1rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid #f8b400;
+    font-weight: 700;
+}
+
+.furniture-summary-item .summary-label {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.furniture-summary-item .summary-value {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.furniture-summary-item.highlight .summary-label {
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.furniture-summary-item.highlight .summary-value {
+    color: #f8b400;
+    font-size: 1.3rem;
+}
+
+/* Calculateur de rentabilité */
+.profitability-calculator {
+    padding-top: 2rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.profitability-selector {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profitability-selector label {
+    font-weight: 600;
+    color: #2c3e50;
+    white-space: nowrap;
+}
+
+.rental-type-select {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.rental-type-select:hover {
+    border-color: #f8b400;
+}
+
+.rental-type-select:focus {
+    outline: none;
+    border-color: #f8b400;
+    box-shadow: 0 0 0 3px rgba(248, 180, 0, 0.1);
+}
+
+.profitability-results {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.profitability-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.profitability-item:last-child {
+    border-bottom: none;
+}
+
+.profitability-item.highlight {
+    background: white;
+    margin: 1rem -2rem 0;
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    border-left: 5px solid #f8b400;
+}
+
+.profitability-label {
+    color: #666;
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+.profitability-value {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.profitability-value-big {
+    color: #f8b400;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.charges-input {
+    width: 120px;
+    padding: 0.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 1rem;
+    text-align: right;
+    transition: border-color 0.3s;
+}
+
+.charges-input:hover {
+    border-color: #f8b400;
+}
+
+.charges-input:focus {
+    outline: none;
+    border-color: #f8b400;
+    box-shadow: 0 0 0 3px rgba(248, 180, 0, 0.1);
+}
+
+.charges-unit {
+    margin-left: 0.5rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.profitability-explanation {
+    background: #e8f4fd;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.profitability-explanation p {
+    margin: 0.5rem 0;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.profitability-explanation strong {
+    color: #2980b9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .furniture-quality-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profitability-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profitability-selector label {
+        white-space: normal;
+    }
+
+    .furniture-summary-item,
+    .profitability-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .furniture-summary-item.highlight,
+    .profitability-item.highlight {
+        margin: 1rem 0 0;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .furniture-quality-selector {
+        grid-template-columns: 1fr;
+    }
+
+    .rental-profitability-section {
+        padding: 1.5rem;
+    }
+
+    .rental-stats-table th,
+    .rental-stats-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
 }

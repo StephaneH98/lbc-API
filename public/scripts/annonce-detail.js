@@ -139,6 +139,9 @@
             // Calculer les statistiques de prix
             calculatePriceStats();
 
+            // Calculer les statistiques de location
+            calculateRentalStats();
+
             // Afficher l'annonce
             displayAnnonce();
 
@@ -216,6 +219,73 @@
     }
 
     /* ==========================================
+       CALCUL DES STATISTIQUES DE LOCATION
+       ========================================== */
+
+    let rentalStats = {
+        meuble: { min: 0, max: 0, avg: 0, count: 0 },
+        nonMeuble: { min: 0, max: 0, avg: 0, count: 0 }
+    };
+
+    function calculateRentalStats() {
+        const rentsMeuble = [];
+        const rentsNonMeuble = [];
+
+        // Utiliser les annonces de location
+        const annoncesLocation = window.locationAnnonces || [];
+
+        console.log(`🏠 Calcul des stats de location sur ${annoncesLocation.length} annonces`);
+
+        annoncesLocation.forEach((annonce) => {
+            // Extraire le loyer
+            const loyerStr = (annonce.loyer || annonce.rent || annonce.prix || annonce.price || '').toString().replace(/\s/g, '');
+            const loyer = parseFloat(loyerStr.replace(/[^\d]/g, ''));
+
+            if (loyer && loyer > 0 && !isNaN(loyer)) {
+                // Déterminer si c'est meublé ou non
+                const type = annonce.type || '';
+                const isMeuble = type === 'location_meublee' ||
+                                annonce.furnished === true ||
+                                annonce.furnished === 'true' ||
+                                annonce.meuble === true;
+
+                if (isMeuble) {
+                    rentsMeuble.push(loyer);
+                } else {
+                    rentsNonMeuble.push(loyer);
+                }
+            }
+        });
+
+        console.log(`🏠 Loyers meublés collectés: ${rentsMeuble.length}`);
+        console.log(`🏠 Loyers non meublés collectés: ${rentsNonMeuble.length}`);
+
+        // Calculer les stats pour meublé
+        if (rentsMeuble.length > 0) {
+            rentalStats.meuble = {
+                min: Math.min(...rentsMeuble),
+                max: Math.max(...rentsMeuble),
+                avg: Math.round(rentsMeuble.reduce((a, b) => a + b, 0) / rentsMeuble.length),
+                count: rentsMeuble.length
+            };
+            console.log(`💰 Meublé - Min: ${rentalStats.meuble.min}, Max: ${rentalStats.meuble.max}, Moyen: ${rentalStats.meuble.avg}`);
+        }
+
+        // Calculer les stats pour non meublé
+        if (rentsNonMeuble.length > 0) {
+            rentalStats.nonMeuble = {
+                min: Math.min(...rentsNonMeuble),
+                max: Math.max(...rentsNonMeuble),
+                avg: Math.round(rentsNonMeuble.reduce((a, b) => a + b, 0) / rentsNonMeuble.length),
+                count: rentsNonMeuble.length
+            };
+            console.log(`💰 Non meublé - Min: ${rentalStats.nonMeuble.min}, Max: ${rentalStats.nonMeuble.max}, Moyen: ${rentalStats.nonMeuble.avg}`);
+        }
+
+        console.log('📊 Statistiques de location finales:', rentalStats);
+    }
+
+    /* ==========================================
        AFFICHAGE DE L'ANNONCE
        ========================================== */
 
@@ -270,6 +340,9 @@
 
         // Calculateur de prêt immobilier
         initLoanCalculator(prix);
+
+        // Rentabilité locative
+        initRentalProfitability();
 
         // Lien vers l'annonce
         const url = annonceData.url || annonceData.link || annonceData.lien || '#';
@@ -354,7 +427,7 @@
         // Éléments du DOM
         const loanDurationInput = document.getElementById('loan-duration');
         const loanRateInput = document.getElementById('loan-rate');
-        const loanNotaryPercentInput = document.getElementById('loan-notary-percent');
+        const loanApportInput = document.getElementById('loan-apport');
         const loanWorksAmountInput = document.getElementById('loan-works-amount');
 
         const loanPropertyPriceDisplay = document.getElementById('loan-property-price');
@@ -366,24 +439,38 @@
         const loanTotalInterestDisplay = document.getElementById('loan-total-interest');
         const loanTotalRepaymentDisplay = document.getElementById('loan-total-repayment');
 
+        // Variable globale pour stocker le coût d'ameublement actuel
+        window.currentFurnitureCost = 0;
+
         // Fonction de calcul du prêt
         function calculateLoan() {
             // Récupérer les valeurs
             const durationYears = parseFloat(loanDurationInput.value) || 25;
             const annualRate = parseFloat(loanRateInput.value) || 3.5;
-            const notaryPercent = parseFloat(loanNotaryPercentInput.value) || 8;
+            const apport = parseFloat(loanApportInput.value) || 0;
             const worksAmount = parseFloat(loanWorksAmountInput.value) || 0;
+            const furnitureCost = window.currentFurnitureCost || 0;
 
-            console.log(`🔢 Calcul avec: ${durationYears} ans, ${annualRate}% taux, ${notaryPercent}% frais notaire, ${formatPrice(worksAmount)} travaux`);
+            console.log(`🔢 Calcul avec: ${durationYears} ans, ${annualRate}% taux, ${formatPrice(apport)} apport, ${formatPrice(worksAmount)} travaux, ${formatPrice(furnitureCost)} ameublement`);
 
-            // Calcul des frais de notaire
-            const notaryFees = Math.round(propertyPrice * (notaryPercent / 100));
-            const totalCost = propertyPrice + notaryFees + worksAmount;
+            // Calcul des frais de notaire (fixés à 8%)
+            const notaryFees = Math.round(propertyPrice * 0.08);
+            const totalCost = propertyPrice + notaryFees + worksAmount + furnitureCost;
+
+            // Montant du prêt après déduction de l'apport
+            const loanAmount = totalCost - apport;
 
             // Afficher le résumé des coûts
             loanPropertyPriceDisplay.textContent = formatPrice(propertyPrice);
             loanNotaryFeesDisplay.textContent = formatPrice(notaryFees);
             loanWorksCostDisplay.textContent = formatPrice(worksAmount);
+
+            // Afficher le coût d'ameublement
+            const loanFurnitureCostElement = document.getElementById('loan-furniture-cost');
+            if (loanFurnitureCostElement) {
+                loanFurnitureCostElement.textContent = formatPrice(furnitureCost);
+            }
+
             loanTotalCostDisplay.textContent = formatPrice(totalCost);
 
             // Calcul de la mensualité avec la formule d'amortissement
@@ -394,18 +481,21 @@
             const numberOfMonths = durationYears * 12; // Nombre de mensualités
 
             let monthlyPayment;
-            if (monthlyRate === 0) {
+            if (loanAmount <= 0) {
+                // Si l'apport couvre tout, pas de prêt nécessaire
+                monthlyPayment = 0;
+            } else if (monthlyRate === 0) {
                 // Si taux = 0%, calcul simple
-                monthlyPayment = totalCost / numberOfMonths;
+                monthlyPayment = loanAmount / numberOfMonths;
             } else {
                 // Formule d'amortissement classique
                 const factor = Math.pow(1 + monthlyRate, numberOfMonths);
-                monthlyPayment = totalCost * (monthlyRate * factor) / (factor - 1);
+                monthlyPayment = loanAmount * (monthlyRate * factor) / (factor - 1);
             }
 
             // Calcul du coût total du crédit et du total à rembourser
             const totalRepayment = monthlyPayment * numberOfMonths;
-            const totalInterest = totalRepayment - totalCost;
+            const totalInterest = totalRepayment - loanAmount;
 
             // Afficher les résultats
             loanMonthlyPaymentDisplay.textContent = formatPrice(monthlyPayment);
@@ -413,14 +503,18 @@
             loanTotalRepaymentDisplay.textContent = formatPrice(totalRepayment);
 
             console.log(`✅ Mensualité: ${formatPrice(monthlyPayment)}`);
+            console.log(`   Montant emprunté: ${formatPrice(loanAmount)}`);
             console.log(`   Coût du crédit: ${formatPrice(totalInterest)}`);
             console.log(`   Total à rembourser: ${formatPrice(totalRepayment)}`);
         }
 
+        // Exposer calculateLoan globalement pour pouvoir l'appeler depuis calculateFurnitureCost
+        window.calculateLoan = calculateLoan;
+
         // Ajouter les event listeners pour le recalcul en temps réel
         loanDurationInput.addEventListener('input', calculateLoan);
         loanRateInput.addEventListener('input', calculateLoan);
-        loanNotaryPercentInput.addEventListener('input', calculateLoan);
+        loanApportInput.addEventListener('input', calculateLoan);
         loanWorksAmountInput.addEventListener('input', calculateLoan);
 
         // Gérer les boutons de preset pour les travaux
@@ -614,7 +708,7 @@
                     annonceId: currentAnnonceId,
                     duration: parseFloat(loanDurationInput.value) || 25,
                     rate: parseFloat(loanRateInput.value) || 3.5,
-                    notaryPercent: parseFloat(loanNotaryPercentInput.value) || 8,
+                    apport: parseFloat(loanApportInput.value) || 0,
                     worksAmount: parseFloat(loanWorksAmountInput.value) || 0,
                     worksArray: worksArray,
                     savedAt: new Date().toISOString()
@@ -725,7 +819,7 @@
             // Restaurer les paramètres du prêt
             if (savedData.duration) loanDurationInput.value = savedData.duration;
             if (savedData.rate) loanRateInput.value = savedData.rate;
-            if (savedData.notaryPercent) loanNotaryPercentInput.value = savedData.notaryPercent;
+            if (savedData.apport !== undefined) loanApportInput.value = savedData.apport;
 
             // Restaurer les travaux
             if (savedData.worksArray && savedData.worksArray.length > 0) {
@@ -753,6 +847,190 @@
 
         // Calcul initial avec les valeurs par défaut
         calculateLoan();
+    }
+
+    /* ==========================================
+       INITIALISATION RENTABILITÉ LOCATIVE
+       ========================================== */
+
+    function initRentalProfitability() {
+        console.log('🏠 Initialisation de la rentabilité locative');
+
+        // Afficher les statistiques de loyers
+        displayRentalStats();
+
+        // Récupérer la surface du bien
+        const surfaceStr = (annonceData.surface_m2 || annonceData.surface || '').toString().replace(/\s/g, '');
+        const surface = parseFloat(surfaceStr.replace(/[^\d.]/g, ''));
+
+        if (!surface || surface <= 0) {
+            console.log('⚠️ Surface du bien non disponible, désactivation de l\'ameublement');
+            document.querySelector('.furniture-quality-section').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('furniture-surface').textContent = `${surface} m²`;
+
+        // Variables globales pour le calcul
+        let furnitureCostPerM2 = 0;
+        let currentMonthlyPayment = 0;
+
+        // Fonction pour calculer le coût d'ameublement
+        function calculateFurnitureCost() {
+            const furnitureCost = Math.round(surface * furnitureCostPerM2);
+
+            // Stocker dans la variable globale
+            window.currentFurnitureCost = furnitureCost;
+
+            // Mettre à jour le coût d'ameublement dans la section ameublement
+            document.getElementById('furniture-total-cost').textContent = formatPrice(furnitureCost);
+
+            // Déclencher le recalcul du prêt (qui inclura le coût d'ameublement)
+            // Cela mettra à jour automatiquement le résumé du prêt
+            if (typeof calculateLoan === 'function') {
+                calculateLoan();
+            }
+
+            // Mettre à jour le calcul de rentabilité
+            calculateProfitability();
+
+            return { furnitureCost };
+        }
+
+        // Fonction pour calculer la rentabilité
+        function calculateProfitability() {
+            const rentalTypeSelect = document.getElementById('rental-type-select');
+            const selectedType = rentalTypeSelect.value;
+
+            let selectedRent = 0;
+
+            // Déterminer le loyer sélectionné
+            // Les valeurs sont du type: "non-meuble-min", "meuble-min"
+            let type, level;
+            if (selectedType.startsWith('non-meuble-')) {
+                type = 'non-meuble';
+                level = selectedType.replace('non-meuble-', '');
+            } else if (selectedType.startsWith('meuble-')) {
+                type = 'meuble';
+                level = selectedType.replace('meuble-', '');
+            }
+
+            console.log(`🔍 Type sélectionné: "${type}", Niveau: "${level}"`);
+
+            if (type === 'meuble') {
+                if (level === 'min') selectedRent = rentalStats.meuble.min;
+                else if (level === 'avg') selectedRent = rentalStats.meuble.avg;
+                else if (level === 'max') selectedRent = rentalStats.meuble.max;
+            } else if (type === 'non-meuble') {
+                if (level === 'min') selectedRent = rentalStats.nonMeuble.min;
+                else if (level === 'avg') selectedRent = rentalStats.nonMeuble.avg;
+                else if (level === 'max') selectedRent = rentalStats.nonMeuble.max;
+            }
+
+            console.log(`💰 Loyer sélectionné: ${selectedRent}`, rentalStats);
+
+            if (!selectedRent || selectedRent === 0) {
+                document.getElementById('selected-rent').textContent = 'Non disponible';
+                document.getElementById('annual-rent-income').textContent = '-';
+                document.getElementById('gross-yield').textContent = '-';
+                document.getElementById('monthly-cashflow').textContent = '-';
+                return;
+            }
+
+            // Afficher le loyer sélectionné
+            document.getElementById('selected-rent').textContent = formatPrice(selectedRent) + ' / mois';
+
+            // Revenus annuels
+            const annualIncome = selectedRent * 12;
+            document.getElementById('annual-rent-income').textContent = formatPrice(annualIncome);
+
+            // Récupérer le coût total (qui inclut maintenant l'ameublement)
+            const totalCostText = document.getElementById('loan-total-cost').textContent;
+            const totalCost = parseFloat(totalCostText.replace(/[^\d]/g, '')) || 0;
+
+            if (totalCost === 0) {
+                console.log('⚠️ Coût total non disponible');
+                return;
+            }
+
+            // Rendement brut
+            const grossYield = (annualIncome * 100) / totalCost;
+            document.getElementById('gross-yield').textContent = grossYield.toFixed(2) + ' %';
+
+            // Cash-flow mensuel
+            const annualCharges = parseFloat(document.getElementById('annual-charges').value) || 0;
+            const monthlyCharges = annualCharges / 12;
+
+            // Récupérer la mensualité du prêt
+            const monthlyPaymentText = document.getElementById('loan-monthly-payment').textContent;
+            currentMonthlyPayment = parseFloat(monthlyPaymentText.replace(/[^\d]/g, '')) || 0;
+
+            const monthlyCashflow = selectedRent - currentMonthlyPayment - monthlyCharges;
+            const cashflowElement = document.getElementById('monthly-cashflow');
+            cashflowElement.textContent = formatPrice(monthlyCashflow) + ' / mois';
+
+            // Colorer le cash-flow en fonction du résultat
+            if (monthlyCashflow > 0) {
+                cashflowElement.style.color = '#2ecc71';
+            } else if (monthlyCashflow < 0) {
+                cashflowElement.style.color = '#e74c3c';
+            } else {
+                cashflowElement.style.color = '#95a5a6';
+            }
+
+            console.log(`💰 Rentabilité calculée: ${grossYield.toFixed(2)}%, Cash-flow: ${formatPrice(monthlyCashflow)}`);
+        }
+
+        // Event listeners pour les boutons radio de qualité d'ameublement
+        const furnitureRadios = document.querySelectorAll('input[name="furniture-quality"]');
+        furnitureRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                furnitureCostPerM2 = parseFloat(this.value);
+                console.log(`🛋️ Qualité d'ameublement sélectionnée: ${furnitureCostPerM2} €/m²`);
+                calculateFurnitureCost();
+            });
+        });
+
+        // Event listener pour le type de location
+        const rentalTypeSelect = document.getElementById('rental-type-select');
+        rentalTypeSelect.addEventListener('change', calculateProfitability);
+
+        // Event listener pour les charges annuelles
+        const annualChargesInput = document.getElementById('annual-charges');
+        annualChargesInput.addEventListener('input', calculateProfitability);
+
+        // Calcul initial
+        calculateFurnitureCost();
+    }
+
+    /* ==========================================
+       AFFICHAGE DES STATISTIQUES DE LOYERS
+       ========================================== */
+
+    function displayRentalStats() {
+        // Meublé
+        if (rentalStats.meuble.count > 0) {
+            document.getElementById('rental-meuble-min').textContent = formatPrice(rentalStats.meuble.min);
+            document.getElementById('rental-meuble-avg').textContent = formatPrice(rentalStats.meuble.avg);
+            document.getElementById('rental-meuble-max').textContent = formatPrice(rentalStats.meuble.max);
+        } else {
+            document.getElementById('rental-meuble-min').textContent = 'N/A';
+            document.getElementById('rental-meuble-avg').textContent = 'N/A';
+            document.getElementById('rental-meuble-max').textContent = 'N/A';
+        }
+
+        // Non meublé
+        if (rentalStats.nonMeuble.count > 0) {
+            document.getElementById('rental-non-meuble-min').textContent = formatPrice(rentalStats.nonMeuble.min);
+            document.getElementById('rental-non-meuble-avg').textContent = formatPrice(rentalStats.nonMeuble.avg);
+            document.getElementById('rental-non-meuble-max').textContent = formatPrice(rentalStats.nonMeuble.max);
+        } else {
+            document.getElementById('rental-non-meuble-min').textContent = 'N/A';
+            document.getElementById('rental-non-meuble-avg').textContent = 'N/A';
+            document.getElementById('rental-non-meuble-max').textContent = 'N/A';
+        }
+
+        console.log('✅ Statistiques de loyers affichées');
     }
 
     /* ==========================================

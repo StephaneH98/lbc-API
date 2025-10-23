@@ -675,15 +675,22 @@
 
        console.log('🎨 Affichage des graphiques de prix...');
 
-       // Extraire les prix et calculer le prix au m²
-       const prices = [];
-       const pricesPerM2 = [];
+       // Extraire les prix et calculer le prix au m², groupés par nombre de pièces
+       const pricesByRooms = {};
+       const pricesPerM2ByRooms = {};
 
        annonces.forEach((ad, index) => {
            const price = parseFloat((ad.prix || ad.price || '').toString().replace(/[^\d]/g, ''));
+           const pieces = ad.pieces || ad.rooms || ad.nb_pieces || 'all';
 
            if (price && price > 0) {
-               prices.push(price);
+               // Initialiser les tableaux pour ce nombre de pièces
+               if (!pricesByRooms[pieces]) {
+                   pricesByRooms[pieces] = [];
+                   pricesPerM2ByRooms[pieces] = [];
+               }
+
+               pricesByRooms[pieces].push(price);
 
                // Utiliser le prix_m2 directement s'il existe, sinon le calculer
                let pricePerM2 = parseFloat((ad.prix_m2 || '').toString().replace(/[^\d]/g, ''));
@@ -697,34 +704,72 @@
                }
 
                if (pricePerM2 && pricePerM2 > 0) {
-                   pricesPerM2.push(pricePerM2);
+                   pricesPerM2ByRooms[pieces].push(pricePerM2);
                }
            }
        });
 
-       console.log('📊 Prix extraits:', prices.length);
-       console.log('📏 Prix au m² calculés:', pricesPerM2.length);
+       // Calculer les stats globales (toutes pièces confondues)
+       const allPrices = [];
+       const allPricesPerM2 = [];
+       Object.values(pricesByRooms).forEach(prices => allPrices.push(...prices));
+       Object.values(pricesPerM2ByRooms).forEach(prices => allPricesPerM2.push(...prices));
 
-       if (prices.length === 0) {
+       console.log('📊 Prix extraits:', allPrices.length);
+       console.log('📏 Prix au m² calculés:', allPricesPerM2.length);
+
+       if (allPrices.length === 0) {
            if (statsContainer) statsContainer.style.display = 'none';
            return;
        }
 
-       const minPrice = Math.min(...prices);
-       const maxPrice = Math.max(...prices);
-       const avgPrice = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+       const minPrice = Math.min(...allPrices);
+       const maxPrice = Math.max(...allPrices);
+       const avgPrice = Math.round(allPrices.reduce((a, b) => a + b, 0) / allPrices.length);
 
-       const minPriceM2 = pricesPerM2.length > 0 ? Math.min(...pricesPerM2) : 0;
-       const maxPriceM2 = pricesPerM2.length > 0 ? Math.max(...pricesPerM2) : 0;
-       const avgPriceM2 = pricesPerM2.length > 0 ? Math.round(pricesPerM2.reduce((a, b) => a + b, 0) / pricesPerM2.length) : 0;
+       const minPriceM2 = allPricesPerM2.length > 0 ? Math.min(...allPricesPerM2) : 0;
+       const maxPriceM2 = allPricesPerM2.length > 0 ? Math.max(...allPricesPerM2) : 0;
+       const avgPriceM2 = allPricesPerM2.length > 0 ? Math.round(allPricesPerM2.reduce((a, b) => a + b, 0) / allPricesPerM2.length) : 0;
 
-       // Stocker les valeurs min/max pour les calculs de position
+       // Stocker les stats par nombre de pièces ET les stats globales
        window.priceChartData = {
-           minPrice: minPrice,
-           maxPrice: maxPrice,
-           minPriceM2: minPriceM2,
-           maxPriceM2: maxPriceM2
+           global: {
+               minPrice: minPrice,
+               maxPrice: maxPrice,
+               avgPrice: avgPrice,
+               minPriceM2: minPriceM2,
+               maxPriceM2: maxPriceM2,
+               avgPriceM2: avgPriceM2
+           },
+           byRooms: {
+               // Ajouter une clé 'all' pour les stats globales
+               'all': {
+                   minPrice: minPrice,
+                   maxPrice: maxPrice,
+                   avgPrice: avgPrice,
+                   minPriceM2: minPriceM2,
+                   maxPriceM2: maxPriceM2,
+                   avgPriceM2: avgPriceM2
+               }
+           }
        };
+
+       // Calculer les stats pour chaque nombre de pièces
+       Object.keys(pricesByRooms).forEach(rooms => {
+           const prices = pricesByRooms[rooms];
+           const pricesM2 = pricesPerM2ByRooms[rooms] || [];
+
+           window.priceChartData.byRooms[rooms] = {
+               minPrice: Math.min(...prices),
+               maxPrice: Math.max(...prices),
+               avgPrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
+               minPriceM2: pricesM2.length > 0 ? Math.min(...pricesM2) : 0,
+               maxPriceM2: pricesM2.length > 0 ? Math.max(...pricesM2) : 0,
+               avgPriceM2: pricesM2.length > 0 ? Math.round(pricesM2.reduce((a, b) => a + b, 0) / pricesM2.length) : 0
+           };
+       });
+
+       console.log('📊 Stats par pièces:', window.priceChartData.byRooms);
 
        // Version compacte avec titres à gauche
        let html = '<div class="price-charts-compact">';
@@ -750,7 +795,7 @@
        `;
 
        // Graphique Prix au m² (si disponible)
-       if (pricesPerM2.length > 0) {
+       if (allPricesPerM2.length > 0) {
            html += `
                <div class="chart-row-horizontal">
                    <div class="chart-title-left">📏 Prix au m² :</div>
@@ -904,7 +949,7 @@
            const ageInfo = calculateAnnonceAge(annonce);
 
            html += `
-               <tr data-index="${index}" data-price="${prix}" data-pricem2="${prixM2}" class="annonce-row">
+               <tr data-index="${index}" data-price="${prix}" data-pricem2="${prixM2}" data-pieces="${pieces}" class="annonce-row">
                    <td class="checkbox-col">
                        <input type="checkbox" class="row-checkbox" data-index="${index}">
                    </td>
@@ -974,6 +1019,34 @@
       INDICATEURS DE SURVOL SUR LES GRAPHIQUES
       ========================================== */
 
+   function updateChartMarkers(rooms) {
+       if (!window.priceChartData) return;
+
+       // Obtenir les stats pour ce nombre de pièces ou les stats globales
+       const stats = window.priceChartData.byRooms[rooms] || window.priceChartData.global;
+
+       // Mettre à jour les marqueurs du graphique Prix de vente
+       const priceMinMarker = document.querySelector('#price-chart-bar .range-marker-min .marker-value');
+       const priceAvgMarker = document.querySelector('#price-chart-bar .range-marker-avg .marker-value');
+       const priceMaxMarker = document.querySelector('#price-chart-bar .range-marker-max .marker-value');
+
+       if (priceMinMarker) priceMinMarker.textContent = formatPrice(stats.minPrice);
+       if (priceAvgMarker) priceAvgMarker.textContent = formatPrice(stats.avgPrice);
+       if (priceMaxMarker) priceMaxMarker.textContent = formatPrice(stats.maxPrice);
+
+       // Mettre à jour les marqueurs du graphique Prix au m²
+       const priceM2MinMarker = document.querySelector('#pricem2-chart-bar .range-marker-min .marker-value');
+       const priceM2AvgMarker = document.querySelector('#pricem2-chart-bar .range-marker-avg .marker-value');
+       const priceM2MaxMarker = document.querySelector('#pricem2-chart-bar .range-marker-max .marker-value');
+
+       if (priceM2MinMarker) priceM2MinMarker.textContent = `${stats.minPriceM2} €/m²`;
+       if (priceM2AvgMarker) priceM2AvgMarker.textContent = `${stats.avgPriceM2} €/m²`;
+       if (priceM2MaxMarker) priceM2MaxMarker.textContent = `${stats.maxPriceM2} €/m²`;
+
+       // Stocker temporairement les stats actuelles pour le calcul de position de l'indicateur
+       window.currentChartStats = stats;
+   }
+
    function initializeChartHoverIndicators() {
        const rows = document.querySelectorAll('.annonce-row');
        const priceIndicator = document.getElementById('price-hover-indicator');
@@ -985,29 +1058,37 @@
            row.addEventListener('mouseenter', function() {
                const price = parseFloat(this.getAttribute('data-price'));
                const priceM2 = parseFloat(this.getAttribute('data-pricem2'));
+               const pieces = this.getAttribute('data-pieces');
 
                if (!window.priceChartData) return;
 
-               const { minPrice, maxPrice, minPriceM2, maxPriceM2 } = window.priceChartData;
+               // Mettre à jour les marqueurs avec les stats du nombre de pièces
+               updateChartMarkers(pieces);
+
+               // Utiliser les stats du nombre de pièces pour calculer la position
+               const stats = window.currentChartStats || window.priceChartData.global;
 
                // Calculer la position pour le prix de vente
-               if (price && price > 0 && minPrice && maxPrice) {
-                   const percentage = ((price - minPrice) / (maxPrice - minPrice)) * 100;
-                   priceIndicator.style.left = `${percentage}%`;
+               if (price && price > 0 && stats.minPrice && stats.maxPrice) {
+                   const percentage = ((price - stats.minPrice) / (stats.maxPrice - stats.minPrice)) * 100;
+                   priceIndicator.style.left = `${Math.max(0, Math.min(100, percentage))}%`;
                    priceIndicator.style.display = 'block';
                    priceIndicator.setAttribute('data-value', formatPrice(price));
                }
 
                // Calculer la position pour le prix au m²
-               if (priceM2Indicator && priceM2 && priceM2 > 0 && minPriceM2 && maxPriceM2) {
-                   const percentage = ((priceM2 - minPriceM2) / (maxPriceM2 - minPriceM2)) * 100;
-                   priceM2Indicator.style.left = `${percentage}%`;
+               if (priceM2Indicator && priceM2 && priceM2 > 0 && stats.minPriceM2 && stats.maxPriceM2) {
+                   const percentage = ((priceM2 - stats.minPriceM2) / (stats.maxPriceM2 - stats.minPriceM2)) * 100;
+                   priceM2Indicator.style.left = `${Math.max(0, Math.min(100, percentage))}%`;
                    priceM2Indicator.style.display = 'block';
                    priceM2Indicator.setAttribute('data-value', `${priceM2} €/m²`);
                }
            });
 
            row.addEventListener('mouseleave', function() {
+               // Restaurer les stats globales
+               updateChartMarkers('all');
+
                priceIndicator.style.display = 'none';
                if (priceM2Indicator) {
                    priceM2Indicator.style.display = 'none';

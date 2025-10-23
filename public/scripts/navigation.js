@@ -56,6 +56,10 @@
                             <span class="nav-icon">📊</span>
                             <span class="nav-text">Annonces</span>
                         </a>
+                        <a href="/pages/articles.html" class="nav-link" data-page="articles">
+                            <span class="nav-icon">📚</span>
+                            <span class="nav-text">Guides & Articles</span>
+                        </a>
                     </div>
 
                     <div class="nav-footer">

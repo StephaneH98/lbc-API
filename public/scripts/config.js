@@ -9,7 +9,7 @@ if (!window.ENV) {
     console.error('❌ window.ENV n\'est pas défini ! Vérifiez que env-config.js est chargé.');
     window.ENV = {
         API_URL: 'http://127.0.0.1:5000',
-        BUCKET_NAME: 'fallback-bucket',
+        BUCKET_NAME: 'immo-app',
         REGION: 'eu-west-3',
         COGNITO: {
             USER_POOL_ID: '',
@@ -61,6 +61,7 @@ const CONFIG = {
         DELETE_FILE: '/delete-file',
         SAVE_SEARCH: '/save-search',
         GET_USER_SEARCHES: '/user-searches',
+        GET_ARTICLES: '/article',
     },
 
     // Constantes application

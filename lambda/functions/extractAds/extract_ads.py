@@ -1,7 +1,8 @@
 import json
 import boto3
 import urllib.parse
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 from botocore.exceptions import ClientError
 from bs4 import BeautifulSoup
 
@@ -105,6 +106,7 @@ def extract_announcement_data(ad, annonce_id):
         'id': str(annonce_id),  # Ajout de l'ID unique
         'prix': None,
         'localisation': None,
+        'quartier': None,  # Quartier extrait de la localisation
         'description': None,
         'surface_m2': None,
         'prix_m2': None,
@@ -132,8 +134,16 @@ def extract_announcement_data(ad, annonce_id):
                     break
         
         if location_elem:
-            data['localisation'] = location_elem.get_text(strip=True)
-        
+            full_location = location_elem.get_text(strip=True)
+            data['localisation'] = full_location
+
+            # Extraire le quartier : tout ce qui se trouve après le code postal (5 chiffres)
+            # Exemple: "Lyon 69008 Viviani" -> quartier = "Viviani"
+            match = re.search(r'\b\d{5}\b\s+(.*)', full_location)
+            if match:
+                quartier = match.group(1).strip()
+                data['quartier'] = quartier if quartier else None
+
         # Extraire la description
         for elem in ad.find_all('p', class_=lambda x: x and 'text-body-2' in x):
             text = elem.get_text()
@@ -356,14 +366,14 @@ def lambda_handler(event, context):
         print("Data :")
         print(f"Data: {data}")
 
-        # Retourner le contenu HTML
+        # Retourner les données complètes en JSON
         return {
             'statusCode': 200,
             'headers': {
-                'Content-Type': 'text/html',
+                'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            'body': data['announcements']
+            'body': json.dumps(data)
         }
         
     except ClientError as e:

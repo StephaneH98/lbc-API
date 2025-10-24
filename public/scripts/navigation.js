@@ -34,7 +34,9 @@
         nav.innerHTML = `
             <div class="nav-container">
                 <div class="nav-header">
-                    <h1 class="nav-title">LBC Analyzer</h1>
+                    <a href="/index.html" class="nav-logo-link">
+                        <img src="/img/logo_fond_transparant.png" alt="LBC Analyzer" class="nav-logo">
+                    </a>
                     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
                         <span class="hamburger"></span>
                         <span class="hamburger"></span>

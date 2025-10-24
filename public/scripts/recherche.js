@@ -634,6 +634,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     sessionStorage.setItem('searchResultsLocation', JSON.stringify(annoncesLocation));
                     sessionStorage.setItem('searchResultsLocationMeublee', JSON.stringify(annoncesLocationMeublee));
                     sessionStorage.setItem('searchResultsLocationNonMeublee', JSON.stringify(annoncesLocationNonMeublee));
+
+                    // Sauvegarder aussi avec les clés utilisées par annonce-detail.js
+                    sessionStorage.setItem('tempAnnonces', JSON.stringify(annoncesVente));
+                    sessionStorage.setItem('tempLocationAnnonces', JSON.stringify(annoncesLocation));
+
                     sessionStorage.setItem('searchStats', JSON.stringify({
                         vente: extractionVente.stats,
                         locationMeublee: extractionLocationMeublee.stats,

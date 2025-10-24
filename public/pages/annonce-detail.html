@@ -25,6 +25,9 @@
 
     <!-- Menu de navigation -->
     <script src="../scripts/navigation.js"></script>
+
+    <!-- jsPDF pour la génération de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <!-- La navigation sera injectée ici automatiquement par navigation.js -->
@@ -58,6 +61,11 @@
                     <div id="annonce-price" class="annonce-price"></div>
                     <div id="annonce-price-m2" class="annonce-price-m2"></div>
                 </div>
+                <div class="annonce-header-action">
+                    <a id="annonce-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
+                        🔗 Voir l'annonce
+                    </a>
+                </div>
             </div>
 
             <!-- Informations principales -->
@@ -67,6 +75,14 @@
                     <div class="info-content">
                         <div class="info-label">Localisation</div>
                         <div id="annonce-localisation" class="info-value"></div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">🏘️</div>
+                    <div class="info-content">
+                        <div class="info-label">Quartier</div>
+                        <div id="annonce-quartier" class="info-value"></div>
                     </div>
                 </div>
 
@@ -298,30 +314,6 @@
             <div class="loan-calculator-section">
                 <h2 class="section-title">💰 Calculateur de prêt immobilier</h2>
                 <div class="section-content">
-                    <!-- Résumé des coûts -->
-                    <div class="loan-summary">
-                        <div class="loan-summary-item">
-                            <span class="summary-label">Prix du bien :</span>
-                            <span id="loan-property-price" class="summary-value">-</span>
-                        </div>
-                        <div class="loan-summary-item">
-                            <span class="summary-label">Frais de notaire (8%) :</span>
-                            <span id="loan-notary-fees" class="summary-value">-</span>
-                        </div>
-                        <div class="loan-summary-item">
-                            <span class="summary-label">Travaux à prévoir :</span>
-                            <span id="loan-works-cost" class="summary-value">-</span>
-                        </div>
-                        <div class="loan-summary-item">
-                            <span class="summary-label">Ameublement :</span>
-                            <span id="loan-furniture-cost" class="summary-value">0 €</span>
-                        </div>
-                        <div class="loan-summary-item total">
-                            <span class="summary-label">Coût total :</span>
-                            <span id="loan-total-cost" class="summary-value">-</span>
-                        </div>
-                    </div>
-
                     <!-- Paramètres du prêt -->
                     <div class="loan-parameters">
                         <div class="loan-param">
@@ -358,6 +350,38 @@
                         </div>
                     </div>
 
+                    <!-- Résumé des coûts -->
+                    <div class="loan-summary">
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Prix du bien :</span>
+                            <span id="loan-property-price" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Frais de notaire (8%) :</span>
+                            <span id="loan-notary-fees" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Travaux à prévoir :</span>
+                            <span id="loan-works-cost" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item">
+                            <span class="summary-label">Ameublement :</span>
+                            <span id="loan-furniture-cost" class="summary-value">0 €</span>
+                        </div>
+                        <div class="loan-summary-item subtotal">
+                            <span class="summary-label">Sous-total :</span>
+                            <span id="loan-subtotal" class="summary-value">-</span>
+                        </div>
+                        <div class="loan-summary-item apport">
+                            <span class="summary-label">Apport personnel :</span>
+                            <span id="loan-apport-display" class="summary-value">0 €</span>
+                        </div>
+                        <div class="loan-summary-item total">
+                            <span class="summary-label">Montant à emprunter :</span>
+                            <span id="loan-total-cost" class="summary-value">-</span>
+                        </div>
+                    </div>
+
                     <!-- Résultats -->
                     <div class="loan-results">
                         <div class="loan-result-main">
@@ -375,14 +399,6 @@
                                 <span id="loan-total-repayment" class="result-value-small">-</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Bouton d'enregistrement -->
-                    <div class="save-button-container">
-                        <button id="save-loan-data-btn" class="save-btn">
-                            💾 Enregistrer les données
-                        </button>
-                        <span id="save-status" class="save-status"></span>
                     </div>
                 </div>
             </div>
@@ -427,16 +443,33 @@
                 <div class="profitability-calculator">
                     <h3 class="rental-subtitle">📈 Calcul de la rentabilité</h3>
 
-                    <div class="profitability-selector">
-                        <label for="rental-type-select">Type de location :</label>
-                        <select id="rental-type-select" class="rental-type-select">
-                            <option value="non-meuble-min">Non meublé - Loyer minimum</option>
-                            <option value="non-meuble-avg" selected>Non meublé - Loyer moyen</option>
-                            <option value="non-meuble-max">Non meublé - Loyer maximum</option>
-                            <option value="meuble-min">Meublé - Loyer minimum</option>
-                            <option value="meuble-avg">Meublé - Loyer moyen</option>
-                            <option value="meuble-max">Meublé - Loyer maximum</option>
-                        </select>
+                    <!-- Toggle Switch Meublé / Non Meublé -->
+                    <div class="rental-type-toggle-container">
+                        <label class="rental-type-label">Type de location :</label>
+                        <div class="toggle-switch-wrapper">
+                            <span class="toggle-label">🏠 Non meublé</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="rental-type-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">🛋️ Meublé</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider pour le loyer -->
+                    <div class="rent-slider-container">
+                        <div class="rent-slider-header">
+                            <label class="rent-slider-label">Loyer mensuel :</label>
+                            <div class="rent-input-group">
+                                <input type="number" id="rent-input" class="rent-input" min="0" step="10" placeholder="0">
+                                <span class="rent-unit">€</span>
+                            </div>
+                        </div>
+                        <div class="rent-slider-wrapper">
+                            <span class="rent-slider-bound" id="rent-min-display">-</span>
+                            <input type="range" id="rent-slider" class="rent-slider" min="0" max="1000" value="500" step="10">
+                            <span class="rent-slider-bound" id="rent-max-display">-</span>
+                        </div>
                     </div>
 
                     <div class="profitability-results">
@@ -472,9 +505,74 @@
 
             <!-- Actions -->
             <div class="annonce-actions">
-                <a id="annonce-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
-                    🔗 Voir l'annonce sur Le Bon Coin
-                </a>
+                <div class="save-button-container">
+                    <button id="save-loan-data-btn" class="save-btn">
+                        💾 Enregistrer les données
+                    </button>
+                    <span id="save-status" class="save-status"></span>
+                </div>
+                <div class="pdf-button-container">
+                    <button id="generate-pdf-btn" class="pdf-btn">
+                        📄 Générer le PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup de sélection des sections PDF -->
+    <div id="pdf-popup" class="pdf-popup" style="display: none;">
+        <div class="pdf-popup-content">
+            <div class="pdf-popup-header">
+                <h3>📄 Sélectionner les sections à inclure dans le PDF</h3>
+                <button id="close-pdf-popup" class="close-popup-btn">&times;</button>
+            </div>
+            <div class="pdf-popup-body">
+                <div class="pdf-sections-list">
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="header" checked>
+                        <span class="section-label">En-tête (titre, prix, localisation)</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="main-info" checked>
+                        <span class="section-label">Informations principales</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="description" checked>
+                        <span class="section-label">📝 Description</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="price-position" checked>
+                        <span class="section-label">📊 Positionnement prix</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="works" checked>
+                        <span class="section-label">🔨 Estimation des travaux</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="furniture" checked>
+                        <span class="section-label">🛋️ Coût de l'ameublement</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="loan" checked>
+                        <span class="section-label">💰 Calculateur de prêt immobilier</span>
+                    </label>
+                    <label class="pdf-section-item">
+                        <input type="checkbox" name="pdf-section" value="rental" checked>
+                        <span class="section-label">📊 Rentabilité locative</span>
+                    </label>
+                </div>
+                <div class="pdf-options">
+                    <label class="pdf-option-item">
+                        <input type="checkbox" id="pdf-include-link" checked>
+                        <span class="option-label">Inclure le lien vers l'annonce</span>
+                    </label>
+                </div>
+            </div>
+            <div class="pdf-popup-footer">
+                <button id="download-pdf-btn" class="btn-download-pdf">
+                    📥 Télécharger le PDF
+                </button>
             </div>
         </div>
     </div>

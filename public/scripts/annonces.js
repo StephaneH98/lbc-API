@@ -103,6 +103,12 @@
             console.log('   Depuis localStorage:', selectedFile);
         }
 
+        // ✅ MÉTHODE 3 : Backup sessionStorage
+        if (!selectedFile) {
+            selectedFile = sessionStorage.getItem('currentFileName');
+            console.log('   Depuis sessionStorage:', selectedFile);
+        }
+
         // ✅ MÉTHODE 3 : Re-stocker dans localStorage si trouvé dans URL
         if (selectedFile && !localStorage.getItem('selectedFile')) {
             localStorage.setItem('selectedFile', selectedFile);
@@ -133,8 +139,9 @@
         console.log('✅ Fichier validé:', selectedFile);
         console.log('═══════════════════════════════════════');
 
-        // Stocker le nom du fichier dans la variable globale
+        // Stocker le nom du fichier dans la variable globale et sessionStorage
         currentFileName = selectedFile;
+        sessionStorage.setItem('currentFileName', selectedFile);
 
         // Afficher le nom du fichier
         const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -344,11 +351,125 @@
       ENREGISTREMENT DE LA RECHERCHE
       ========================================== */
 
+   // Fonction pour afficher la modale de saisie du nom de fichier
+   function showFilenameModal() {
+       return new Promise((resolve) => {
+           const defaultName = `recherche_${new Date().toISOString().slice(0, 10)}`;
+
+           // Créer l'overlay
+           const overlay = document.createElement('div');
+           overlay.className = 'filename-modal-overlay';
+
+           // Créer la modale
+           const modal = document.createElement('div');
+           modal.className = 'filename-modal';
+
+           modal.innerHTML = `
+               <div class="filename-modal-header">
+                   <div class="filename-modal-icon">💾</div>
+                   <h2 class="filename-modal-title">Enregistrer la recherche</h2>
+               </div>
+               <div class="filename-modal-body">
+                   <label class="filename-modal-label" for="filename-input">
+                       Nom du fichier :
+                   </label>
+                   <input
+                       type="text"
+                       id="filename-input"
+                       class="filename-modal-input"
+                       value="${defaultName}"
+                       placeholder="Ex: ma_recherche"
+                   >
+                   <div class="filename-modal-hint">
+                       L'extension .json sera ajoutée automatiquement
+                   </div>
+               </div>
+               <div class="filename-modal-footer">
+                   <button class="filename-modal-btn filename-modal-btn-cancel" id="modal-cancel-btn">
+                       Annuler
+                   </button>
+                   <button class="filename-modal-btn filename-modal-btn-save" id="modal-save-btn">
+                       Enregistrer
+                   </button>
+               </div>
+           `;
+
+           overlay.appendChild(modal);
+           document.body.appendChild(overlay);
+
+           // Focus sur l'input
+           const input = modal.querySelector('#filename-input');
+           setTimeout(() => {
+               input.focus();
+               input.select();
+           }, 100);
+
+           // Fonction de nettoyage
+           const cleanup = () => {
+               overlay.remove();
+           };
+
+           // Bouton annuler
+           modal.querySelector('#modal-cancel-btn').addEventListener('click', () => {
+               cleanup();
+               resolve(null);
+           });
+
+           // Bouton enregistrer
+           modal.querySelector('#modal-save-btn').addEventListener('click', () => {
+               const filename = input.value.trim();
+               if (filename) {
+                   cleanup();
+                   resolve(filename);
+               } else {
+                   input.style.borderColor = 'red';
+                   input.focus();
+               }
+           });
+
+           // Appuyer sur Entrée pour valider
+           input.addEventListener('keypress', (e) => {
+               if (e.key === 'Enter') {
+                   const filename = input.value.trim();
+                   if (filename) {
+                       cleanup();
+                       resolve(filename);
+                   }
+               }
+           });
+
+           // Appuyer sur Échap pour annuler
+           input.addEventListener('keydown', (e) => {
+               if (e.key === 'Escape') {
+                   cleanup();
+                   resolve(null);
+               }
+           });
+
+           // Cliquer sur l'overlay pour annuler
+           overlay.addEventListener('click', (e) => {
+               if (e.target === overlay) {
+                   cleanup();
+                   resolve(null);
+               }
+           });
+       });
+   }
+
    async function saveSearchResults(selectedOnly = false) {
        console.log(`💾 Début de l'enregistrement ${selectedOnly ? 'de la sélection' : 'de toutes les annonces'}...`);
 
        const saveBtn = selectedOnly ? document.getElementById('saveSelectedBtn') : document.getElementById('saveAllBtn');
        if (!saveBtn) return;
+
+       // Demander le nom du fichier à l'utilisateur via la modale
+       const fileName = await showFilenameModal();
+
+       // Si l'utilisateur annule ou laisse vide, ne pas continuer
+       if (!fileName || fileName.trim() === '') {
+           console.log('❌ Enregistrement annulé par l\'utilisateur');
+           return;
+       }
 
        try {
            // Désactiver le bouton
@@ -456,6 +577,7 @@
            // Préparer le payload
            const payload = {
                username: userEmail,
+               filename: fileName.trim(),
                timestamp: new Date().toISOString(),
                data: {
                    vente: venteAnnonces,
@@ -917,6 +1039,9 @@
                            <th data-sort="localisation" class="sortable">
                                📍 Localisation <span class="sort-icon">⇅</span>
                            </th>
+                           <th data-sort="quartier" class="sortable">
+                               🏘️ Quartier <span class="sort-icon">⇅</span>
+                           </th>
                            <th data-sort="pieces" class="sortable">
                                🏠 Pièces <span class="sort-icon">⇅</span>
                            </th>
@@ -942,6 +1067,7 @@
        annonces.forEach((annonce, index) => {
            const id = escapeHtml(annonce.id || index + 1);
            const localisation = escapeHtml(annonce.localisation || annonce.location || 'Non spécifié');
+           const quartier = escapeHtml(annonce.quartier || '-');
            const description = escapeHtml(annonce.description || 'Aucune description');
            const url = annonce.url || annonce.link || annonce.lien || '#';
 
@@ -962,6 +1088,9 @@
 
            const ageInfo = calculateAnnonceAge(annonce);
 
+           // Utiliser currentFileName ou le récupérer de sessionStorage comme fallback
+           const fileName = currentFileName || sessionStorage.getItem('currentFileName') || '';
+
            html += `
                <tr data-index="${index}" data-price="${prix}" data-pricem2="${prixM2}" data-pieces="${pieces}" class="annonce-row">
                    <td class="checkbox-col">
@@ -969,6 +1098,7 @@
                    </td>
                    <td class="id">${id}</td>
                    <td class="localisation">${localisation}</td>
+                   <td class="quartier">${quartier}</td>
                    <td class="pieces">${pieces}</td>
                    <td class="surface">${surfaceDisplay}</td>
                    <td class="prix">${prixFormate}</td>
@@ -976,7 +1106,7 @@
                    <td class="age ${ageInfo.class}" title="${ageInfo.tooltip}">${ageInfo.display}</td>
                    <td class="description">${description}</td>
                    <td class="url">
-                       <a href="annonce-detail.html?file=${encodeURIComponent(currentFileName)}&id=${encodeURIComponent(id)}">👁️ Voir</a>
+                       <a href="annonce-detail.html?file=${encodeURIComponent(fileName)}&id=${encodeURIComponent(id)}">👁️ Voir</a>
                    </td>
                </tr>
            `;
@@ -1138,7 +1268,12 @@
                    valA = (a.localisation || a.location || '').toLowerCase();
                    valB = (b.localisation || b.location || '').toLowerCase();
                    break;
-                   
+
+               case 'quartier':
+                   valA = (a.quartier || '').toLowerCase();
+                   valB = (b.quartier || '').toLowerCase();
+                   break;
+
                case 'pieces':
                    valA = parseInt(a.pieces || a.rooms || a.nb_pieces) || 0;
                    valB = parseInt(b.pieces || b.rooms || b.nb_pieces) || 0;
@@ -1201,6 +1336,7 @@
        annonces.forEach((annonce, index) => {
            const id = escapeHtml(annonce.id || index + 1);
            const localisation = escapeHtml(annonce.localisation || annonce.location || 'Non spécifié');
+           const quartier = escapeHtml(annonce.quartier || '-');
            const description = escapeHtml(annonce.description || 'Aucune description');
            const url = annonce.url || annonce.link || annonce.lien || '#';
            
@@ -1217,9 +1353,12 @@
                const prixM2 = Math.round(prix / surface);
                prixM2Display = formatPrice(prixM2) + '/m²';
            }
-           
+
            const ageInfo = calculateAnnonceAge(annonce);
-           
+
+           // Utiliser currentFileName ou le récupérer de sessionStorage comme fallback
+           const fileName = currentFileName || sessionStorage.getItem('currentFileName') || '';
+
            html += `
                <tr data-index="${index}">
                    <td class="checkbox-col">
@@ -1227,6 +1366,7 @@
                    </td>
                    <td class="id">${id}</td>
                    <td class="localisation">${localisation}</td>
+                   <td class="quartier">${quartier}</td>
                    <td class="pieces">${pieces}</td>
                    <td class="surface">${surfaceDisplay}</td>
                    <td class="prix">${prixFormate}</td>
@@ -1234,7 +1374,7 @@
                    <td class="age ${ageInfo.class}" title="${ageInfo.tooltip}">${ageInfo.display}</td>
                    <td class="description">${description}</td>
                    <td class="url">
-                       <a href="annonce-detail.html?file=${encodeURIComponent(currentFileName)}&id=${encodeURIComponent(id)}">👁️ Voir</a>
+                       <a href="annonce-detail.html?file=${encodeURIComponent(fileName)}&id=${encodeURIComponent(id)}">👁️ Voir</a>
                    </td>
                </tr>
            `;

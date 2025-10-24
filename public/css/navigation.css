@@ -26,6 +26,24 @@
     padding: 1rem 1.5rem;
 }
 
+.nav-logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.nav-logo-link:hover {
+    transform: scale(1.05);
+}
+
+.nav-logo {
+    height: 50px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+}
+
 .nav-title {
     margin: 0;
     font-size: 1.5rem;
@@ -215,6 +233,11 @@ body {
 
 /* Responsive design pour petits écrans */
 @media (max-width: 480px) {
+    .nav-logo {
+        height: 40px;
+        max-width: 150px;
+    }
+
     .nav-title {
         font-size: 1.25rem;
     }
@@ -228,5 +251,16 @@ body {
     .logout-icon,
     .user-icon {
         font-size: 1rem;
+    }
+
+    .nav-header {
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .nav-logo {
+        height: 35px;
+        max-width: 120px;
     }
 }

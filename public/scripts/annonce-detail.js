@@ -23,13 +23,19 @@
         currentFilename = urlParams.get('file');
         currentAnnonceId = urlParams.get('id');
 
-        if (!currentFilename || !currentAnnonceId) {
-            showError('Paramètres manquants. Impossible de charger l\'annonce.');
+        if (!currentAnnonceId) {
+            showError('ID de l\'annonce manquant. Impossible de charger l\'annonce.');
             return;
         }
 
-        // Charger les données
-        loadAnnonceData(currentFilename, currentAnnonceId);
+        // Vérifier si on a un fichier OU des données temporaires en sessionStorage
+        if (!currentFilename || currentFilename === '') {
+            console.log('📋 Pas de fichier spécifié, tentative de chargement depuis sessionStorage');
+            loadAnnonceFromSessionStorage(currentAnnonceId);
+        } else {
+            // Charger les données depuis le fichier
+            loadAnnonceData(currentFilename, currentAnnonceId);
+        }
 
         // Événement bouton retour
         document.getElementById('backBtn').addEventListener('click', function() {
@@ -40,6 +46,47 @@
     /* ==========================================
        CHARGEMENT DES DONNÉES
        ========================================== */
+
+    function loadAnnonceFromSessionStorage(annonceId) {
+        console.log('🔍 Recherche de l\'annonce dans sessionStorage...');
+
+        try {
+            // Essayer de récupérer les annonces temporaires
+            const tempAnnoncesStr = sessionStorage.getItem('tempAnnonces');
+            if (!tempAnnoncesStr) {
+                showError('Aucune donnée temporaire trouvée. Veuillez d\'abord effectuer une recherche ou sélectionner un fichier.');
+                return;
+            }
+
+            const tempAnnonces = JSON.parse(tempAnnoncesStr);
+            console.log(`📦 ${tempAnnonces.length} annonces trouvées dans sessionStorage`);
+
+            // Chercher l'annonce par ID
+            const annonce = tempAnnonces.find(a => String(a.id) === String(annonceId));
+
+            if (!annonce) {
+                showError(`Annonce #${annonceId} introuvable dans les données temporaires.`);
+                return;
+            }
+
+            console.log('✅ Annonce trouvée:', annonce);
+
+            // Charger aussi les annonces de location si disponibles
+            const tempLocationStr = sessionStorage.getItem('tempLocationAnnonces');
+            let locationAnnonces = [];
+            if (tempLocationStr) {
+                locationAnnonces = JSON.parse(tempLocationStr);
+                console.log(`📍 ${locationAnnonces.length} annonces de location trouvées`);
+            }
+
+            // Afficher l'annonce
+            displayAnnonce(annonce, locationAnnonces);
+
+        } catch (error) {
+            console.error('❌ Erreur lors du chargement depuis sessionStorage:', error);
+            showError('Erreur lors du chargement des données temporaires: ' + error.message);
+        }
+    }
 
     async function loadAnnonceData(filename, annonceId) {
         try {
@@ -289,7 +336,25 @@
        AFFICHAGE DE L'ANNONCE
        ========================================== */
 
-    function displayAnnonce() {
+    function displayAnnonce(annonce, locationAnnonces = []) {
+        // Si annonce est fournie en paramètre, l'utiliser, sinon utiliser annonceData globale
+        if (annonce) {
+            annonceData = annonce;
+        }
+
+        // Vérifier que annonceData est définie
+        if (!annonceData) {
+            showError('Aucune donnée d\'annonce à afficher');
+            return;
+        }
+
+        // Si locationAnnonces est fourni, le stocker globalement
+        if (locationAnnonces && locationAnnonces.length > 0) {
+            window.locationAnnonces = locationAnnonces;
+            // Recalculer les statistiques de location avec les nouvelles données
+            calculateRentalStats();
+        }
+
         // Cacher le loading
         document.getElementById('loading').style.display = 'none';
         document.getElementById('annonce-content').style.display = 'block';
@@ -320,6 +385,10 @@
 
         // Localisation
         document.getElementById('annonce-localisation').textContent = localisation;
+
+        // Quartier
+        const quartier = annonceData.quartier || '-';
+        document.getElementById('annonce-quartier').textContent = quartier;
 
         // Surface
         document.getElementById('annonce-surface').textContent = surface ? `${surface} m²` : 'N/A';
@@ -471,7 +540,20 @@
                 loanFurnitureCostElement.textContent = formatPrice(furnitureCost);
             }
 
-            loanTotalCostDisplay.textContent = formatPrice(totalCost);
+            // Afficher le sous-total
+            const loanSubtotalElement = document.getElementById('loan-subtotal');
+            if (loanSubtotalElement) {
+                loanSubtotalElement.textContent = formatPrice(totalCost);
+            }
+
+            // Afficher l'apport
+            const loanApportDisplayElement = document.getElementById('loan-apport-display');
+            if (loanApportDisplayElement) {
+                loanApportDisplayElement.textContent = formatPrice(apport);
+            }
+
+            // Afficher le montant à emprunter (totalCost - apport)
+            loanTotalCostDisplay.textContent = formatPrice(loanAmount);
 
             // Calcul de la mensualité avec la formule d'amortissement
             // M = P * (r(1+r)^n) / ((1+r)^n - 1)
@@ -506,6 +588,11 @@
             console.log(`   Montant emprunté: ${formatPrice(loanAmount)}`);
             console.log(`   Coût du crédit: ${formatPrice(totalInterest)}`);
             console.log(`   Total à rembourser: ${formatPrice(totalRepayment)}`);
+
+            // Mettre à jour la rentabilité si la fonction est disponible
+            if (typeof window.calculateProfitability === 'function') {
+                window.calculateProfitability();
+            }
         }
 
         // Exposer calculateLoan globalement pour pouvoir l'appeler depuis calculateFurnitureCost
@@ -703,6 +790,10 @@
                     throw new Error('Utilisateur non authentifié');
                 }
 
+                // Récupérer la qualité des meubles sélectionnée
+                const furnitureQualityRadio = document.querySelector('input[name="furniture-quality"]:checked');
+                const furnitureQuality = furnitureQualityRadio ? parseFloat(furnitureQualityRadio.value) : 0;
+
                 // Préparer les données à sauvegarder
                 const loanData = {
                     annonceId: currentAnnonceId,
@@ -711,6 +802,7 @@
                     apport: parseFloat(loanApportInput.value) || 0,
                     worksAmount: parseFloat(loanWorksAmountInput.value) || 0,
                     worksArray: worksArray,
+                    furnitureQuality: furnitureQuality,
                     savedAt: new Date().toISOString()
                 };
 
@@ -830,6 +922,17 @@
                 loanWorksAmountInput.value = savedData.worksAmount;
             }
 
+            // Restaurer la qualité des meubles
+            if (savedData.furnitureQuality !== undefined) {
+                const furnitureRadio = document.querySelector(`input[name="furniture-quality"][value="${savedData.furnitureQuality}"]`);
+                if (furnitureRadio) {
+                    furnitureRadio.checked = true;
+                    // Déclencher l'événement change pour mettre à jour le coût
+                    furnitureRadio.dispatchEvent(new Event('change'));
+                }
+                console.log(`🛋️ Qualité des meubles restaurée: ${savedData.furnitureQuality} €/m²`);
+            }
+
             // Recalculer
             calculateLoan();
 
@@ -886,48 +989,22 @@
             document.getElementById('furniture-total-cost').textContent = formatPrice(furnitureCost);
 
             // Déclencher le recalcul du prêt (qui inclura le coût d'ameublement)
-            // Cela mettra à jour automatiquement le résumé du prêt
+            // Cela mettra à jour automatiquement le résumé du prêt ET la rentabilité
             if (typeof calculateLoan === 'function') {
                 calculateLoan();
             }
-
-            // Mettre à jour le calcul de rentabilité
-            calculateProfitability();
 
             return { furnitureCost };
         }
 
         // Fonction pour calculer la rentabilité
         function calculateProfitability() {
-            const rentalTypeSelect = document.getElementById('rental-type-select');
-            const selectedType = rentalTypeSelect.value;
+            // Récupérer le loyer depuis le champ de saisie (ou slider si pas rempli)
+            const rentInput = document.getElementById('rent-input');
+            const rentSlider = document.getElementById('rent-slider');
+            const selectedRent = parseFloat(rentInput?.value || rentSlider?.value || 0);
 
-            let selectedRent = 0;
-
-            // Déterminer le loyer sélectionné
-            // Les valeurs sont du type: "non-meuble-min", "meuble-min"
-            let type, level;
-            if (selectedType.startsWith('non-meuble-')) {
-                type = 'non-meuble';
-                level = selectedType.replace('non-meuble-', '');
-            } else if (selectedType.startsWith('meuble-')) {
-                type = 'meuble';
-                level = selectedType.replace('meuble-', '');
-            }
-
-            console.log(`🔍 Type sélectionné: "${type}", Niveau: "${level}"`);
-
-            if (type === 'meuble') {
-                if (level === 'min') selectedRent = rentalStats.meuble.min;
-                else if (level === 'avg') selectedRent = rentalStats.meuble.avg;
-                else if (level === 'max') selectedRent = rentalStats.meuble.max;
-            } else if (type === 'non-meuble') {
-                if (level === 'min') selectedRent = rentalStats.nonMeuble.min;
-                else if (level === 'avg') selectedRent = rentalStats.nonMeuble.avg;
-                else if (level === 'max') selectedRent = rentalStats.nonMeuble.max;
-            }
-
-            console.log(`💰 Loyer sélectionné: ${selectedRent}`, rentalStats);
+            console.log(`💰 Loyer sélectionné: ${selectedRent}`);
 
             if (!selectedRent || selectedRent === 0) {
                 document.getElementById('selected-rent').textContent = 'Non disponible';
@@ -944,9 +1021,9 @@
             const annualIncome = selectedRent * 12;
             document.getElementById('annual-rent-income').textContent = formatPrice(annualIncome);
 
-            // Récupérer le coût total (qui inclut maintenant l'ameublement)
-            const totalCostText = document.getElementById('loan-total-cost').textContent;
-            const totalCost = parseFloat(totalCostText.replace(/[^\d]/g, '')) || 0;
+            // Récupérer le coût total d'acquisition (sous-total = prix + notaire + travaux + meubles)
+            const subtotalText = document.getElementById('loan-subtotal').textContent;
+            const totalCost = parseFloat(subtotalText.replace(/[^\d]/g, '')) || 0;
 
             if (totalCost === 0) {
                 console.log('⚠️ Coût total non disponible');
@@ -981,6 +1058,9 @@
             console.log(`💰 Rentabilité calculée: ${grossYield.toFixed(2)}%, Cash-flow: ${formatPrice(monthlyCashflow)}`);
         }
 
+        // Exposer calculateProfitability globalement pour pouvoir l'appeler depuis calculateLoan
+        window.calculateProfitability = calculateProfitability;
+
         // Event listeners pour les boutons radio de qualité d'ameublement
         const furnitureRadios = document.querySelectorAll('input[name="furniture-quality"]');
         furnitureRadios.forEach(radio => {
@@ -991,13 +1071,103 @@
             });
         });
 
-        // Event listener pour le type de location
-        const rentalTypeSelect = document.getElementById('rental-type-select');
-        rentalTypeSelect.addEventListener('change', calculateProfitability);
+        // Fonction pour mettre à jour le slider en fonction du toggle
+        function updateRentSlider() {
+            const toggle = document.getElementById('rental-type-toggle');
+            const slider = document.getElementById('rent-slider');
+            const isMeuble = toggle.checked;
+
+            let minRent, maxRent, avgRent;
+
+            if (isMeuble) {
+                minRent = rentalStats.meuble.min || 0;
+                maxRent = rentalStats.meuble.max || 1000;
+                avgRent = rentalStats.meuble.avg || 500;
+            } else {
+                minRent = rentalStats.nonMeuble.min || 0;
+                maxRent = rentalStats.nonMeuble.max || 1000;
+                avgRent = rentalStats.nonMeuble.avg || 500;
+            }
+
+            // Mettre à jour les bornes du slider
+            slider.min = minRent;
+            slider.max = maxRent;
+            slider.value = avgRent;
+
+            // Mettre à jour le champ de saisie
+            const rentInput = document.getElementById('rent-input');
+            if (rentInput) {
+                rentInput.min = minRent;
+                rentInput.max = maxRent;
+                rentInput.value = avgRent;
+            }
+
+            // Afficher les bornes
+            document.getElementById('rent-min-display').textContent = formatPrice(minRent);
+            document.getElementById('rent-max-display').textContent = formatPrice(maxRent);
+
+            console.log(`🔄 Slider mis à jour: min=${minRent}, max=${maxRent}, valeur=${avgRent}, meublé=${isMeuble}`);
+
+            // Recalculer la rentabilité
+            calculateProfitability();
+        }
+
+        // Fonction pour mettre à jour le slider depuis le champ de saisie
+        function updateFromInput() {
+            const rentInput = document.getElementById('rent-input');
+            const slider = document.getElementById('rent-slider');
+            const value = parseFloat(rentInput.value) || 0;
+
+            // Mettre à jour le slider
+            slider.value = value;
+
+            console.log(`✏️ Loyer saisi manuellement: ${value}`);
+
+            // Recalculer la rentabilité
+            calculateProfitability();
+        }
+
+        // Fonction pour mettre à jour le champ de saisie depuis le slider
+        function updateFromSlider() {
+            const slider = document.getElementById('rent-slider');
+            const rentInput = document.getElementById('rent-input');
+            const value = parseFloat(slider.value);
+
+            // Mettre à jour le champ de saisie
+            if (rentInput) {
+                rentInput.value = value;
+            }
+
+            console.log(`🎚️ Loyer depuis slider: ${value}`);
+
+            // Recalculer la rentabilité
+            calculateProfitability();
+        }
+
+        // Event listener pour le toggle meublé/non meublé
+        const rentalTypeToggle = document.getElementById('rental-type-toggle');
+        if (rentalTypeToggle) {
+            rentalTypeToggle.addEventListener('change', updateRentSlider);
+        }
+
+        // Event listener pour le slider de loyer
+        const rentSlider = document.getElementById('rent-slider');
+        if (rentSlider) {
+            rentSlider.addEventListener('input', updateFromSlider);
+        }
+
+        // Event listener pour le champ de saisie du loyer
+        const rentInput = document.getElementById('rent-input');
+        if (rentInput) {
+            rentInput.addEventListener('input', updateFromInput);
+        }
 
         // Event listener pour les charges annuelles
         const annualChargesInput = document.getElementById('annual-charges');
         annualChargesInput.addEventListener('input', calculateProfitability);
+
+        // Initialiser le slider avec les valeurs non meublé
+        updateRentSlider();
 
         // Calcul initial
         calculateFurnitureCost();
@@ -1118,5 +1288,359 @@
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
     }
+
+    /* ==========================================
+       GESTION DE LA POPUP PDF
+       ========================================== */
+
+    function initPdfPopup() {
+        const generatePdfBtn = document.getElementById('generate-pdf-btn');
+        const pdfPopup = document.getElementById('pdf-popup');
+        const closePdfPopupBtn = document.getElementById('close-pdf-popup');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+
+        // Ouvrir la popup
+        generatePdfBtn.addEventListener('click', function() {
+            pdfPopup.style.display = 'flex';
+            console.log('📄 Popup PDF ouverte');
+        });
+
+        // Fermer la popup
+        function closePopup() {
+            pdfPopup.style.display = 'none';
+            console.log('✖️ Popup PDF fermée');
+        }
+
+        closePdfPopupBtn.addEventListener('click', closePopup);
+
+        // Fermer la popup si on clique en dehors
+        pdfPopup.addEventListener('click', function(event) {
+            if (event.target === pdfPopup) {
+                closePopup();
+            }
+        });
+
+        // Gérer les clics sur les labels pour cocher/décocher
+        const sectionItems = document.querySelectorAll('.pdf-section-item');
+        sectionItems.forEach(item => {
+            item.addEventListener('click', function(event) {
+                // Si on clique sur le label, ne pas propager l'événement
+                if (event.target.tagName === 'LABEL' || event.target.classList.contains('section-label')) {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    event.preventDefault();
+                }
+            });
+        });
+
+        // Télécharger le PDF
+        downloadPdfBtn.addEventListener('click', async function() {
+            console.log('📥 Génération du PDF...');
+
+            // Récupérer les sections sélectionnées
+            const selectedSections = [];
+            const checkboxes = document.querySelectorAll('input[name="pdf-section"]:checked');
+            checkboxes.forEach(cb => selectedSections.push(cb.value));
+
+            const includeLink = document.getElementById('pdf-include-link').checked;
+
+            console.log('📋 Sections sélectionnées:', selectedSections);
+            console.log('🔗 Inclure le lien:', includeLink);
+
+            if (selectedSections.length === 0) {
+                alert('Veuillez sélectionner au moins une section à inclure dans le PDF');
+                return;
+            }
+
+            // Désactiver le bouton pendant la génération
+            downloadPdfBtn.disabled = true;
+            downloadPdfBtn.textContent = '⏳ Génération en cours...';
+
+            try {
+                await generatePDF(selectedSections, includeLink);
+                console.log('✅ PDF généré avec succès');
+                closePopup();
+            } catch (error) {
+                console.error('❌ Erreur lors de la génération du PDF:', error);
+                alert('Erreur lors de la génération du PDF: ' + error.message);
+            } finally {
+                downloadPdfBtn.disabled = false;
+                downloadPdfBtn.textContent = '📥 Télécharger le PDF';
+            }
+        });
+    }
+
+    /* ==========================================
+       GÉNÉRATION DU PDF
+       ========================================== */
+
+    async function generatePDF(selectedSections, includeLink) {
+        // Pour la génération du PDF, nous allons utiliser jsPDF avec html2canvas
+        // Ces bibliothèques devront être incluses dans le HTML
+
+        // Vérifier si jsPDF est disponible
+        if (typeof window.jspdf === 'undefined') {
+            throw new Error('La bibliothèque jsPDF n\'est pas chargée. Veuillez inclure jsPDF dans votre page.');
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        let yPosition = 20;
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15;
+        const contentWidth = pageWidth - (margin * 2);
+
+        // Helper pour ajouter une nouvelle page si nécessaire
+        function checkNewPage(heightNeeded = 20) {
+            if (yPosition + heightNeeded > pageHeight - margin) {
+                pdf.addPage();
+                yPosition = 20;
+                return true;
+            }
+            return false;
+        }
+
+        // Helper pour ajouter du texte avec retour à la ligne automatique
+        function addText(text, fontSize = 10, isBold = false) {
+            pdf.setFontSize(fontSize);
+            if (isBold) {
+                pdf.setFont(undefined, 'bold');
+            } else {
+                pdf.setFont(undefined, 'normal');
+            }
+
+            const lines = pdf.splitTextToSize(text, contentWidth);
+            const lineHeight = fontSize * 0.5;
+
+            lines.forEach(line => {
+                checkNewPage(lineHeight);
+                pdf.text(line, margin, yPosition);
+                yPosition += lineHeight;
+            });
+            yPosition += 2;
+        }
+
+        // Titre principal
+        pdf.setFillColor(255, 215, 0);
+        pdf.rect(0, 0, pageWidth, 40, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(20);
+        pdf.setFont(undefined, 'bold');
+        const title = document.getElementById('annonce-title').textContent;
+        pdf.text(title, margin, 15);
+
+        const price = document.getElementById('annonce-price').textContent;
+        pdf.setFontSize(18);
+        pdf.text(price, margin, 25);
+
+        const priceM2 = document.getElementById('annonce-price-m2').textContent;
+        pdf.setFontSize(12);
+        pdf.text(priceM2, margin, 32);
+
+        yPosition = 50;
+        pdf.setTextColor(0, 0, 0);
+
+        // Inclure les sections sélectionnées
+        for (const section of selectedSections) {
+            switch (section) {
+                case 'header':
+                    // Déjà inclus dans le titre
+                    break;
+
+                case 'main-info':
+                    checkNewPage(30);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Informations principales', margin, yPosition);
+                    yPosition += 8;
+
+                    pdf.setFontSize(10);
+                    pdf.setFont(undefined, 'normal');
+
+                    const localisation = document.getElementById('annonce-localisation').textContent;
+                    addText(`Localisation: ${localisation}`, 10, true);
+
+                    const quartier = document.getElementById('annonce-quartier').textContent;
+                    addText(`Quartier: ${quartier}`);
+
+                    const surface = document.getElementById('annonce-surface').textContent;
+                    addText(`Surface: ${surface}`);
+
+                    const pieces = document.getElementById('annonce-pieces').textContent;
+                    addText(`Pièces: ${pieces}`);
+
+                    const date = document.getElementById('annonce-date').textContent;
+                    addText(`Date de publication: ${date}`);
+
+                    yPosition += 5;
+                    break;
+
+                case 'description':
+                    checkNewPage(30);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Description', margin, yPosition);
+                    yPosition += 8;
+
+                    const description = document.getElementById('annonce-description').textContent;
+                    addText(description, 9);
+                    yPosition += 5;
+                    break;
+
+                case 'price-position':
+                    checkNewPage(30);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Positionnement prix', margin, yPosition);
+                    yPosition += 8;
+
+                    if (priceStats) {
+                        addText(`Prix minimum: ${formatPrice(priceStats.minPrice)}`);
+                        addText(`Prix moyen: ${formatPrice(priceStats.avgPrice)}`);
+                        addText(`Prix maximum: ${formatPrice(priceStats.maxPrice)}`);
+                        yPosition += 3;
+                        addText(`Prix/m² minimum: ${priceStats.minPriceM2} €/m²`);
+                        addText(`Prix/m² moyen: ${priceStats.avgPriceM2} €/m²`);
+                        addText(`Prix/m² maximum: ${priceStats.maxPriceM2} €/m²`);
+                    }
+                    yPosition += 5;
+                    break;
+
+                case 'works':
+                    checkNewPage(30);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Estimation des travaux', margin, yPosition);
+                    yPosition += 8;
+
+                    const worksCost = document.getElementById('loan-works-cost').textContent;
+                    addText(`Montant des travaux: ${worksCost}`, 10, true);
+                    yPosition += 5;
+                    break;
+
+                case 'furniture':
+                    checkNewPage(30);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Coût de l\'ameublement', margin, yPosition);
+                    yPosition += 8;
+
+                    const furnitureCost = document.getElementById('loan-furniture-cost').textContent;
+                    addText(`Coût d'ameublement: ${furnitureCost}`, 10, true);
+                    yPosition += 5;
+                    break;
+
+                case 'loan':
+                    checkNewPage(50);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Calculateur de prêt immobilier', margin, yPosition);
+                    yPosition += 8;
+
+                    const propertyPrice = document.getElementById('loan-property-price').textContent;
+                    addText(`Prix du bien: ${propertyPrice}`);
+
+                    const notaryFees = document.getElementById('loan-notary-fees').textContent;
+                    addText(`Frais de notaire: ${notaryFees}`);
+
+                    const worksAmount = document.getElementById('loan-works-cost').textContent;
+                    addText(`Travaux: ${worksAmount}`);
+
+                    const furnitureAmount = document.getElementById('loan-furniture-cost').textContent;
+                    addText(`Ameublement: ${furnitureAmount}`);
+
+                    const subtotal = document.getElementById('loan-subtotal').textContent;
+                    addText(`Sous-total: ${subtotal}`, 10, true);
+
+                    const apport = document.getElementById('loan-apport-display').textContent;
+                    addText(`Apport personnel: ${apport}`);
+
+                    const totalCost = document.getElementById('loan-total-cost').textContent;
+                    addText(`Montant à emprunter: ${totalCost}`, 11, true);
+
+                    yPosition += 3;
+
+                    const monthlyPayment = document.getElementById('loan-monthly-payment').textContent;
+                    addText(`Mensualité: ${monthlyPayment}`, 12, true);
+
+                    const totalInterest = document.getElementById('loan-total-interest').textContent;
+                    addText(`Coût total du crédit: ${totalInterest}`);
+
+                    const totalRepayment = document.getElementById('loan-total-repayment').textContent;
+                    addText(`Total à rembourser: ${totalRepayment}`);
+
+                    yPosition += 5;
+                    break;
+
+                case 'rental':
+                    checkNewPage(40);
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Rentabilité locative', margin, yPosition);
+                    yPosition += 8;
+
+                    const selectedRent = document.getElementById('selected-rent').textContent;
+                    addText(`Loyer mensuel: ${selectedRent}`, 10, true);
+
+                    const annualIncome = document.getElementById('annual-rent-income').textContent;
+                    addText(`Revenus annuels: ${annualIncome}`);
+
+                    const grossYield = document.getElementById('gross-yield').textContent;
+                    addText(`Rendement brut: ${grossYield}`, 11, true);
+
+                    const cashflow = document.getElementById('monthly-cashflow').textContent;
+                    addText(`Cash-flow mensuel: ${cashflow}`, 11, true);
+
+                    yPosition += 5;
+                    break;
+            }
+        }
+
+        // Ajouter le lien si demandé
+        if (includeLink) {
+            checkNewPage(20);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            pdf.setTextColor(0, 0, 255);
+            const annonceUrl = document.getElementById('annonce-link').href;
+            addText(`Lien vers l'annonce: ${annonceUrl}`, 9);
+        }
+
+        // Footer sur chaque page
+        const pageCount = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text(`Page ${i} sur ${pageCount}`, pageWidth - 30, pageHeight - 10);
+            pdf.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, margin, pageHeight - 10);
+        }
+
+        // Télécharger le PDF
+        const filename = `annonce_${currentAnnonceId}_${new Date().getTime()}.pdf`;
+        pdf.save(filename);
+    }
+
+    // Initialiser la popup PDF après le chargement du DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attendre que l'annonce soit chargée avant d'initialiser la popup
+        const observer = new MutationObserver(function(mutations) {
+            const generateBtn = document.getElementById('generate-pdf-btn');
+            if (generateBtn && !generateBtn.hasAttribute('data-initialized')) {
+                generateBtn.setAttribute('data-initialized', 'true');
+                initPdfPopup();
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
 
 })();

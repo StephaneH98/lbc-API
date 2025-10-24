@@ -81,7 +81,13 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex-wrap: wrap;
     gap: 2rem;
+}
+
+.annonce-header-action {
+    display: flex;
+    align-items: center;
 }
 
 .annonce-title-section {
@@ -357,6 +363,7 @@
     padding: 1.5rem;
     border-radius: 8px;
     border-left: 4px solid #FFD700;
+    margin-top: 2rem;
 }
 
 .loan-summary-item {
@@ -367,14 +374,6 @@
     font-size: 1rem;
 }
 
-.loan-summary-item.total {
-    border-top: 2px solid #dee2e6;
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
 .summary-label {
     color: #666;
 }
@@ -382,6 +381,37 @@
 .summary-value {
     color: #333;
     font-weight: 600;
+}
+
+.loan-summary-item.subtotal {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.loan-summary-item.subtotal .summary-value {
+    color: #666;
+    font-weight: 700;
+}
+
+.loan-summary-item.apport {
+    color: #2ecc71;
+}
+
+.loan-summary-item.apport .summary-label {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.loan-summary-item.apport .summary-value {
+    color: #2ecc71;
+    font-weight: 700;
+}
+
+.loan-summary-item.total {
+    border-top: 2px solid #FFD700;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 .loan-summary-item.total .summary-value {
@@ -838,13 +868,47 @@
 }
 
 /* ==========================================
-   ACTIONS
+   ACTIONS (BOUTON ENREGISTRER EN BAS)
    ========================================== */
 
 .annonce-actions {
     display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
     justify-content: center;
-    margin-bottom: 2rem;
+    margin: 3rem 0 2rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-button-container {
+    flex: 1;
+    min-width: 200px;
+}
+
+.pdf-btn {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.pdf-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+.pdf-btn:active {
+    transform: translateY(0);
 }
 
 .btn-large {
@@ -1137,38 +1201,193 @@
     border-top: 2px solid #f0f0f0;
 }
 
-.profitability-selector {
+/* Toggle Switch pour Meublé / Non Meublé */
+.rental-type-toggle-container {
     margin-bottom: 2rem;
+}
+
+.rental-type-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.toggle-switch-wrapper {
     display: flex;
     align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.toggle-label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #666;
+    transition: color 0.3s;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #f8b400;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.toggle-switch input:checked ~ .toggle-label:last-child {
+    color: #f8b400;
+    font-weight: 600;
+}
+
+/* Slider pour le loyer */
+.rent-slider-container {
+    margin-bottom: 2rem;
+}
+
+.rent-slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
     gap: 1rem;
 }
 
-.profitability-selector label {
+.rent-slider-label {
     font-weight: 600;
     color: #2c3e50;
-    white-space: nowrap;
 }
 
-.rental-type-select {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
+.rent-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     background: white;
-    cursor: pointer;
-    transition: border-color 0.3s;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 2px solid #f8b400;
+    box-shadow: 0 2px 8px rgba(248, 180, 0, 0.2);
 }
 
-.rental-type-select:hover {
-    border-color: #f8b400;
-}
-
-.rental-type-select:focus {
+.rent-input {
+    width: 120px;
+    border: none;
     outline: none;
-    border-color: #f8b400;
-    box-shadow: 0 0 0 3px rgba(248, 180, 0, 0.1);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: right;
+}
+
+.rent-input::-webkit-inner-spin-button,
+.rent-input::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+.rent-unit {
+    font-weight: 600;
+    color: #f8b400;
+    font-size: 1.1rem;
+}
+
+.rent-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.rent-slider-bound {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 600;
+    min-width: 80px;
+    text-align: center;
+}
+
+.rent-slider {
+    flex: 1;
+    height: 8px;
+    border-radius: 5px;
+    background: #e0e0e0;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.rent-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(248, 180, 0, 0.4);
+    transition: all 0.3s;
+}
+
+.rent-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(248, 180, 0, 0.6);
+}
+
+.rent-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f8b400 0%, #d4940a 100%);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(248, 180, 0, 0.4);
+    transition: all 0.3s;
+}
+
+.rent-slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(248, 180, 0, 0.6);
 }
 
 .profitability-results {
@@ -1266,13 +1485,31 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .profitability-selector {
+    .toggle-switch-wrapper {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .rent-slider-header {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .profitability-selector label {
-        white-space: normal;
+    .rent-input-group {
+        justify-content: space-between;
+    }
+
+    .rent-input {
+        width: 100px;
+    }
+
+    .rent-slider-wrapper {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .rent-slider-bound {
+        min-width: auto;
     }
 
     .furniture-summary-item,
@@ -1302,5 +1539,225 @@
     .rental-stats-table td {
         padding: 0.75rem 0.5rem;
         font-size: 0.9rem;
+    }
+}
+
+/* ==========================================
+   POPUP PDF
+   ========================================== */
+
+.pdf-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+}
+
+.pdf-popup-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: popupSlideIn 0.3s ease;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.pdf-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid #f0f0f0;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.pdf-popup-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.close-popup-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 2rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.close-popup-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.pdf-popup-body {
+    padding: 2rem;
+}
+
+.pdf-sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.pdf-section-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pdf-section-item:hover {
+    background: #fff9e6;
+    border-color: #FFD700;
+    transform: translateX(5px);
+}
+
+.pdf-section-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #FFD700;
+}
+
+.pdf-section-item .section-label {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+}
+
+.pdf-section-item input[type="checkbox"]:checked + .section-label {
+    font-weight: 600;
+    color: #FFA500;
+}
+
+.pdf-options {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.pdf-option-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #e8f4fd;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.pdf-option-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3498db;
+}
+
+.pdf-option-item .option-label {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.pdf-popup-footer {
+    padding: 1.5rem 2rem;
+    border-top: 2px solid #f0f0f0;
+    display: flex;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 0 0 16px 16px;
+}
+
+.btn-download-pdf {
+    padding: 1rem 3rem;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+}
+
+.btn-download-pdf:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-download-pdf:active {
+    transform: translateY(-1px);
+}
+
+/* Responsive pour la popup */
+@media (max-width: 768px) {
+    .pdf-popup-content {
+        max-width: 95%;
+        max-height: 95vh;
+    }
+
+    .pdf-popup-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .pdf-popup-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .pdf-popup-body {
+        padding: 1.5rem;
+    }
+
+    .pdf-section-item {
+        padding: 0.75rem 1rem;
+    }
+
+    .pdf-section-item .section-label {
+        font-size: 0.9rem;
+    }
+
+    .btn-download-pdf {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
     }
 }

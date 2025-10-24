@@ -258,13 +258,16 @@ def lambda_handler(event, context):
         # Générer le nom de fichier
         # Si un filename est fourni, l'utiliser, sinon utiliser le timestamp
         if 'filename' in payload and payload['filename']:
-            filename = payload['filename']
-            print(f"📄 Mise à jour du fichier existant: {filename}")
+            filename = payload['filename'].strip()
+            # Ajouter .json si l'extension n'est pas présente
+            if not filename.endswith('.json'):
+                filename = f"{filename}.json"
+            print(f"📄 Utilisation du nom de fichier personnalisé: {filename}")
             timestamp = payload.get('timestamp', datetime.utcnow().isoformat() + 'Z')
         else:
             timestamp = payload['timestamp']
             filename = sanitize_filename(timestamp)
-            print(f"📄 Création du nouveau fichier: {filename}")
+            print(f"📄 Création du nouveau fichier avec timestamp: {filename}")
 
         # Préparer les données à sauvegarder
         save_data = {
